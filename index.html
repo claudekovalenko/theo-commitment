@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<title>True North</title>
+<meta name="description" content="A private compass for theological conviction and ministry alignment.">
+<meta name="theme-color" content="#0e111b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="True North">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="lock" class="lock" hidden>
+  <div class="lock-card">
+    <svg class="lock-mark" viewBox="0 0 100 100" aria-hidden="true">
+      <path d="M50 12 L74 84 L50 70 Z" fill="#d6a854"/>
+      <path d="M50 12 L26 84 L50 70 Z" fill="#927036"/>
+    </svg>
+    <h1>True North</h1>
+    <p class="muted" id="lock-hint">Enter your PIN to unlock.</p>
+    <form id="lock-form" autocomplete="off">
+      <input id="lock-pin" type="password" inputmode="numeric" placeholder="PIN" aria-label="PIN"
+             autocomplete="current-password">
+      <button class="btn primary" type="submit">Unlock</button>
+    </form>
+    <p class="error" id="lock-error" hidden></p>
+  </div>
+</div>
+
+<div id="shell" class="shell" hidden>
+  <header class="topbar">
+    <div class="topbar-title">
+      <svg class="mark" viewBox="0 0 100 100" aria-hidden="true">
+        <path d="M50 12 L74 84 L50 70 Z" fill="#d6a854"/>
+        <path d="M50 12 L26 84 L50 70 Z" fill="#927036"/>
+      </svg>
+      <span id="view-title">Compass</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="btn-lock" title="Lock now" hidden>Lock</button>
+      <button class="icon-btn" id="btn-settings" title="Settings">Settings</button>
+    </div>
+  </header>
+
+  <main id="view" class="view" tabindex="-1"></main>
+
+  <nav class="tabs" id="tabs" aria-label="Sections"></nav>
+</div>
+
+<div id="sheet" class="sheet" hidden>
+  <div class="sheet-backdrop" data-close></div>
+  <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="sheet-head">
+      <h2 id="sheet-title"></h2>
+      <button class="icon-btn" data-close aria-label="Close">Close</button>
+    </div>
+    <div class="sheet-body" id="sheet-body"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
