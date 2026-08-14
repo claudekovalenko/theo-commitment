@@ -95,6 +95,13 @@ a { color: var(--gold); }
   font-size: .6rem; font-weight: 700; padding: 0 5px; line-height: 14px;
 }
 
+.warn {
+  max-width: 780px; margin: 12px auto 0; padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--rust) 55%, var(--line));
+  border-radius: 11px; background: color-mix(in srgb, var(--rust) 12%, var(--ink-2));
+  color: var(--text); font-size: .85rem;
+}
+
 /* ---------- cards & bits ---------- */
 
 .card {

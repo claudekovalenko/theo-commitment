@@ -1,7 +1,7 @@
 // Boot, lock screen, tab bar, render loop.
 
 import * as store from './store.js';
-import { $, h, clear, initSheet, closeSheet, toast } from './ui.js';
+import { $, h, clear, initSheet, closeSheet } from './ui.js';
 import { ROUTES, currentRoute, onRoute, go } from './router.js';
 import { openSettings } from './views/settings.js';
 import * as compass from './views/compass.js';
@@ -111,6 +111,13 @@ function start() {
   $('#btn-lock').hidden = !store.isEncrypted();
   touch();
   render();
+
+  if (!store.isPersistent()) {
+    const warn = $('#warn');
+    warn.textContent = 'This browser is blocking local storage here, so anything you write will be gone on '
+      + 'reload. Open the page in its own tab (or install it) and it will save normally.';
+    warn.hidden = false;
+  }
 }
 
 function boot() {
@@ -135,9 +142,10 @@ function boot() {
     start();
   }
 
-  if ('serviceWorker' in navigator) {
+  // The single-file build has no manifest and no sw.js to register.
+  if ('serviceWorker' in navigator && document.querySelector('link[rel=manifest]')) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch(() => toast('Offline mode unavailable'));
+      navigator.serviceWorker.register('sw.js').catch(() => {});
     });
   }
 }

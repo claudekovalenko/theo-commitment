@@ -3,6 +3,31 @@
 
 import { seedState } from './seed.js';
 
+// Some hosts (private windows, sandboxed frames) throw on localStorage. Fall
+// back to memory so the app still runs, and let the UI say so plainly.
+const mem = new Map();
+let persistent = true;
+const LS = {
+  get(k) {
+    if (!persistent) return mem.get(k) ?? null;
+    try { return localStorage.getItem(k); } catch { persistent = false; return mem.get(k) ?? null; }
+  },
+  set(k, v) {
+    if (persistent) {
+      try { localStorage.setItem(k, v); return; } catch { persistent = false; }
+    }
+    mem.set(k, v);
+  },
+  remove(k) {
+    if (persistent) {
+      try { localStorage.removeItem(k); return; } catch { persistent = false; }
+    }
+    mem.delete(k);
+  },
+};
+
+export const isPersistent = () => persistent;
+
 const KEY_PLAIN = 'tn.v1.data';
 const KEY_ENC = 'tn.v1.enc';
 const PBKDF2_ROUNDS = 310000;
@@ -32,13 +57,13 @@ async function deriveKey(pin, salt) {
 
 /* ---------- lifecycle ---------- */
 
-export const isEncrypted = () => localStorage.getItem(KEY_ENC) !== null;
+export const isEncrypted = () => LS.get(KEY_ENC) !== null;
 export const isUnlocked = () => state !== null;
 
 /** Load plaintext data (or fresh seed). Throws if the vault is encrypted. */
 export function open() {
   if (isEncrypted()) throw new Error('locked');
-  const raw = localStorage.getItem(KEY_PLAIN);
+  const raw = LS.get(KEY_PLAIN);
   state = raw ? migrate(JSON.parse(raw)) : seedState();
   if (!raw) persist();
   return state;
@@ -46,7 +71,7 @@ export function open() {
 
 /** Decrypt with a PIN. Returns false when the PIN is wrong. */
 export async function unlock(pin) {
-  const blob = JSON.parse(localStorage.getItem(KEY_ENC));
+  const blob = JSON.parse(LS.get(KEY_ENC));
   const key = await deriveKey(pin, unb64(blob.salt));
   try {
     const plain = await crypto.subtle.decrypt(
@@ -73,13 +98,13 @@ export async function enableLock(pin) {
   cryptoKey = await deriveKey(pin, salt);
   saltB64 = b64(salt);
   await persist();
-  localStorage.removeItem(KEY_PLAIN);
+  LS.remove(KEY_PLAIN);
 }
 
 export async function disableLock() {
   cryptoKey = null;
   saltB64 = null;
-  localStorage.removeItem(KEY_ENC);
+  LS.remove(KEY_ENC);
   await persist();
 }
 
@@ -96,10 +121,10 @@ async function persist() {
   if (cryptoKey) {
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, cryptoKey, new TextEncoder().encode(json));
-    localStorage.setItem(KEY_ENC, JSON.stringify({ v: 1, salt: saltB64, iv: b64(iv), ct: b64(ct) }));
-    localStorage.removeItem(KEY_PLAIN);
+    LS.set(KEY_ENC, JSON.stringify({ v: 1, salt: saltB64, iv: b64(iv), ct: b64(ct) }));
+    LS.remove(KEY_PLAIN);
   } else {
-    localStorage.setItem(KEY_PLAIN, json);
+    LS.set(KEY_PLAIN, json);
   }
 }
 
@@ -139,8 +164,8 @@ export function importJSON(text, { merge }) {
 }
 
 export function wipe() {
-  localStorage.removeItem(KEY_PLAIN);
-  localStorage.removeItem(KEY_ENC);
+  LS.remove(KEY_PLAIN);
+  LS.remove(KEY_ENC);
   lock();
 }
 
