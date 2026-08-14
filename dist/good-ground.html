@@ -467,10 +467,11 @@ select { appearance: none; }
     { id: "ruled-out", label: "Ruled out", blurb: "Not this one." }
   ];
   var KINDS = [
-    { id: "place", label: "Land / town" },
+    { id: "community", label: "Community / households" },
     { id: "church", label: "Church" },
     { id: "network", label: "Network" },
     { id: "role", label: "Role" },
+    { id: "place", label: "Place / city" },
     { id: "opportunity", label: "Opportunity" }
   ];
   var NOTE_KINDS = [
@@ -496,6 +497,12 @@ select { appearance: none; }
   function latestCheck(checks, groundId) {
     return checks.filter((k) => k.contextId === groundId).sort((a, b) => a.date < b.date ? 1 : -1)[0];
   }
+  var callingPlace = (state2) => state2.contexts.find((c) => c.id === state2.calling?.placeId) || null;
+  var withinCalling = (state2) => {
+    const place = callingPlace(state2);
+    if (!place) return state2.contexts.filter((c) => c.kind !== "place");
+    return state2.contexts.filter((c) => c.kind !== "place" && (c.placeId === place.id || !c.placeId));
+  };
   var impliedPlace = (grounds, g) => {
     if (!g) return null;
     if (g.kind === "place") return g;
@@ -841,6 +848,7 @@ select { appearance: none; }
         createdAt: (/* @__PURE__ */ new Date()).toISOString()
       }],
       people: [],
+      calling: { placeId: "", place: "", why: "", by: "" },
       settings: { autoLockMinutes: 15, name: "" }
     };
   }
@@ -1018,9 +1026,15 @@ select { appearance: none; }
       blocks: [],
       notes: [],
       people: [],
+      calling: { placeId: "", place: "", why: "", by: "" },
       settings: { autoLockMinutes: 15, name: "" }
     };
-    const s = { ...base, ...data, settings: { ...base.settings, ...data.settings || {} } };
+    const s = {
+      ...base,
+      ...data,
+      calling: { ...base.calling, ...data.calling || {} },
+      settings: { ...base.settings, ...data.settings || {} }
+    };
     if (!s.domains.length) s.domains = DEFAULT_DOMAINS.map((d) => ({ ...d }));
     const known = new Set(s.domains.map((d) => d.id));
     const fallback = known.has("ministry") ? "ministry" : s.domains[s.domains.length - 1].id;
@@ -1377,15 +1391,77 @@ select { appearance: none; }
       }) : null)
     ));
   }
+  function editCalling() {
+    const state2 = get();
+    const held = state2.calling || {};
+    const draft = { ...held };
+    openSheet(held.place ? "The calling" : "Where are you called?", () => frag(
+      h(
+        "p",
+        { class: "small muted" },
+        "A calling is settled, not scored. Write it down once and the app will stop asking where \u2014 the open question becomes who you'd build with there."
+      ),
+      field("The city", input({ value: draft.place || "", placeholder: "e.g. Los Angeles", onInput: (e) => {
+        draft.place = e.target.value;
+      } })),
+      field("Why there", area({
+        value: draft.why || "",
+        placeholder: "The reason you'd give someone who asked. Write it while it's clear.",
+        onInput: (e) => {
+          draft.why = e.target.value;
+        }
+      })),
+      field("By when", input({ value: draft.by || "", placeholder: 'A year, a season, "as soon as we can"', onInput: (e) => {
+        draft.by = e.target.value;
+      } })),
+      saveBar(() => {
+        const name = (draft.place || "").trim();
+        if (!name) return toast("Name the city");
+        update((st) => {
+          if (!st.calling) st.calling = { placeId: "", place: "", why: "", by: "" };
+          let place = st.contexts.find((c) => c.id === st.calling.placeId);
+          if (!place) {
+            place = st.contexts.find((c) => c.kind === "place" && c.name.toLowerCase() === name.toLowerCase());
+          }
+          if (!place) {
+            place = {
+              id: uid(),
+              name,
+              kind: "place",
+              stage: "scouting",
+              horizon: "life",
+              placeId: "",
+              notes: "",
+              createdAt: (/* @__PURE__ */ new Date()).toISOString()
+            };
+            st.contexts.push(place);
+          }
+          place.name = name;
+          st.calling = { ...draft, place: name, placeId: place.id };
+          st.contexts.forEach((c) => {
+            if (c.kind !== "place" && !c.placeId) c.placeId = place.id;
+          });
+        });
+        closeSheet();
+        toast("Held");
+      }, held.place ? () => {
+        update((st) => {
+          st.calling = { placeId: "", place: "", why: "", by: "" };
+        });
+        closeSheet();
+        toast("Calling cleared");
+      } : null)
+    ));
+  }
   function editGround(existing, defaults = {}) {
     const state2 = get();
     const g = existing || {
       id: uid(),
       name: "",
-      kind: "place",
+      kind: state2.calling?.placeId ? "community" : "place",
       stage: "scouting",
       horizon: "unknown",
-      placeId: "",
+      placeId: state2.calling?.placeId || "",
       notes: "",
       ...defaults
     };
@@ -1404,7 +1480,7 @@ select { appearance: none; }
             draft.placeId = v;
           }
         ),
-        places.length ? "An offer is only as good as the ground it puts you on." : "Add the land first, then link it."
+        state2.calling?.place ? `You're called to ${state2.calling.place}. Anything that puts you somewhere else is a different conversation.` : places.length ? "An offer is only as good as the ground it puts you on." : "Add the land first, then link it."
       ));
     };
     paintPlace();
@@ -2514,7 +2590,7 @@ select { appearance: none; }
     openSheet(() => get().contexts.find((c) => c.id === id)?.name || "Ground", build);
   }
   function groundRow(state2, ground, s) {
-    const hz = byId(HORIZONS, ground.horizon) || HORIZONS[0];
+    const hz = ground.kind === "place" ? byId(HORIZONS, ground.horizon) || HORIZONS[0] : byId(KINDS, ground.kind) || { label: "" };
     const brings = state2.contexts.filter((c) => c.placeId === ground.id);
     return h(
       "button",
@@ -2551,10 +2627,61 @@ select { appearance: none; }
   }
   function render(state2) {
     const view2 = h("div", {});
-    view2.append(
-      h("h1", {}, "The land"),
-      h("p", { class: "muted small" }, "Every piece of ground you're weighing, and how deep you could root in each.")
-    );
+    const place = callingPlace(state2);
+    if (place) {
+      view2.append(
+        h("h1", {}, `Who in ${place.name}?`),
+        h(
+          "p",
+          { class: "muted small" },
+          "The city is settled. What's open is the people \u2014 which church, which households, which network you'd actually build with."
+        )
+      );
+    } else {
+      view2.append(
+        h("h1", {}, "The land"),
+        h("p", { class: "muted small" }, "Every piece of ground you're weighing, and how deep you could root in each.")
+      );
+    }
+    const inside = withinCalling(state2).map((ground) => ({ ground, s: survey(state2, ground) })).sort((a, b) => b.s.depth - a.s.depth);
+    if (place) {
+      view2.append(section(`In ${place.name}`, "Add", () => editGround(null, { kind: "community" })));
+      if (!inside.length) {
+        view2.append(empty("Nobody named there yet. Start with one church or one family.", "Add a community", () => editGround(null, { kind: "community" })));
+      } else {
+        inside.forEach(({ ground, s }) => view2.append(groundRow(state2, ground, s)));
+      }
+      const surveyed2 = inside.filter((r) => r.s.check);
+      if (surveyed2.length > 1) {
+        view2.append(section("Side by side"));
+        view2.append(h(
+          "div",
+          { class: "card" },
+          compareTable(state2, surveyed2),
+          h("p", { class: "tiny muted", style: "margin:10px 0 0" }, "Per cent of each area they actually hold. Last column is how deep you could root.")
+        ));
+      }
+      view2.append(section("The city itself", "Edit the calling", editCalling));
+      view2.append(groundRow(state2, place, survey(state2, place)));
+      const elsewhere = state2.contexts.filter((c) => c.kind === "place" && c.id !== place.id);
+      if (elsewhere.length) {
+        view2.append(section("Elsewhere"));
+        view2.append(h("p", { class: "tiny muted" }, "Kept for comparison. You said the city is settled."));
+        const rows = h("div", { class: "rows" });
+        elsewhere.forEach((g) => rows.append(h(
+          "button",
+          { class: "card-tap", onClick: () => openGround(g.id) },
+          h(
+            "div",
+            { class: "row spread" },
+            h("strong", {}, g.name),
+            h("span", { class: "tiny muted tnum" }, `${Math.round(survey(state2, g).depth * 100)}% rooted`)
+          )
+        )));
+        view2.append(rows);
+      }
+      return view2;
+    }
     const ranked = rankGrounds(state2);
     view2.append(section("Places", "Add", () => editGround(null, { kind: "place" })));
     if (!ranked.length) {
@@ -2572,12 +2699,14 @@ select { appearance: none; }
         h("p", { class: "tiny muted", style: "margin:10px 0 0" }, "Per cent of each area the ground actually holds. Last column is how deep you could root.")
       ));
     }
+    view2.append(section("Churches, networks, roles", "Add", () => editGround(null, { kind: "church" })));
     const others = state2.contexts.filter((c) => c.kind !== "place");
-    if (others.length) {
-      view2.append(section("Offers, churches, roles", "Add", () => editGround(null, { kind: "opportunity" })));
+    if (!others.length) {
+      view2.append(h("p", { class: "small muted" }, "Anything that would move you goes here, tied to the ground it would put you on."));
+    } else {
       const rows = h("div", { class: "rows" });
       others.forEach((c) => {
-        const place = impliedPlace(state2.contexts, c);
+        const p = impliedPlace(state2.contexts, c);
         rows.append(h(
           "button",
           { class: "card-tap", onClick: () => openGround(c.id) },
@@ -2589,15 +2718,12 @@ select { appearance: none; }
           ),
           h(
             "div",
-            { class: `tiny ${place ? "muted" : "tone-thin"}` },
-            place ? `Would put us in ${place.name}` : "No ground attached yet"
+            { class: `tiny ${p ? "muted" : "tone-thin"}` },
+            p ? `Would put us in ${p.name}` : "No ground attached yet"
           )
         ));
       });
       view2.append(rows);
-    } else {
-      view2.append(section("Offers, churches, roles", "Add", () => editGround(null, { kind: "opportunity" })));
-      view2.append(h("p", { class: "small muted" }, "Anything that would move you goes here, tied to the ground it would put you on."));
     }
     return view2;
   }
@@ -2605,8 +2731,16 @@ select { appearance: none; }
 
   // js/views/target.js
   var focusId = null;
+  function candidates(state2) {
+    const inside = withinCalling(state2);
+    const pool = state2.calling?.placeId && inside.length ? inside : state2.contexts.filter((c) => c.kind === "place");
+    return pool.map((ground) => ({ ground, s: survey(state2, ground) })).sort((a, b) => {
+      const rank = (x) => x.ground.stage === "built" ? 3 : x.ground.stage === "ruled-out" ? -1 : x.s.ready ? 2 : 1;
+      return rank(b) - rank(a) || b.s.depth - a.s.depth;
+    });
+  }
   function pick(state2) {
-    const ranked = rankGrounds(state2);
+    const ranked = candidates(state2);
     if (focusId) {
       const found = ranked.find((r) => r.ground.id === focusId);
       if (found) return found;
@@ -2617,27 +2751,68 @@ select { appearance: none; }
     const view2 = h("div", {});
     const target = pick(state2);
     if (!target) {
+      const called = state2.calling?.place;
       view2.append(
-        h("h1", {}, "Where is the land?"),
+        h("h1", {}, called ? `Who in ${called}?` : "Where is the land?"),
         h(
           "p",
           { class: "muted" },
-          "Put down the first place you'd actually consider building on \u2014 where you are now counts."
+          called ? "The city is settled. Name the churches and household networks there you're actually looking at \u2014 then walk them." : "Put down the first place you'd actually consider building on \u2014 where you are now counts."
         ),
-        empty("No ground yet.", "Add a place", () => editGround(null, { kind: "place" }))
+        empty(
+          called ? "Nobody named yet." : "No ground yet.",
+          called ? "Add a community" : "Add a place",
+          () => editGround(null, { kind: called ? "community" : "place" })
+        )
       );
       return view2;
     }
     const { ground, s } = target;
     const staked = ground.stage === "built";
-    view2.append(h("p", { class: "eyebrow", style: "margin-bottom:14px" }, "God first, continually"));
+    view2.append(h("p", { class: "eyebrow" }, "God first, continually"));
+    const calling = state2.calling || {};
+    if (!calling.place) {
+      view2.append(h(
+        "div",
+        { class: "card", style: "margin:12px 0 18px" },
+        h("h3", { style: "margin:0" }, "Where are you called?"),
+        h(
+          "p",
+          { class: "small muted", style: "margin:6px 0 12px" },
+          "If that's settled, say so once and the app will stop asking. The question becomes who you'd build with there."
+        ),
+        h("button", { class: "btn sm", onClick: editCalling }, "Name it")
+      ));
+    } else {
+      view2.append(h(
+        "button",
+        { class: "card card-tap", style: "margin:12px 0 18px", onClick: editCalling },
+        h(
+          "div",
+          { class: "row spread" },
+          h(
+            "div",
+            {},
+            h("div", { class: "eyebrow" }, "Called to"),
+            h("h2", { style: "margin:2px 0 0" }, calling.place)
+          ),
+          calling.by ? h("span", { class: "tiny muted" }, calling.by) : null
+        ),
+        calling.why ? h("p", { class: "small muted", style: "margin:8px 0 0" }, calling.why) : null,
+        h("p", { class: "tiny muted", style: "margin:8px 0 0" }, "Settled. Not re-decided every time you get nervous.")
+      ));
+    }
     view2.append(h(
       "div",
       { class: "row spread", style: "align-items:flex-end" },
       h(
         "div",
         {},
-        h("div", { class: "eyebrow" }, staked ? "Building here" : "The ground in front of me"),
+        h(
+          "div",
+          { class: "eyebrow" },
+          staked ? "Building here" : state2.calling?.place && ground.kind !== "place" ? `Who I'd build with in ${state2.calling.place}` : "The ground in front of me"
+        ),
         h("h1", { style: "margin:2px 0 0" }, ground.name)
       ),
       h("button", { class: "icon-btn", onClick: () => openGround(ground.id) }, "Open")
@@ -2804,12 +2979,12 @@ select { appearance: none; }
         ));
       }
     }
-    const others = rankGrounds(state2).filter((r) => r.ground.id !== ground.id);
+    const others = candidates(state2).filter((r) => r.ground.id !== ground.id);
     if (others.length) {
-      view2.append(section("Other ground", "Compare", () => go("land")));
+      view2.append(section(state2.calling?.place ? "Others there" : "Other ground", "Compare", () => go("land")));
       const rows = h("div", { class: "rows" });
       others.forEach(({ ground: g, s: gs }) => {
-        const hz = byId(HORIZONS, g.horizon) || HORIZONS[0];
+        const hz = g.kind === "place" ? byId(HORIZONS, g.horizon) || HORIZONS[0] : byId(KINDS, g.kind);
         rows.append(h(
           "button",
           {

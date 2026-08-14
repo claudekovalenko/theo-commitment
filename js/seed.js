@@ -211,6 +211,7 @@ export function seedState() {
       createdAt: new Date().toISOString(),
     }],
     people: [],
+    calling: { placeId: '', place: '', why: '', by: '' },
     settings: { autoLockMinutes: 15, name: '' },
   };
 }

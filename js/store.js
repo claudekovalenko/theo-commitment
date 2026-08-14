@@ -193,9 +193,14 @@ function migrate(data) {
     version: 3,
     createdAt: new Date().toISOString(),
     domains: [], convictions: [], contexts: [], checks: [], blocks: [], notes: [], people: [],
+    calling: { placeId: '', place: '', why: '', by: '' },
     settings: { autoLockMinutes: 15, name: '' },
   };
-  const s = { ...base, ...data, settings: { ...base.settings, ...(data.settings || {}) } };
+  const s = {
+    ...base, ...data,
+    calling: { ...base.calling, ...(data.calling || {}) },
+    settings: { ...base.settings, ...(data.settings || {}) },
+  };
 
   if (!s.domains.length) s.domains = DEFAULT_DOMAINS.map((d) => ({ ...d }));
 

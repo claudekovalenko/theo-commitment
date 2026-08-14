@@ -115,10 +115,11 @@ export const STAGES = [
 ];
 
 export const KINDS = [
-  { id: 'place', label: 'Land / town' },
+  { id: 'community', label: 'Community / households' },
   { id: 'church', label: 'Church' },
   { id: 'network', label: 'Network' },
   { id: 'role', label: 'Role' },
+  { id: 'place', label: 'Place / city' },
   { id: 'opportunity', label: 'Opportunity' },
 ];
 
@@ -150,6 +151,16 @@ export function latestCheck(checks, groundId) {
     .filter((k) => k.contextId === groundId)
     .sort((a, b) => (a.date < b.date ? 1 : -1))[0];
 }
+
+/** The city you've said you're called to. Settled — the app stops asking. */
+export const callingPlace = (state) => state.contexts.find((c) => c.id === state.calling?.placeId) || null;
+
+/** Everything you're weighing inside the calling: who, not where. */
+export const withinCalling = (state) => {
+  const place = callingPlace(state);
+  if (!place) return state.contexts.filter((c) => c.kind !== 'place');
+  return state.contexts.filter((c) => c.kind !== 'place' && (c.placeId === place.id || !c.placeId));
+};
 
 export const impliedPlace = (grounds, g) => {
   if (!g) return null;

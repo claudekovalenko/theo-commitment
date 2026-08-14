@@ -94,13 +94,63 @@ export function editRequirement(existing, defaults = {}) {
   ));
 }
 
+/* ---------- the calling: held, not re-litigated ---------- */
+
+export function editCalling() {
+  const state = store.get();
+  const held = state.calling || {};
+  const draft = { ...held };
+
+  openSheet(held.place ? 'The calling' : 'Where are you called?', () => frag(
+    h('p', { class: 'small muted' },
+      'A calling is settled, not scored. Write it down once and the app will stop asking where — '
+      + 'the open question becomes who you\'d build with there.'),
+    field('The city', input({ value: draft.place || '', placeholder: 'e.g. Los Angeles', onInput: (e) => { draft.place = e.target.value; } })),
+    field('Why there', area({
+      value: draft.why || '', placeholder: 'The reason you\'d give someone who asked. Write it while it\'s clear.',
+      onInput: (e) => { draft.why = e.target.value; },
+    })),
+    field('By when', input({ value: draft.by || '', placeholder: 'A year, a season, "as soon as we can"', onInput: (e) => { draft.by = e.target.value; } })),
+    saveBar(() => {
+      const name = (draft.place || '').trim();
+      if (!name) return toast('Name the city');
+      store.update((st) => {
+        if (!st.calling) st.calling = { placeId: '', place: '', why: '', by: '' };
+        // the calling city becomes a piece of ground, so everything else can hang off it
+        let place = st.contexts.find((c) => c.id === st.calling.placeId);
+        if (!place) {
+          place = st.contexts.find((c) => c.kind === 'place' && c.name.toLowerCase() === name.toLowerCase());
+        }
+        if (!place) {
+          place = {
+            id: uid(), name, kind: 'place', stage: 'scouting', horizon: 'life',
+            placeId: '', notes: '', createdAt: new Date().toISOString(),
+          };
+          st.contexts.push(place);
+        }
+        place.name = name;
+        st.calling = { ...draft, place: name, placeId: place.id };
+        // anything already being weighed belongs to the calling unless told otherwise
+        st.contexts.forEach((c) => { if (c.kind !== 'place' && !c.placeId) c.placeId = place.id; });
+      });
+      closeSheet();
+      toast('Held');
+    }, held.place ? () => {
+      store.update((st) => { st.calling = { placeId: '', place: '', why: '', by: '' }; });
+      closeSheet();
+      toast('Calling cleared');
+    } : null),
+  ));
+}
+
 /* ---------- a piece of ground ---------- */
 
 export function editGround(existing, defaults = {}) {
   const state = store.get();
   const g = existing || {
-    id: uid(), name: '', kind: 'place', stage: 'scouting', horizon: 'unknown',
-    placeId: '', notes: '', ...defaults,
+    id: uid(), name: '', kind: state.calling?.placeId ? 'community' : 'place',
+    stage: 'scouting', horizon: 'unknown',
+    placeId: state.calling?.placeId || '', notes: '', ...defaults,
   };
   const draft = { ...g };
   const places = state.contexts.filter((p) => p.kind === 'place' && p.id !== draft.id);
@@ -116,7 +166,9 @@ export function editGround(existing, defaults = {}) {
         draft.placeId || '',
         (v) => { draft.placeId = v; },
       ),
-      places.length ? 'An offer is only as good as the ground it puts you on.' : 'Add the land first, then link it.',
+      state.calling?.place
+        ? `You're called to ${state.calling.place}. Anything that puts you somewhere else is a different conversation.`
+        : (places.length ? 'An offer is only as good as the ground it puts you on.' : 'Add the land first, then link it.'),
     ));
   };
   paintPlace();

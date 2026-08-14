@@ -8,6 +8,18 @@ Not a compass, not a scorecard. You already know roughly what you want. What
 you keep not doing is saying *we're building here* — so this app treats that
 hesitation as the thing to work on, and turns it into a finite list.
 
+## The calling
+
+If the city is settled, you say so once — **Called to Los Angeles**, why, and by
+when — and the app stops asking *where*. It holds the calling as decided ("not
+re-decided every time you get nervous"), turns the city into a piece of ground
+everything else hangs off, and changes the question to **who in Los Angeles?**
+
+After that, the things you weigh are churches, household networks and
+communities inside the calling, not towns. Anything that would put you somewhere
+else says so plainly. Places you'd already looked at stay under *Elsewhere*, for
+comparison.
+
 ## The gate
 
 Two questions decide a piece of ground, and they sit above everything else:

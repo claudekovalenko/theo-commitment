@@ -3,10 +3,12 @@
 
 import * as store from './../store.js';
 import { today } from './../store.js';
-import { survey, verdict, rankGrounds, byId, HORIZONS, HOME_LEVELS } from './../model.js';
+import {
+  survey, verdict, rankGrounds, byId, HORIZONS, HOME_LEVELS, KINDS, callingPlace, withinCalling,
+} from './../model.js';
 import { h, empty, section, relDate, toast } from './../ui.js';
 import {
-  walkTheLand, editGround, editBlock, breakGround, captureHesitation, editNote, editPerson,
+  walkTheLand, editGround, editBlock, breakGround, captureHesitation, editNote, editPerson, editCalling,
 } from './../editors.js';
 import { plot, areaBars, usLine } from './parts.js';
 import { openGround } from './land.js';
@@ -14,8 +16,25 @@ import { go } from './../router.js';
 
 let focusId = null;
 
+/**
+ * Once a calling is held, the open question is who you'd build with there —
+ * so the churches and household networks inside it come first, not the city.
+ */
+function candidates(state) {
+  const inside = withinCalling(state);
+  const pool = state.calling?.placeId && inside.length
+    ? inside
+    : state.contexts.filter((c) => c.kind === 'place');
+  return pool
+    .map((ground) => ({ ground, s: survey(state, ground) }))
+    .sort((a, b) => {
+      const rank = (x) => (x.ground.stage === 'built' ? 3 : x.ground.stage === 'ruled-out' ? -1 : (x.s.ready ? 2 : 1));
+      return rank(b) - rank(a) || b.s.depth - a.s.depth;
+    });
+}
+
 function pick(state) {
-  const ranked = rankGrounds(state);
+  const ranked = candidates(state);
   if (focusId) {
     const found = ranked.find((r) => r.ground.id === focusId);
     if (found) return found;
@@ -28,21 +47,49 @@ export function render(state) {
   const target = pick(state);
 
   if (!target) {
-    view.append(h('h1', {}, 'Where is the land?'),
+    const called = state.calling?.place;
+    view.append(h('h1', {}, called ? `Who in ${called}?` : 'Where is the land?'),
       h('p', { class: 'muted' },
-        'Put down the first place you\'d actually consider building on — where you are now counts.'),
-      empty('No ground yet.', 'Add a place', () => editGround(null, { kind: 'place' })));
+        called
+          ? 'The city is settled. Name the churches and household networks there you\'re actually looking at — then walk them.'
+          : 'Put down the first place you\'d actually consider building on — where you are now counts.'),
+      empty(called ? 'Nobody named yet.' : 'No ground yet.',
+        called ? 'Add a community' : 'Add a place',
+        () => editGround(null, { kind: called ? 'community' : 'place' })));
     return view;
   }
 
   const { ground, s } = target;
   const staked = ground.stage === 'built';
 
-  view.append(h('p', { class: 'eyebrow', style: 'margin-bottom:14px' }, 'God first, continually'));
+  view.append(h('p', { class: 'eyebrow' }, 'God first, continually'));
+
+  /* ---- the calling, held ---- */
+  const calling = state.calling || {};
+  if (!calling.place) {
+    view.append(h('div', { class: 'card', style: 'margin:12px 0 18px' },
+      h('h3', { style: 'margin:0' }, 'Where are you called?'),
+      h('p', { class: 'small muted', style: 'margin:6px 0 12px' },
+        'If that\'s settled, say so once and the app will stop asking. The question becomes who you\'d build with there.'),
+      h('button', { class: 'btn sm', onClick: editCalling }, 'Name it')));
+  } else {
+    view.append(h('button', { class: 'card card-tap', style: 'margin:12px 0 18px', onClick: editCalling },
+      h('div', { class: 'row spread' },
+        h('div', {},
+          h('div', { class: 'eyebrow' }, 'Called to'),
+          h('h2', { style: 'margin:2px 0 0' }, calling.place)),
+        calling.by ? h('span', { class: 'tiny muted' }, calling.by) : null),
+      calling.why ? h('p', { class: 'small muted', style: 'margin:8px 0 0' }, calling.why) : null,
+      h('p', { class: 'tiny muted', style: 'margin:8px 0 0' }, 'Settled. Not re-decided every time you get nervous.')));
+  }
 
   view.append(h('div', { class: 'row spread', style: 'align-items:flex-end' },
     h('div', {},
-      h('div', { class: 'eyebrow' }, staked ? 'Building here' : 'The ground in front of me'),
+      h('div', { class: 'eyebrow' },
+        staked ? 'Building here'
+          : (state.calling?.place && ground.kind !== 'place'
+            ? `Who I'd build with in ${state.calling.place}`
+            : 'The ground in front of me')),
       h('h1', { style: 'margin:2px 0 0' }, ground.name)),
     h('button', { class: 'icon-btn', onClick: () => openGround(ground.id) }, 'Open')));
 
@@ -170,12 +217,12 @@ export function render(state) {
   }
 
   /* ---- the other ground ---- */
-  const others = rankGrounds(state).filter((r) => r.ground.id !== ground.id);
+  const others = candidates(state).filter((r) => r.ground.id !== ground.id);
   if (others.length) {
-    view.append(section('Other ground', 'Compare', () => go('land')));
+    view.append(section(state.calling?.place ? 'Others there' : 'Other ground', 'Compare', () => go('land')));
     const rows = h('div', { class: 'rows' });
     others.forEach(({ ground: g, s: gs }) => {
-      const hz = byId(HORIZONS, g.horizon) || HORIZONS[0];
+      const hz = g.kind === 'place' ? (byId(HORIZONS, g.horizon) || HORIZONS[0]) : byId(KINDS, g.kind);
       rows.append(h('button', {
         class: 'card-tap', onClick: () => { focusId = g.id; go('target'); },
       },

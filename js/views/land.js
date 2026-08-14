@@ -4,10 +4,10 @@
 import * as store from './../store.js';
 import { today } from './../store.js';
 import {
-  survey, verdict, rankGrounds, impliedPlace, byId, KINDS, STAGES, HORIZONS, latestCheck,
+  survey, verdict, rankGrounds, impliedPlace, byId, KINDS, STAGES, HORIZONS, callingPlace, withinCalling,
 } from './../model.js';
 import { h, frag, empty, section, openSheet, relDate, fmtDate } from './../ui.js';
-import { editGround, walkTheLand, editBlock, editNote, breakGround } from './../editors.js';
+import { editGround, walkTheLand, editBlock, editNote, breakGround, editCalling } from './../editors.js';
 import { plot, areaBars, usLine } from './parts.js';
 
 function compareTable(state, rows) {
@@ -159,7 +159,9 @@ export function openGround(id) {
 }
 
 function groundRow(state, ground, s) {
-  const hz = byId(HORIZONS, ground.horizon) || HORIZONS[0];
+  const hz = ground.kind === 'place'
+    ? (byId(HORIZONS, ground.horizon) || HORIZONS[0])
+    : byId(KINDS, ground.kind) || { label: '' };
   const brings = state.contexts.filter((c) => c.placeId === ground.id);
   return h('button', { class: 'card card-tap', onClick: () => openGround(ground.id) },
     h('div', { class: 'row spread' },
@@ -179,8 +181,52 @@ function groundRow(state, ground, s) {
 
 export function render(state) {
   const view = h('div', {});
-  view.append(h('h1', {}, 'The land'),
-    h('p', { class: 'muted small' }, 'Every piece of ground you\'re weighing, and how deep you could root in each.'));
+  const place = callingPlace(state);
+
+  if (place) {
+    view.append(h('h1', {}, `Who in ${place.name}?`),
+      h('p', { class: 'muted small' },
+        'The city is settled. What\'s open is the people — which church, which households, which network you\'d actually build with.'));
+  } else {
+    view.append(h('h1', {}, 'The land'),
+      h('p', { class: 'muted small' }, 'Every piece of ground you\'re weighing, and how deep you could root in each.'));
+  }
+
+  const inside = withinCalling(state).map((ground) => ({ ground, s: survey(state, ground) }))
+    .sort((a, b) => b.s.depth - a.s.depth);
+
+  if (place) {
+    view.append(section(`In ${place.name}`, 'Add', () => editGround(null, { kind: 'community' })));
+    if (!inside.length) {
+      view.append(empty('Nobody named there yet. Start with one church or one family.', 'Add a community', () => editGround(null, { kind: 'community' })));
+    } else {
+      inside.forEach(({ ground, s }) => view.append(groundRow(state, ground, s)));
+    }
+
+    const surveyed = inside.filter((r) => r.s.check);
+    if (surveyed.length > 1) {
+      view.append(section('Side by side'));
+      view.append(h('div', { class: 'card' },
+        compareTable(state, surveyed),
+        h('p', { class: 'tiny muted', style: 'margin:10px 0 0' }, 'Per cent of each area they actually hold. Last column is how deep you could root.')));
+    }
+
+    view.append(section('The city itself', 'Edit the calling', editCalling));
+    view.append(groundRow(state, place, survey(state, place)));
+
+    const elsewhere = state.contexts.filter((c) => c.kind === 'place' && c.id !== place.id);
+    if (elsewhere.length) {
+      view.append(section('Elsewhere'));
+      view.append(h('p', { class: 'tiny muted' }, 'Kept for comparison. You said the city is settled.'));
+      const rows = h('div', { class: 'rows' });
+      elsewhere.forEach((g) => rows.append(h('button', { class: 'card-tap', onClick: () => openGround(g.id) },
+        h('div', { class: 'row spread' },
+          h('strong', {}, g.name),
+          h('span', { class: 'tiny muted tnum' }, `${Math.round(survey(state, g).depth * 100)}% rooted`)))));
+      view.append(rows);
+    }
+    return view;
+  }
 
   const ranked = rankGrounds(state);
   view.append(section('Places', 'Add', () => editGround(null, { kind: 'place' })));
@@ -198,23 +244,22 @@ export function render(state) {
       h('p', { class: 'tiny muted', style: 'margin:10px 0 0' }, 'Per cent of each area the ground actually holds. Last column is how deep you could root.')));
   }
 
+  view.append(section('Churches, networks, roles', 'Add', () => editGround(null, { kind: 'church' })));
   const others = state.contexts.filter((c) => c.kind !== 'place');
-  if (others.length) {
-    view.append(section('Offers, churches, roles', 'Add', () => editGround(null, { kind: 'opportunity' })));
+  if (!others.length) {
+    view.append(h('p', { class: 'small muted' }, 'Anything that would move you goes here, tied to the ground it would put you on.'));
+  } else {
     const rows = h('div', { class: 'rows' });
     others.forEach((c) => {
-      const place = impliedPlace(state.contexts, c);
+      const p = impliedPlace(state.contexts, c);
       rows.append(h('button', { class: 'card-tap', onClick: () => openGround(c.id) },
         h('div', { class: 'row spread' },
           h('strong', {}, c.name),
           h('span', { class: 'tiny muted' }, byId(KINDS, c.kind)?.label || '')),
-        h('div', { class: `tiny ${place ? 'muted' : 'tone-thin'}` },
-          place ? `Would put us in ${place.name}` : 'No ground attached yet')));
+        h('div', { class: `tiny ${p ? 'muted' : 'tone-thin'}` },
+          p ? `Would put us in ${p.name}` : 'No ground attached yet')));
     });
     view.append(rows);
-  } else {
-    view.append(section('Offers, churches, roles', 'Add', () => editGround(null, { kind: 'opportunity' })));
-    view.append(h('p', { class: 'small muted' }, 'Anything that would move you goes here, tied to the ground it would put you on.'));
   }
 
   return view;
