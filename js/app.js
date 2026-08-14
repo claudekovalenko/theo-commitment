@@ -6,23 +6,23 @@ import { ROUTES, currentRoute, onRoute, go } from './router.js';
 import { openSettings } from './views/settings.js';
 import * as compass from './views/compass.js';
 import * as convictions from './views/convictions.js';
-import * as plays from './views/plays.js';
+import * as where from './views/where.js';
 import * as log from './views/log.js';
 import * as people from './views/people.js';
 import * as followups from './views/followups.js';
 
-const VIEWS = { compass, convictions, plays, log, people, do: followups };
+const VIEWS = { compass, convictions, where, log, people, do: followups };
 
 const ICONS = {
   compass: '<circle cx="12" cy="12" r="9"/><path d="M15.6 8.4 10.2 10.2 8.4 15.6l5.4-1.8z"/>',
   convictions: '<path d="M6 3h12v18H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M8.5 3v18"/>',
-  plays: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.2"/><path d="M12 3.5v-2M12 22.5v-2M3.5 12h-2M22.5 12h-2"/>',
+  where: '<path d="M12 21.5s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z"/><circle cx="12" cy="10.5" r="2.6"/>',
   log: '<path d="M5 3.5h14v17H5z"/><path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4"/>',
   people: '<circle cx="9.5" cy="8" r="3.2"/><path d="M3.5 20a6 6 0 0 1 12 0"/><path d="M16 5.2a3.2 3.2 0 0 1 0 6.4"/><path d="M17.5 14.6A6 6 0 0 1 21 20"/>',
   do: '<path d="M4 4.5h16v15H4z"/><path d="M8 12.2l3 3 5.2-6"/>',
 };
 
-const LABELS = { compass: 'Compass', convictions: 'Convictions', plays: 'Plays', log: 'Log', people: 'People', do: 'Do' };
+const LABELS = { compass: 'Compass', convictions: 'Convictions', where: 'Where', log: 'Log', people: 'People', do: 'Do' };
 
 /* ---------- render ---------- */
 

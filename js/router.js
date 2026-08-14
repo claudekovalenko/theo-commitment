@@ -1,9 +1,10 @@
-export const ROUTES = ['compass', 'convictions', 'plays', 'log', 'people', 'do'];
+export const ROUTES = ['compass', 'convictions', 'where', 'log', 'people', 'do'];
 
 let handler = null;
 
 export function currentRoute() {
   const r = location.hash.replace(/^#\/?/, '');
+  if (r === 'plays') return 'where'; // the tab this used to be called
   return ROUTES.includes(r) ? r : 'compass';
 }
 

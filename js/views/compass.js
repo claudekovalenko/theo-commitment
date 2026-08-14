@@ -3,10 +3,12 @@
 
 import * as store from './../store.js';
 import { today } from './../store.js';
-import { scoreCheck, latestCheck, readingWord, byId, HORIZONS, US_LEVELS } from './../model.js';
-import { h, empty, sectionHead, relDate, daysBetween, toast } from './../ui.js';
+import {
+  scoreCheck, latestCheck, readingWord, byId, impliedPlace, placesByRoots, HORIZONS, US_LEVELS,
+} from './../model.js';
+import { h, frag, empty, sectionHead, relDate, daysBetween, toast } from './../ui.js';
 import { runCheck, editNote, editAction, editContext } from './../editors.js';
-import { openContext } from './plays.js';
+import { openContext } from './where.js';
 import { openNote } from './log.js';
 import { domainBars } from './parts.js';
 import { go } from './../router.js';
@@ -88,6 +90,17 @@ export function render(state) {
       h('div', {}, readingWord(result.pct), ' with ', h('strong', {}, ctx.name)),
       h('div', { class: 'small muted', style: 'margin-top:4px' }, `Last read ${relDate(check.date, today())}`)));
 
+    const place = impliedPlace(state.contexts, ctx);
+    if (ctx.kind !== 'place') {
+      const pr = place ? scoreCheck(latestCheck(state.checks, place.id) || { ratings: {} }, state.convictions, state.domains) : null;
+      const prRoots = pr?.byDomain.find((d) => d.domain.id === 'roots');
+      hero.append(h('p', { class: 'small center', style: 'margin:10px 0 0' },
+        place
+          ? frag(h('span', { class: 'muted' }, 'Would put us in '), h('strong', {}, place.name),
+            prRoots?.rated ? h('span', { class: 'muted tnum' }, ` · ${Math.round(prRoots.pct * 100)}% roots`) : null)
+          : h('span', { class: 'lv-tension' }, 'Where would this put us? Not answered yet.')));
+    }
+
     if (result.weakest) {
       hero.append(h('p', { class: 'small muted center', style: 'margin:10px 0 0' },
         'Weakest: ', h('strong', { class: 'lv-tension' }, result.weakest.domain.label)));
@@ -106,6 +119,37 @@ export function render(state) {
     hero.append(row);
   }
   view.append(hero);
+
+  /* ---- the question under the others ---- */
+  const places = placesByRoots(state, (p) => {
+    const k = latestCheck(state.checks, p.id);
+    return k ? scoreCheck(k, state.convictions, state.domains) : null;
+  });
+
+  view.append(h('div', { class: 'card ask', style: 'margin-top:22px' },
+    h('h2', { style: 'margin:0' }, 'Where are we going to raise our family?'),
+    h('p', { class: 'small muted', style: 'margin:6px 0 0' },
+      'The question under all the others. Everything else is a way of ending up somewhere.')));
+
+  if (!places.length) {
+    view.append(empty('No places on the board yet. Put down where you are, and anywhere you\'d genuinely consider.', 'Add a place', () => editContext(null, { kind: 'place' })));
+  } else {
+    const card = h('div', { class: 'card' });
+    places.forEach(({ place, roots }) => {
+      const hz = byId(HORIZONS, place.horizon) || HORIZONS[0];
+      const brings = state.contexts.filter((c) => c.placeId === place.id);
+      card.append(h('button', { class: 'card-tap list-item', onClick: () => openContext(place.id) },
+        h('div', { class: 'grow' },
+          h('div', { class: 'row spread' },
+            h('strong', {}, place.name),
+            h('span', { class: 'small muted tnum' }, roots?.rated ? `${Math.round(roots.pct * 100)}% roots` : 'no check')),
+          h('div', { class: 'small muted' },
+            [hz.label, brings.length ? `via ${brings.map((b) => b.name).join(', ')}` : null].filter(Boolean).join(' · ')))));
+    });
+    view.append(card);
+    view.append(h('button', { class: 'btn ghost block', style: 'margin-top:10px', onClick: () => go('where') }, 'Compare them'));
+  }
+
 
   /* ---- the five domains ---- */
   if (result?.byDomain.length) {
@@ -130,33 +174,6 @@ export function render(state) {
           onClick: () => editAction(null, { title: `Talk through ${ctx.name} together`, contextIds: [ctx.id] }),
         }, 'Put it on the calendar')
         : null));
-  }
-
-  /* ---- roots ---- */
-  const places = state.contexts.filter((c) => c.kind === 'place');
-  view.append(sectionHead('Roots', places.length ? 'All' : null, () => go('plays')));
-  if (!places.length) {
-    view.append(empty('No places on the board yet. Put down the towns you\'d actually consider — that\'s the question under all the others.', 'Add a place', () => editContext(null, { kind: 'place' })));
-  } else {
-    const card = h('div', { class: 'card' });
-    places
-      .map((p) => {
-        const k = latestCheck(state.checks, p.id);
-        const r = k ? scoreCheck(k, state.convictions, state.domains) : null;
-        const roots = r?.byDomain.find((d) => d.domain.id === 'roots');
-        return { p, r, roots };
-      })
-      .sort((a, b) => (b.roots?.pct ?? -1) - (a.roots?.pct ?? -1))
-      .forEach(({ p, roots }) => {
-        const hz = byId(HORIZONS, p.horizon) || HORIZONS[0];
-        card.append(h('button', { class: 'card-tap list-item', onClick: () => openContext(p.id) },
-          h('div', { class: 'grow' },
-            h('div', { class: 'row spread' },
-              h('strong', {}, p.name),
-              h('span', { class: 'small muted tnum' }, roots?.rated ? `${Math.round(roots.pct * 100)}% roots` : 'no check')),
-            h('div', { class: 'small muted' }, hz.label))));
-      });
-    view.append(card);
   }
 
   /* ---- friction ---- */

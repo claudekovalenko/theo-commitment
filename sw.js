@@ -1,7 +1,7 @@
 // Offline shell. Everything the app needs is cached on install; there are no
 // other network requests to worry about, because the app never makes any.
 
-const CACHE = 'true-north-v2';
+const CACHE = 'true-north-v3';
 
 const ASSETS = [
   './',
@@ -18,7 +18,7 @@ const ASSETS = [
   './js/views/compass.js',
   './js/views/parts.js',
   './js/views/convictions.js',
-  './js/views/plays.js',
+  './js/views/where.js',
   './js/views/log.js',
   './js/views/people.js',
   './js/views/followups.js',

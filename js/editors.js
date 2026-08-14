@@ -98,14 +98,36 @@ export function editConviction(existing, defaults = {}) {
 /* ---------- context (a place, church, network, role) ---------- */
 
 export function editContext(existing, defaults = {}) {
+  const state = store.get();
   const c = existing || {
-    id: uid(), name: '', kind: 'place', status: 'considering', horizon: 'unknown', notes: '', ...defaults,
+    id: uid(), name: '', kind: 'place', status: 'considering', horizon: 'unknown',
+    placeId: '', notes: '', ...defaults,
   };
   const draft = { ...c };
+  const places = state.contexts.filter((p) => p.kind === 'place' && p.id !== draft.id);
+
+  const placeField = h('div', {});
+  const paintPlace = () => {
+    placeField.replaceChildren();
+    if (draft.kind === 'place') return;
+    placeField.append(field(
+      'If we said yes, where would we live?',
+      segmented(
+        [...places.map((p) => ({ id: p.id, label: p.name })), { id: '', label: 'Don\'t know yet' }],
+        draft.placeId || '',
+        (v) => { draft.placeId = v; },
+      ),
+      places.length
+        ? 'The question under the question. An opportunity is only as good as the place it lands you in.'
+        : 'Add the town first, then come back and link it.',
+    ));
+  };
+  paintPlace();
 
   openSheet(existing ? 'Edit' : 'What are you weighing?', () => frag(
     field('Name', input({ value: draft.name, placeholder: 'A town, a church, a network', onInput: (e) => { draft.name = e.target.value; } })),
-    field('What kind?', segmented(CONTEXT_KINDS, draft.kind, (v) => { draft.kind = v; })),
+    field('What kind?', segmented(CONTEXT_KINDS, draft.kind, (v) => { draft.kind = v; paintPlace(); })),
+    placeField,
     field('Where I stand with it', segmented(CONTEXT_STATUS, draft.status, (v) => { draft.status = v; })),
     field('Could we still be here in ten years?', segmented(HORIZONS, draft.horizon, (v) => { draft.horizon = v; }),
       'The roots question. Guessing is allowed — you can change it every time you learn something.'),

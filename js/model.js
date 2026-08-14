@@ -114,6 +114,28 @@ export const PEOPLE_STAGES = [
 ];
 
 export const byId = (list, id) => list.find((x) => x.id === id);
+
+/**
+ * The place a context would actually land you in. A network or a role isn't a
+ * place, but saying yes to one means living somewhere — and that somewhere is
+ * the question under all the others.
+ */
+export function impliedPlace(contexts, ctx) {
+  if (!ctx) return null;
+  if (ctx.kind === 'place') return ctx;
+  return contexts.find((c) => c.id === ctx.placeId && c.kind === 'place') || null;
+}
+
+/** Places ranked by how well they'd hold a family, best first. */
+export function placesByRoots(state, scorer) {
+  return state.contexts
+    .filter((c) => c.kind === 'place')
+    .map((place) => {
+      const r = scorer(place);
+      return { place, result: r, roots: r?.byDomain.find((d) => d.domain.id === 'roots') || null };
+    })
+    .sort((a, b) => (b.roots?.pct ?? -1) - (a.roots?.pct ?? -1));
+}
 export const weightOf = (c) => (byId(WEIGHTS, c.weight) || WEIGHTS[1]).weight;
 export const levelOf = (id) => byId(LEVELS, id) || byId(LEVELS, 'unknown');
 export const domainOf = (domains, c) => byId(domains, c.domainId) || domains[domains.length - 1];

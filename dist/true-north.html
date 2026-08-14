@@ -109,6 +109,9 @@ a { color: var(--gold); }
   font-size: .6rem; font-weight: 700; padding: 0 5px; line-height: 14px;
 }
 
+.ask { border-color: color-mix(in srgb, var(--gold) 40%, var(--line)); background: color-mix(in srgb, var(--gold) 7%, var(--ink-2)); }
+.ask h2 { font-size: 1.05rem; }
+
 .warn {
   max-width: 780px; margin: 12px auto 0; padding: 10px 14px;
   border: 1px solid color-mix(in srgb, var(--rust) 55%, var(--line));
@@ -464,6 +467,17 @@ select { appearance: none; }
     { id: "multiplying", label: "Discipling someone else" }
   ];
   var byId = (list, id) => list.find((x) => x.id === id);
+  function impliedPlace(contexts, ctx) {
+    if (!ctx) return null;
+    if (ctx.kind === "place") return ctx;
+    return contexts.find((c) => c.id === ctx.placeId && c.kind === "place") || null;
+  }
+  function placesByRoots(state2, scorer2) {
+    return state2.contexts.filter((c) => c.kind === "place").map((place) => {
+      const r = scorer2(place);
+      return { place, result: r, roots: r?.byDomain.find((d) => d.domain.id === "roots") || null };
+    }).sort((a, b) => (b.roots?.pct ?? -1) - (a.roots?.pct ?? -1));
+  }
   var weightOf = (c) => (byId(WEIGHTS, c.weight) || WEIGHTS[1]).weight;
   var levelOf = (id) => byId(LEVELS, id) || byId(LEVELS, "unknown");
   var domainOf = (domains, c) => byId(domains, c.domainId) || domains[domains.length - 1];
@@ -1116,10 +1130,11 @@ select { appearance: none; }
   }
 
   // js/router.js
-  var ROUTES = ["compass", "convictions", "plays", "log", "people", "do"];
+  var ROUTES = ["compass", "convictions", "where", "log", "people", "do"];
   var handler = null;
   function currentRoute() {
     const r = location.hash.replace(/^#\/?/, "");
+    if (r === "plays") return "where";
     return ROUTES.includes(r) ? r : "compass";
   }
   function onRoute(fn) {
@@ -1250,23 +1265,45 @@ select { appearance: none; }
     ));
   }
   function editContext(existing, defaults = {}) {
+    const state2 = get();
     const c = existing || {
       id: uid(),
       name: "",
       kind: "place",
       status: "considering",
       horizon: "unknown",
+      placeId: "",
       notes: "",
       ...defaults
     };
     const draft = { ...c };
+    const places = state2.contexts.filter((p) => p.kind === "place" && p.id !== draft.id);
+    const placeField = h("div", {});
+    const paintPlace = () => {
+      placeField.replaceChildren();
+      if (draft.kind === "place") return;
+      placeField.append(field(
+        "If we said yes, where would we live?",
+        segmented(
+          [...places.map((p) => ({ id: p.id, label: p.name })), { id: "", label: "Don't know yet" }],
+          draft.placeId || "",
+          (v) => {
+            draft.placeId = v;
+          }
+        ),
+        places.length ? "The question under the question. An opportunity is only as good as the place it lands you in." : "Add the town first, then come back and link it."
+      ));
+    };
+    paintPlace();
     openSheet(existing ? "Edit" : "What are you weighing?", () => frag(
       field("Name", input({ value: draft.name, placeholder: "A town, a church, a network", onInput: (e) => {
         draft.name = e.target.value;
       } })),
       field("What kind?", segmented(CONTEXT_KINDS, draft.kind, (v) => {
         draft.kind = v;
+        paintPlace();
       })),
+      placeField,
       field("Where I stand with it", segmented(CONTEXT_STATUS, draft.status, (v) => {
         draft.status = v;
       })),
@@ -1817,9 +1854,9 @@ select { appearance: none; }
     title: () => title3
   });
 
-  // js/views/plays.js
-  var plays_exports = {};
-  __export(plays_exports, {
+  // js/views/where.js
+  var where_exports = {};
+  __export(where_exports, {
     openContext: () => openContext,
     render: () => render,
     title: () => title
@@ -1879,10 +1916,10 @@ select { appearance: none; }
     );
   }
 
-  // js/views/plays.js
-  var readingOf = (state2, ctx) => {
+  // js/views/where.js
+  var scorer = (state2) => (ctx) => {
     const check = latestCheck(state2.checks, ctx.id);
-    return { check, r: check ? scoreCheck(check, state2.convictions, state2.domains) : null };
+    return check ? scoreCheck(check, state2.convictions, state2.domains) : null;
   };
   function sparkline(checks, state2) {
     const pts = [...checks].sort((a, b) => a.date < b.date ? -1 : 1).slice(-10);
@@ -1897,7 +1934,7 @@ select { appearance: none; }
     });
     return bar;
   }
-  function compareTable(state2, rated) {
+  function compareTable(state2, rows) {
     const table = h("table", { class: "grid" });
     const head = h("tr", {}, h("th", {}, "Where"));
     state2.domains.forEach((d) => {
@@ -1908,7 +1945,7 @@ select { appearance: none; }
     head.append(h("th", { class: "tnum" }, "All"));
     table.append(h("thead", {}, head));
     const body = h("tbody", {});
-    rated.forEach(({ ctx, r }) => {
+    rows.forEach(({ ctx, r }) => {
       const tr = h("tr", {}, h("th", { scope: "row" }, ctx.name));
       state2.domains.forEach((d) => {
         const cell = r.byDomain.find((x) => x.domain.id === d.id);
@@ -1933,6 +1970,10 @@ select { appearance: none; }
       const checks = state2.checks.filter((k) => k.contextId === id).sort((a, b) => a.date < b.date ? 1 : -1);
       const latest = checks[0];
       const r = latest ? scoreCheck(latest, state2.convictions, state2.domains) : null;
+      const place = impliedPlace(state2.contexts, ctx);
+      const placeResult = place && place.id !== ctx.id ? scorer(state2)(place) : null;
+      const placeRoots = placeResult?.byDomain.find((d) => d.domain.id === "roots");
+      const brings = state2.contexts.filter((c) => c.placeId === id && c.kind !== "place");
       const notes = state2.notes.filter((n) => (n.contextIds || []).includes(id)).sort((a, b) => a.date < b.date ? 1 : -1);
       const acts = state2.actions.filter((a) => (a.contextIds || []).includes(id) && !a.done);
       return frag(
@@ -1944,6 +1985,29 @@ select { appearance: none; }
           h("button", { class: "chip", onClick: () => editContext(ctx) }, "Edit")
         ),
         ctx.notes ? h("p", { class: "muted" }, ctx.notes) : null,
+        // For anything that isn't a place: where would this actually land us?
+        ctx.kind !== "place" ? h(
+          "div",
+          { class: "card" },
+          h("div", { class: "small muted" }, "If we said yes, we'd live in"),
+          place ? frag(
+            h(
+              "div",
+              { class: "row spread" },
+              h("strong", {}, place.name),
+              h("span", { class: "small muted tnum" }, placeRoots?.rated ? `${Math.round(placeRoots.pct * 100)}% roots` : "not checked")
+            ),
+            h("button", { class: "icon-btn", style: "margin-top:10px", onClick: () => openContext(place.id) }, "Open the place")
+          ) : frag(
+            h("strong", { class: "lv-tension" }, "Not answered yet"),
+            h(
+              "p",
+              { class: "small muted", style: "margin:6px 0 10px" },
+              "This is the question under the question. Until you know where it puts you, you can't weigh it."
+            ),
+            h("button", { class: "btn sm", onClick: () => editContext(ctx) }, "Answer it")
+          )
+        ) : null,
         h(
           "div",
           { class: "card" },
@@ -1973,6 +2037,29 @@ select { appearance: none; }
           horizonLine(ctx),
           latest ? usLine(latest) : null
         ),
+        brings.length ? h(
+          "div",
+          {},
+          sectionHead("What would bring us here"),
+          h("div", { class: "card" }, brings.map((b) => {
+            const br = scorer(state2)(b);
+            return h(
+              "button",
+              { class: "card-tap list-item", onClick: () => openContext(b.id) },
+              h(
+                "div",
+                { class: "grow" },
+                h(
+                  "div",
+                  { class: "row spread" },
+                  h("strong", {}, b.name),
+                  h("span", { class: "small muted tnum" }, br?.rated ? `${br.degrees}\xB0` : "no check")
+                ),
+                h("div", { class: "small muted" }, byId(CONTEXT_KINDS, b.kind)?.label || "")
+              )
+            );
+          }))
+        ) : null,
         r?.friction.length ? h(
           "div",
           {},
@@ -2059,54 +2146,70 @@ select { appearance: none; }
     };
     openSheet(() => get().contexts.find((c) => c.id === id)?.name || "Context", build);
   }
-  function contextCard(state2, ctx) {
-    const { r } = readingOf(state2, ctx);
-    const hz = byId(HORIZONS, ctx.horizon) || HORIZONS[0];
+  function placeCard(state2, { place, result, roots }) {
+    const hz = byId(HORIZONS, place.horizon) || HORIZONS[0];
+    const brings = state2.contexts.filter((c) => c.placeId === place.id && c.kind !== "place");
     const card = h(
       "button",
-      { class: "card card-tap", onClick: () => openContext(ctx.id) },
+      { class: "card card-tap", onClick: () => openContext(place.id) },
       h(
         "div",
         { class: "row spread" },
         h(
           "div",
           { class: "grow" },
-          h("strong", {}, ctx.name),
+          h("strong", {}, place.name),
           h(
             "div",
             { class: "small muted" },
-            [byId(CONTEXT_KINDS, ctx.kind)?.label, byId(CONTEXT_STATUS, ctx.status)?.label].filter(Boolean).join(" \xB7 ")
+            [byId(CONTEXT_STATUS, place.status)?.label, hz.label].filter(Boolean).join(" \xB7 ")
           )
         ),
         h(
           "div",
           { style: "text-align:right" },
-          h("div", { class: "tnum", style: "font-weight:600" }, r?.rated ? `${r.degrees}\xB0` : "\u2014"),
-          h("div", { class: "small muted" }, r?.rated ? readingWord(r.pct) : "No check")
+          h("div", { class: "tnum", style: "font-weight:600" }, roots?.rated ? `${Math.round(roots.pct * 100)}%` : "\u2014"),
+          h("div", { class: "small muted" }, "roots")
         )
       ),
-      r?.rated ? h("div", { style: "margin-top:12px" }, domainBars(r)) : null,
-      ctx.kind === "place" ? h("div", { class: "small muted", style: "margin-top:10px" }, `Ten-year test: ${hz.label.toLowerCase()}`) : null,
-      r?.dealbreakers.length ? h(
+      result?.rated ? h("div", { style: "margin-top:12px" }, domainBars(result)) : h("div", { class: "small muted", style: "margin-top:8px" }, "No check yet"),
+      brings.length ? h(
+        "div",
+        { class: "small muted", style: "margin-top:10px" },
+        `Would take us there: ${brings.map((b) => b.name).join(", ")}`
+      ) : null,
+      result?.dealbreakers.length ? h(
         "div",
         { class: "small lv-conflict", style: "margin-top:8px" },
-        `${r.dealbreakers.length} non-negotiable${r.dealbreakers.length > 1 ? "s" : ""} in the red`
+        `${result.dealbreakers.length} non-negotiable${result.dealbreakers.length > 1 ? "s" : ""} in the red`
       ) : null
     );
     return card;
   }
   function render(state2) {
     const view = h("div", {});
+    const score = scorer(state2);
     view.append(h(
-      "p",
-      { class: "muted small" },
-      "Everything you're weighing, read across all five areas of life. A check is just you, rating it honestly."
+      "div",
+      { class: "card ask" },
+      h("h2", { style: "margin:0" }, "Where are we going to raise our family?"),
+      h(
+        "p",
+        { class: "small muted", style: "margin:6px 0 0" },
+        "Everything else is an answer to this one. A network, a church, a role \u2014 each one is a way of ending up somewhere."
+      )
     ));
-    if (!state2.contexts.length) {
-      view.append(empty("Nothing here yet. Start with the town you're in and one you'd consider.", "Add one", () => editContext()));
-      return view;
+    const places = placesByRoots(state2, score);
+    view.append(sectionHead("Places", "Add", () => editContext(null, { kind: "place" })));
+    if (!places.length) {
+      view.append(empty("No places yet. Put down where you are, and anywhere you'd genuinely consider.", "Add a place", () => editContext(null, { kind: "place" })));
+    } else {
+      places.forEach((p) => view.append(placeCard(state2, p)));
     }
-    const rated = state2.contexts.map((ctx) => ({ ctx, ...readingOf(state2, ctx) })).filter((x) => x.r?.rated);
+    const rated = [
+      ...places.filter((p) => p.result?.rated).map((p) => ({ ctx: p.place, r: p.result })),
+      ...state2.contexts.filter((c) => c.kind !== "place").map((ctx) => ({ ctx, r: score(ctx) })).filter((x) => x.r?.rated)
+    ];
     if (rated.length > 1) {
       view.append(sectionHead("Side by side"));
       view.append(h(
@@ -2116,24 +2219,60 @@ select { appearance: none; }
         h("p", { class: "small muted", style: "margin:10px 0 0" }, "Percent aligned per area. Higher is closer to your heading.")
       ));
     }
-    const groups = [
-      ["place", "Places"],
-      ["church", "Churches"],
-      ["network", "Networks"],
-      ["role", "Roles"],
-      ["opportunity", "Opportunities"]
-    ];
-    const order = { considering: 0, current: 1, watching: 2, past: 3 };
-    groups.forEach(([kind, label]) => {
-      const group = state2.contexts.filter((c) => c.kind === kind).sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9) || a.name.localeCompare(b.name));
-      if (!group.length) return;
-      view.append(sectionHead(label, "Add", () => editContext(null, { kind })));
-      group.forEach((c) => view.append(contextCard(state2, c)));
-    });
-    view.append(h("button", { class: "btn block", style: "margin-top:14px", onClick: () => editContext() }, "Add something to weigh"));
+    const others = state2.contexts.filter((c) => c.kind !== "place");
+    const homeless = others.filter((c) => !impliedPlace(state2.contexts, c));
+    const placed = others.filter((c) => impliedPlace(state2.contexts, c));
+    if (homeless.length) {
+      view.append(sectionHead("Where would these put us?"));
+      const card = h("div", { class: "card" });
+      homeless.forEach((c) => {
+        const r = score(c);
+        card.append(h(
+          "button",
+          { class: "card-tap list-item", onClick: () => openContext(c.id) },
+          h(
+            "div",
+            { class: "grow" },
+            h(
+              "div",
+              { class: "row spread" },
+              h("strong", {}, c.name),
+              h("span", { class: "small muted tnum" }, r?.rated ? `${r.degrees}\xB0` : "no check")
+            ),
+            h("div", { class: "small lv-tension" }, "No place attached yet")
+          )
+        ));
+      });
+      view.append(card);
+    }
+    if (placed.length) {
+      view.append(sectionHead("Tied to a place"));
+      const card = h("div", { class: "card" });
+      placed.forEach((c) => {
+        const r = score(c);
+        const place = impliedPlace(state2.contexts, c);
+        card.append(h(
+          "button",
+          { class: "card-tap list-item", onClick: () => openContext(c.id) },
+          h(
+            "div",
+            { class: "grow" },
+            h(
+              "div",
+              { class: "row spread" },
+              h("strong", {}, c.name),
+              h("span", { class: "small muted tnum" }, r?.rated ? `${r.degrees}\xB0` : "no check")
+            ),
+            h("div", { class: "small muted" }, `${byId(CONTEXT_KINDS, c.kind)?.label} \xB7 would put us in ${place.name}`)
+          )
+        ));
+      });
+      view.append(card);
+    }
+    view.append(h("button", { class: "btn block", style: "margin-top:18px", onClick: () => editContext() }, "Add something to weigh"));
     return view;
   }
-  var title = "Plays";
+  var title = "Where";
 
   // js/views/log.js
   var log_exports = {};
@@ -2325,6 +2464,20 @@ select { appearance: none; }
         h("div", {}, readingWord(result.pct), " with ", h("strong", {}, ctx.name)),
         h("div", { class: "small muted", style: "margin-top:4px" }, `Last read ${relDate(check.date, today())}`)
       ));
+      const place = impliedPlace(state2.contexts, ctx);
+      if (ctx.kind !== "place") {
+        const pr = place ? scoreCheck(latestCheck(state2.checks, place.id) || { ratings: {} }, state2.convictions, state2.domains) : null;
+        const prRoots = pr?.byDomain.find((d) => d.domain.id === "roots");
+        hero.append(h(
+          "p",
+          { class: "small center", style: "margin:10px 0 0" },
+          place ? frag(
+            h("span", { class: "muted" }, "Would put us in "),
+            h("strong", {}, place.name),
+            prRoots?.rated ? h("span", { class: "muted tnum" }, ` \xB7 ${Math.round(prRoots.pct * 100)}% roots`) : null
+          ) : h("span", { class: "lv-tension" }, "Where would this put us? Not answered yet.")
+        ));
+      }
       if (result.weakest) {
         hero.append(h(
           "p",
@@ -2352,6 +2505,50 @@ select { appearance: none; }
       hero.append(row2);
     }
     view.append(hero);
+    const places = placesByRoots(state2, (p) => {
+      const k = latestCheck(state2.checks, p.id);
+      return k ? scoreCheck(k, state2.convictions, state2.domains) : null;
+    });
+    view.append(h(
+      "div",
+      { class: "card ask", style: "margin-top:22px" },
+      h("h2", { style: "margin:0" }, "Where are we going to raise our family?"),
+      h(
+        "p",
+        { class: "small muted", style: "margin:6px 0 0" },
+        "The question under all the others. Everything else is a way of ending up somewhere."
+      )
+    ));
+    if (!places.length) {
+      view.append(empty("No places on the board yet. Put down where you are, and anywhere you'd genuinely consider.", "Add a place", () => editContext(null, { kind: "place" })));
+    } else {
+      const card = h("div", { class: "card" });
+      places.forEach(({ place, roots }) => {
+        const hz = byId(HORIZONS, place.horizon) || HORIZONS[0];
+        const brings = state2.contexts.filter((c) => c.placeId === place.id);
+        card.append(h(
+          "button",
+          { class: "card-tap list-item", onClick: () => openContext(place.id) },
+          h(
+            "div",
+            { class: "grow" },
+            h(
+              "div",
+              { class: "row spread" },
+              h("strong", {}, place.name),
+              h("span", { class: "small muted tnum" }, roots?.rated ? `${Math.round(roots.pct * 100)}% roots` : "no check")
+            ),
+            h(
+              "div",
+              { class: "small muted" },
+              [hz.label, brings.length ? `via ${brings.map((b) => b.name).join(", ")}` : null].filter(Boolean).join(" \xB7 ")
+            )
+          )
+        ));
+      });
+      view.append(card);
+      view.append(h("button", { class: "btn ghost block", style: "margin-top:10px", onClick: () => go("where") }, "Compare them"));
+    }
     if (result?.byDomain.length) {
       view.append(sectionHead("Across the whole life"));
       view.append(h("div", { class: "card" }, domainBars(result)));
@@ -2380,37 +2577,6 @@ select { appearance: none; }
           onClick: () => editAction(null, { title: `Talk through ${ctx.name} together`, contextIds: [ctx.id] })
         }, "Put it on the calendar") : null
       ));
-    }
-    const places = state2.contexts.filter((c) => c.kind === "place");
-    view.append(sectionHead("Roots", places.length ? "All" : null, () => go("plays")));
-    if (!places.length) {
-      view.append(empty("No places on the board yet. Put down the towns you'd actually consider \u2014 that's the question under all the others.", "Add a place", () => editContext(null, { kind: "place" })));
-    } else {
-      const card = h("div", { class: "card" });
-      places.map((p) => {
-        const k = latestCheck(state2.checks, p.id);
-        const r = k ? scoreCheck(k, state2.convictions, state2.domains) : null;
-        const roots = r?.byDomain.find((d) => d.domain.id === "roots");
-        return { p, r, roots };
-      }).sort((a, b) => (b.roots?.pct ?? -1) - (a.roots?.pct ?? -1)).forEach(({ p, roots }) => {
-        const hz = byId(HORIZONS, p.horizon) || HORIZONS[0];
-        card.append(h(
-          "button",
-          { class: "card-tap list-item", onClick: () => openContext(p.id) },
-          h(
-            "div",
-            { class: "grow" },
-            h(
-              "div",
-              { class: "row spread" },
-              h("strong", {}, p.name),
-              h("span", { class: "small muted tnum" }, roots?.rated ? `${Math.round(roots.pct * 100)}% roots` : "no check")
-            ),
-            h("div", { class: "small muted" }, hz.label)
-          )
-        ));
-      });
-      view.append(card);
     }
     if (result?.friction.length) {
       view.append(sectionHead("Where the friction is"));
@@ -2810,16 +2976,16 @@ select { appearance: none; }
   var title6 = "Follow-through";
 
   // js/app.js
-  var VIEWS = { compass: compass_exports, convictions: convictions_exports, plays: plays_exports, log: log_exports, people: people_exports, do: followups_exports };
+  var VIEWS = { compass: compass_exports, convictions: convictions_exports, where: where_exports, log: log_exports, people: people_exports, do: followups_exports };
   var ICONS = {
     compass: '<circle cx="12" cy="12" r="9"/><path d="M15.6 8.4 10.2 10.2 8.4 15.6l5.4-1.8z"/>',
     convictions: '<path d="M6 3h12v18H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M8.5 3v18"/>',
-    plays: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3.2"/><path d="M12 3.5v-2M12 22.5v-2M3.5 12h-2M22.5 12h-2"/>',
+    where: '<path d="M12 21.5s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z"/><circle cx="12" cy="10.5" r="2.6"/>',
     log: '<path d="M5 3.5h14v17H5z"/><path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4"/>',
     people: '<circle cx="9.5" cy="8" r="3.2"/><path d="M3.5 20a6 6 0 0 1 12 0"/><path d="M16 5.2a3.2 3.2 0 0 1 0 6.4"/><path d="M17.5 14.6A6 6 0 0 1 21 20"/>',
     do: '<path d="M4 4.5h16v15H4z"/><path d="M8 12.2l3 3 5.2-6"/>'
   };
-  var LABELS = { compass: "Compass", convictions: "Convictions", plays: "Plays", log: "Log", people: "People", do: "Do" };
+  var LABELS = { compass: "Compass", convictions: "Convictions", where: "Where", log: "Log", people: "People", do: "Do" };
   function renderTabs(active) {
     const nav = clear($("#tabs"));
     ROUTES.forEach((r) => {

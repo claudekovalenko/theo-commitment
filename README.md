@@ -6,6 +6,20 @@ once — a town, a church, a network, a role — against what you actually hold.
 The icon is a compass needle. That's the whole idea: name your convictions,
 then get an honest reading on the play you're running.
 
+## The question the app is built around
+
+**Where are we going to raise our family?**
+
+That question sits at the top of the compass and names the second tab, because
+everything else is an answer to it. A network, a church, a role — each one is a
+way of ending up somewhere. So places are the unit: anything that isn't a place
+carries one required question, *if we said yes, where would we live?*, and until
+that's answered the app says so in plain sight rather than letting you score an
+opportunity in the abstract.
+
+Places rank by their roots reading, list what would take you there, and compare
+side by side against every area of life.
+
 ## The architecture: five areas, one needle
 
 Every conviction belongs to an **area of life**, and the compass scores each
@@ -39,6 +53,11 @@ a follow-up.
 we still be here in ten years? It shows on the card, and you can revise it
 every time you learn something.
 
+Note the difference the app tries to hold: walking with God is listed **first**
+because it's the highest value; roots is **central** because it's the decision
+actually on the table. Those aren't the same claim, and the design keeps them
+apart.
+
 ## What's in it
 
 **Compass** — one needle, one reading. It shows how far off your heading you
@@ -52,8 +71,10 @@ wording, the scripture behind it, the test for when it's true of you, and the
 edge you're still working out. The weight you assign is what the compass math
 uses, so being honest about "still forming" actually changes the reading.
 
-**Plays** — the places, churches, networks, roles and opportunities you're
-weighing, grouped by kind. Run a *check*: rate it against every conviction
+**Where** — places first, ranked by how well they'd hold a family, each showing
+its ten-year test and what would take you there. Below them: anything still
+missing an answer to "where would this put us?", then everything already tied to
+a place. Run a *check*: rate it against every conviction
 (aligned / mostly / tension / conflict / don't know yet), answer the "us"
 question, write one honest paragraph, save it. Long checks can be done one area
 at a time using the filter chips. Checks are dated, so re-checking shows drift
@@ -61,9 +82,9 @@ rather than a single snapshot, and anything rated "don't know yet" stays out of
 the score and gets listed separately — an unknown is a question to go ask, not a
 mark against anyone.
 
-Once two things have been checked, a **side-by-side table** appears: contexts
-down the left, areas across the top. That's the view for "which of these places
-could we actually put down roots in".
+Once two things have been checked, a **side-by-side table** appears: places and
+opportunities down the left, areas across the top. That's the view for "which of
+these could we actually put down roots in".
 
 **Log** — learnings, dated and tagged: scripture, books, sermons,
 conversations, open questions, places you were wrong. Any entry can become a
@@ -141,6 +162,7 @@ js/seed.js            starter content
 js/ui.js              DOM helpers, sheet, toasts, form controls
 js/editors.js         every add/edit form
 js/router.js          hash routing
+js/views/where.js     places, comparisons, and every context sheet
 js/views/*.js         one file per tab, plus settings and shared parts
 tools/make_icons.py   regenerates icons/ (no dependencies)
 tools/build_single.mjs  bundles dist/true-north.html for single-page hosts
