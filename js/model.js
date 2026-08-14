@@ -109,6 +109,7 @@ export const HORIZONS = [
 export const STAGES = [
   { id: 'scouting', label: 'Scouting', blurb: 'Barely looked at it.' },
   { id: 'surveying', label: 'Surveying', blurb: 'Actively digging into it.' },
+  { id: 'running', label: 'Running with them', blurb: 'Already in it — not yet settled in it.' },
   { id: 'ready', label: 'Ready to decide', blurb: 'Nothing left unsettled.' },
   { id: 'built', label: 'Building here', blurb: 'Stake in the ground.' },
   { id: 'ruled-out', label: 'Ruled out', blurb: 'Not this one.' },
@@ -117,10 +118,27 @@ export const STAGES = [
 export const KINDS = [
   { id: 'community', label: 'Community / households' },
   { id: 'church', label: 'Church' },
-  { id: 'network', label: 'Network' },
+  { id: 'network', label: 'Ministry / network', rootless: true },
   { id: 'role', label: 'Role' },
   { id: 'place', label: 'Place / city' },
   { id: 'opportunity', label: 'Opportunity' },
+];
+
+/** A ministry isn't a location. The question is whether it travels. */
+export const PLACE_MODES = [
+  { id: 'in', label: 'It would put us there' },
+  { id: 'anywhere', label: 'It runs from anywhere' },
+  { id: 'elsewhere', label: 'It would take us away' },
+  { id: 'unknown', label: 'Don\'t know yet' },
+];
+
+/** For anything that isn't land: could you settle in with them completely? */
+export const SETTLE_LEVELS = [
+  { id: 'no', label: 'No', tone: 'bad' },
+  { id: 'notyet', label: 'Not yet', tone: 'thin' },
+  { id: 'close', label: 'Close', tone: 'thin' },
+  { id: 'yes', label: 'Yes, completely', tone: 'good' },
+  { id: 'unknown', label: 'Too early to say', tone: 'unknown' },
 ];
 
 export const NOTE_KINDS = [
@@ -225,6 +243,7 @@ export function survey(state, ground) {
   base.kid = byId(KID_LEVELS, check?.kid?.level) || byId(KID_LEVELS, 'unknown');
   base.formation = byId(FORMATION_LEVELS, check?.formation?.level) || byId(FORMATION_LEVELS, 'unknown');
   base.home = byId(HOME_LEVELS, check?.home) || byId(HOME_LEVELS, 'unknown');
+  base.settle = byId(SETTLE_LEVELS, check?.settle) || byId(SETTLE_LEVELS, 'unknown');
   base.kidNote = check?.kid?.note || '';
   base.formationNote = check?.formation?.note || '';
 
@@ -243,6 +262,7 @@ export function survey(state, ground) {
   }
 
   const decided = ground.stage === 'built' || ground.stage === 'ruled-out';
+  base.running = ground.stage === 'running';
   const trusted = ['yes', 'some'].includes(base.kid.id);
   const gatedBy = check && !trusted
     ? `You wouldn't leave your kids with these people yet (${base.kid.label.toLowerCase()})`
@@ -278,6 +298,9 @@ export function verdict(s) {
     return 'He\'d come back softer, not sharper. That\'s the thing to fix before anything else.';
   }
   if (s.kid.id === 'unknown') return 'You haven\'t been around these people enough to answer the only question that matters.';
+  if (s.running && ['no', 'notyet', 'close'].includes(s.settle.id)) {
+    return 'You\'re running with them. You haven\'t settled with them. Name the difference.';
+  }
   if (s.missingMusts.length) {
     return `${s.missingMusts.length} must-have${s.missingMusts.length > 1 ? 's are' : ' is'} missing here.`;
   }

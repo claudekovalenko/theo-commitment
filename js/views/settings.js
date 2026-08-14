@@ -144,6 +144,19 @@ export function openSettings() {
             }, 'Turn off the PIN lock'))
           : h('button', { class: 'btn primary block', onClick: setPin }, 'Set a PIN')),
 
+      field('The verse you want in front of you', area({
+        value: state.settings.verse?.text || '',
+        onInput: (e) => store.update((st) => {
+          st.settings.verse = { ...(st.settings.verse || {}), text: e.target.value };
+        }),
+      })),
+      field('Reference', input({
+        value: state.settings.verse?.ref || '',
+        onInput: (e) => store.update((st) => {
+          st.settings.verse = { ...(st.settings.verse || {}), ref: e.target.value };
+        }),
+      })),
+
       section('Areas of life'),
       h('div', { class: 'card' },
         h('p', { class: 'small muted', style: 'margin-bottom:12px' },

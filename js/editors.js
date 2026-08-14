@@ -4,7 +4,8 @@ import * as store from './store.js';
 import { uid, today } from './store.js';
 import {
   WEIGHTS, LEVELS, NOTE_KINDS, KINDS, STAGES, PEOPLE_STAGES, US_LEVELS, HORIZONS,
-  KID_LEVELS, FORMATION_LEVELS, HOME_LEVELS, byId, survey, verdict,
+  KID_LEVELS, FORMATION_LEVELS, HOME_LEVELS, SETTLE_LEVELS, PLACE_MODES,
+  byId, survey, verdict,
 } from './model.js';
 import {
   h, frag, field, input, area, segmented, chipPicker, openSheet, closeSheet,
@@ -149,7 +150,7 @@ export function editGround(existing, defaults = {}) {
   const state = store.get();
   const g = existing || {
     id: uid(), name: '', kind: state.calling?.placeId ? 'community' : 'place',
-    stage: 'scouting', horizon: 'unknown',
+    stage: 'scouting', horizon: 'unknown', placeMode: 'unknown',
     placeId: state.calling?.placeId || '', notes: '', ...defaults,
   };
   const draft = { ...g };
@@ -159,6 +160,22 @@ export function editGround(existing, defaults = {}) {
   const paintPlace = () => {
     placeField.replaceChildren();
     if (draft.kind === 'place') return;
+    const rootless = byId(KINDS, draft.kind)?.rootless;
+    const called = state.calling?.place;
+
+    if (rootless) {
+      // A ministry is a relationship, not an address. Ask whether it travels.
+      placeField.append(field(
+        called ? `Can this run from ${called}?` : 'Does this tie you to a place?',
+        segmented(PLACE_MODES, draft.placeMode || 'unknown', (v) => {
+          draft.placeMode = v;
+          draft.placeId = v === 'in' ? (state.calling?.placeId || draft.placeId) : '';
+        }),
+        'A ministry you carry with you is a different question from a place that holds you.',
+      ));
+      return;
+    }
+
     placeField.append(field(
       'If we said yes, where would we live?',
       segmented(
@@ -166,17 +183,29 @@ export function editGround(existing, defaults = {}) {
         draft.placeId || '',
         (v) => { draft.placeId = v; },
       ),
-      state.calling?.place
-        ? `You're called to ${state.calling.place}. Anything that puts you somewhere else is a different conversation.`
+      called
+        ? `You're called to ${called}. Anything that puts you somewhere else is a different conversation.`
         : (places.length ? 'An offer is only as good as the ground it puts you on.' : 'Add the land first, then link it.'),
     ));
   };
   paintPlace();
 
+  const stageField = h('div', {});
+  const paintStage = () => {
+    stageField.replaceChildren();
+    stageField.append(field(
+      'Where does this stand with you?',
+      segmented(STAGES.filter((x) => x.id !== 'built' && x.id !== 'ready'), draft.stage, (v) => { draft.stage = v; }),
+      byId(STAGES, draft.stage)?.blurb || '',
+    ));
+  };
+  paintStage();
+
   openSheet(existing ? 'Edit' : 'Add ground', () => frag(
     field('Name', input({ value: draft.name, placeholder: 'A town, a church, an offer', onInput: (e) => { draft.name = e.target.value; } })),
-    field('What is it?', segmented(KINDS, draft.kind, (v) => { draft.kind = v; paintPlace(); })),
+    field('What is it?', segmented(KINDS, draft.kind, (v) => { draft.kind = v; paintPlace(); paintStage(); })),
     placeField,
+    stageField,
     field('Could we still be here in ten years?', segmented(HORIZONS, draft.horizon, (v) => { draft.horizon = v; })),
     field('Notes', area({ value: draft.notes, placeholder: 'What you know, who you\'ve talked to, what you\'re watching for.', onInput: (e) => { draft.notes = e.target.value; } })),
     saveBar(() => {
@@ -219,6 +248,7 @@ export function walkTheLand(groundId, existing) {
   if (!check.kid?.level) check.kid = { level: 'unknown', note: '' };
   if (!check.formation?.level) check.formation = { level: 'unknown', note: '' };
   if (!check.home) check.home = 'unknown';
+  if (!check.settle) check.settle = 'unknown';
 
   let only = null;
 
@@ -292,8 +322,14 @@ export function walkTheLand(groundId, existing) {
         type: 'text', value: check.formation.note || '', placeholder: 'What you\'ve actually watched happen to kids here',
         style: 'margin-top:8px', onInput: (e) => { check.formation.note = e.target.value; },
       }),
-      h('h3', { style: 'margin:18px 0 6px' }, 'Would we buy a home here?'),
-      segmented(HOME_LEVELS, check.home, (v) => { check.home = v; }));
+      ground.kind === 'place'
+        ? frag(
+          h('h3', { style: 'margin:18px 0 6px' }, 'Would we buy a home here?'),
+          segmented(HOME_LEVELS, check.home, (v) => { check.home = v; }))
+        : frag(
+          h('h3', { style: 'margin:18px 0 2px' }, 'Could we settle in with them completely?'),
+          h('p', { class: 'tiny muted' }, 'Running with them and settling with them are not the same thing.'),
+          segmented(SETTLE_LEVELS, check.settle, (v) => { check.settle = v; })));
 
     return frag(
       readout,
@@ -529,4 +565,3 @@ export function editPerson(existing, defaults = {}) {
   ));
 }
 
-export { STAGES };

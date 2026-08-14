@@ -194,12 +194,23 @@ function migrate(data) {
     createdAt: new Date().toISOString(),
     domains: [], convictions: [], contexts: [], checks: [], blocks: [], notes: [], people: [],
     calling: { placeId: '', place: '', why: '', by: '' },
-    settings: { autoLockMinutes: 15, name: '' },
+    settings: {
+      autoLockMinutes: 15,
+      name: '',
+      verse: {
+        text: 'Unless a grain of wheat falls into the ground and dies, it remains alone; but if it dies, it produces much grain.',
+        ref: 'John 12:24',
+      },
+    },
   };
   const s = {
     ...base, ...data,
     calling: { ...base.calling, ...(data.calling || {}) },
-    settings: { ...base.settings, ...(data.settings || {}) },
+    settings: {
+      ...base.settings,
+      ...(data.settings || {}),
+      verse: { ...base.settings.verse, ...((data.settings || {}).verse || {}) },
+    },
   };
 
   if (!s.domains.length) s.domains = DEFAULT_DOMAINS.map((d) => ({ ...d }));
@@ -224,12 +235,14 @@ function migrate(data) {
   s.contexts.forEach((c) => {
     if (!c.horizon) c.horizon = 'unknown';
     if (!c.stage) c.stage = 'scouting';
+    if (!c.placeMode) c.placeMode = c.placeId ? 'in' : 'unknown';
   });
   s.checks.forEach((k) => {
     if (!k.us) k.us = { level: 'na', note: '' };
     if (!k.kid) k.kid = { level: 'unknown', note: '' };
     if (!k.formation) k.formation = { level: 'unknown', note: '' };
     if (!k.home) k.home = 'unknown';
+    if (!k.settle) k.settle = 'unknown';
   });
   s.people.forEach((p) => { if (p.groundId === undefined) p.groundId = ''; });
 

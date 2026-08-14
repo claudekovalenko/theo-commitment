@@ -4,7 +4,8 @@
 import * as store from './../store.js';
 import { today } from './../store.js';
 import {
-  survey, verdict, rankGrounds, byId, HORIZONS, HOME_LEVELS, KINDS, callingPlace, withinCalling,
+  survey, verdict, rankGrounds, byId, HORIZONS, HOME_LEVELS, KINDS, PLACE_MODES, STAGES,
+  callingPlace, withinCalling,
 } from './../model.js';
 import { h, empty, section, relDate, toast } from './../ui.js';
 import {
@@ -87,9 +88,10 @@ export function render(state) {
     h('div', {},
       h('div', { class: 'eyebrow' },
         staked ? 'Building here'
-          : (state.calling?.place && ground.kind !== 'place'
-            ? `Who I'd build with in ${state.calling.place}`
-            : 'The ground in front of me')),
+          : ground.stage === 'running' ? 'Running with them, not settled'
+            : (state.calling?.place && ground.kind !== 'place'
+              ? `Who I'd build with in ${state.calling.place}`
+              : 'The ground in front of me')),
       h('h1', { style: 'margin:2px 0 0' }, ground.name)),
     h('button', { class: 'icon-btn', onClick: () => openGround(ground.id) }, 'Open')));
 
@@ -110,9 +112,13 @@ export function render(state) {
         h('span', { class: 'small' }, 'He\'d come back'),
         h('span', { class: `small tone-${s.formation.tone}` }, s.formation.label)),
       s.formationNote ? h('div', { class: 'tiny muted' }, s.formationNote) : null,
-      h('div', { class: 'row spread', style: 'margin-top:8px' },
-        h('span', { class: 'small' }, 'Would we buy a home here'),
-        h('span', { class: `small tone-${home.tone}` }, home.label)),
+      ground.kind === 'place'
+        ? h('div', { class: 'row spread', style: 'margin-top:8px' },
+          h('span', { class: 'small' }, 'Would we buy a home here'),
+          h('span', { class: `small tone-${home.tone}` }, home.label))
+        : h('div', { class: 'row spread', style: 'margin-top:8px' },
+          h('span', { class: 'small' }, 'Could we settle in completely'),
+          h('span', { class: `small tone-${s.settle.tone}` }, s.settle.label)),
       s.gate ? h('p', { class: 'tiny tone-thin', style: 'margin:10px 0 0' }, s.gate) : null,
       h('button', { class: 'icon-btn', style: 'margin-top:12px', onClick: () => walkTheLand(ground.id, s.check) }, 'Change my answer')));
   }
@@ -134,6 +140,13 @@ export function render(state) {
 
   if (staked && ground.stakeNote) {
     view.append(h('p', { class: 'small muted', style: 'font-style:italic' }, `"${ground.stakeNote}"`));
+  }
+
+  const verse = state.settings?.verse;
+  if (verse?.text) {
+    view.append(h('blockquote', { class: 'verse' },
+      h('p', {}, verse.text),
+      verse.ref ? h('cite', {}, verse.ref) : null));
   }
 
   /* ---- the decision ---- */

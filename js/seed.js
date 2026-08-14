@@ -140,10 +140,11 @@ export function seedState() {
     id: uid(),
     name: 'E3',
     kind: 'network',
-    stage: 'scouting',
+    stage: 'running',
     placeId: '',
+    placeMode: 'unknown',
     horizon: 'unknown',
-    notes: 'What I keep circling back to. Run a check whenever I learn something new about how they actually operate.',
+    notes: 'A ministry, not a location. Been running with them for a while — the open question is whether I could settle in with them completely.',
     createdAt: new Date().toISOString(),
     seeded: true,
   };
@@ -185,8 +186,8 @@ export function seedState() {
       {
         id: uid(),
         groundId: e3.id,
-        title: 'I don\'t know where E3 would actually put us',
-        wouldSettle: 'A straight answer about location, and whether we\'d get to choose it.',
+        title: 'I don\'t know if I could settle in with E3 completely',
+        wouldSettle: 'Name the specific thing I\'m holding back on, and what would have to be true to let it go.',
         who: '',
         due: '',
         hard: true,
@@ -212,6 +213,13 @@ export function seedState() {
     }],
     people: [],
     calling: { placeId: '', place: '', why: '', by: '' },
-    settings: { autoLockMinutes: 15, name: '' },
+    settings: {
+      autoLockMinutes: 15,
+      name: '',
+      verse: {
+        text: 'Unless a grain of wheat falls into the ground and dies, it remains alone; but if it dies, it produces much grain.',
+        ref: 'John 12:24',
+      },
+    },
   };
 }

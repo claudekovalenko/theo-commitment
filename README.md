@@ -20,6 +20,27 @@ communities inside the calling, not towns. Anything that would put you somewhere
 else says so plainly. Places you'd already looked at stay under *Elsewhere*, for
 comparison.
 
+## A ministry isn't a location
+
+Some things you weigh are places. Some are people you're already running with.
+A ministry gets asked a different question — *can this run from Los Angeles?* —
+instead of being nagged for an address it was never going to have, and it can be
+marked **Running with them**: already in it, not yet settled in it. The closing
+question changes to match: land asks *would we buy a home here*, a ministry asks
+*could we settle in with them completely*. When those two answers disagree, the
+app says it out loud: **"You're running with them. You haven't settled with
+them. Name the difference."**
+
+## The verse
+
+One verse sits under the reading on the home screen, because the whole metaphor
+comes from it:
+
+> Unless a grain of wheat falls into the ground and dies, it remains alone; but
+> if it dies, it produces much grain. — **John 12:24**
+
+Change it in Settings to whatever you want in front of you.
+
 ## The gate
 
 Two questions decide a piece of ground, and they sit above everything else:

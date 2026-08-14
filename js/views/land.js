@@ -4,7 +4,8 @@
 import * as store from './../store.js';
 import { today } from './../store.js';
 import {
-  survey, verdict, rankGrounds, impliedPlace, byId, KINDS, STAGES, HORIZONS, callingPlace, withinCalling,
+  survey, verdict, rankGrounds, impliedPlace, byId, KINDS, STAGES, HORIZONS, PLACE_MODES,
+  callingPlace, withinCalling,
 } from './../model.js';
 import { h, frag, empty, section, openSheet, relDate, fmtDate } from './../ui.js';
 import { editGround, walkTheLand, editBlock, editNote, breakGround, editCalling } from './../editors.js';
@@ -64,15 +65,23 @@ export function openGround(id) {
 
       ground.kind !== 'place'
         ? h('div', { class: 'card' },
-          h('div', { class: 'eyebrow' }, 'If we said yes, we\'d live in'),
-          place
-            ? h('div', { class: 'row spread', style: 'margin-top:4px' },
-              h('strong', {}, place.name),
-              h('button', { class: 'icon-btn', onClick: () => openGround(place.id) }, 'Open'))
+          byId(KINDS, ground.kind)?.rootless
+            ? frag(
+              h('div', { class: 'eyebrow' }, state.calling?.place ? `Can this run from ${state.calling.place}?` : 'Does it tie you to a place?'),
+              h('div', { class: 'row spread', style: 'margin-top:4px' },
+                h('strong', {}, (byId(PLACE_MODES, ground.placeMode || 'unknown')).label),
+                h('button', { class: 'icon-btn', onClick: () => editGround(ground) }, 'Change')),
+              h('p', { class: 'tiny muted', style: 'margin:8px 0 0' }, 'A ministry is a relationship, not an address.'))
             : frag(
-              h('strong', { class: 'tone-thin' }, 'Not answered yet'),
-              h('p', { class: 'small muted', style: 'margin:6px 0 10px' }, 'Until you know where it puts you, you can\'t weigh it.'),
-              h('button', { class: 'btn sm', onClick: () => editGround(ground) }, 'Answer it')))
+              h('div', { class: 'eyebrow' }, 'If we said yes, we\'d live in'),
+              place
+                ? h('div', { class: 'row spread', style: 'margin-top:4px' },
+                  h('strong', {}, place.name),
+                  h('button', { class: 'icon-btn', onClick: () => openGround(place.id) }, 'Open'))
+                : frag(
+                  h('strong', { class: 'tone-thin' }, 'Not answered yet'),
+                  h('p', { class: 'small muted', style: 'margin:6px 0 10px' }, 'Until you know where it puts you, you can\'t weigh it.'),
+                  h('button', { class: 'btn sm', onClick: () => editGround(ground) }, 'Answer it'))))
         : null,
 
       h('div', { class: 'stack', style: 'margin:16px 0' },
@@ -93,8 +102,9 @@ export function openGround(id) {
             h('span', { class: 'small' }, 'He\'d come back'),
             h('span', { class: `small tone-${s.formation.tone}` }, s.formation.label)),
           h('div', { class: 'row spread', style: 'margin-top:8px' },
-            h('span', { class: 'small' }, 'Buy a home here'),
-            h('span', { class: `small tone-${s.home.tone}` }, s.home.label)),
+            h('span', { class: 'small' }, ground.kind === 'place' ? 'Buy a home here' : 'Settle in completely'),
+            h('span', { class: `small tone-${ground.kind === 'place' ? s.home.tone : s.settle.tone}` },
+              ground.kind === 'place' ? s.home.label : s.settle.label)),
           s.household.length
             ? h('div', { class: 'tiny muted', style: 'margin-top:10px' }, `Spiritual family here: ${s.household.map((p) => p.name).join(', ')}`)
             : h('div', { class: 'tiny tone-thin', style: 'margin-top:10px' }, 'No spiritual family named here yet')),
@@ -252,12 +262,14 @@ export function render(state) {
     const rows = h('div', { class: 'rows' });
     others.forEach((c) => {
       const p = impliedPlace(state.contexts, c);
+      const rootless = byId(KINDS, c.kind)?.rootless;
+      const mode = byId(PLACE_MODES, c.placeMode || 'unknown');
       rows.append(h('button', { class: 'card-tap', onClick: () => openGround(c.id) },
         h('div', { class: 'row spread' },
           h('strong', {}, c.name),
           h('span', { class: 'tiny muted' }, byId(KINDS, c.kind)?.label || '')),
-        h('div', { class: `tiny ${p ? 'muted' : 'tone-thin'}` },
-          p ? `Would put us in ${p.name}` : 'No ground attached yet')));
+        h('div', { class: `tiny ${p || rootless ? 'muted' : 'tone-thin'}` },
+          p ? `Would put us in ${p.name}` : (rootless ? mode.label : 'No ground attached yet'))));
     });
     view.append(rows);
   }

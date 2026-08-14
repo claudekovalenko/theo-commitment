@@ -141,6 +141,14 @@ strong { font-weight: 600; }
 
 .plot { display: block; width: 100%; height: auto; }
 
+.verse {
+  margin: 16px 0 0; padding: 0 0 0 14px;
+  border-left: 2px solid var(--soil);
+  font-family: var(--serif); font-style: italic; color: var(--muted);
+}
+.verse p { margin: 0; font-size: .95rem; line-height: 1.45; }
+.verse cite { display: block; margin-top: 4px; font-style: normal; font-size: .76rem; letter-spacing: .04em; }
+
 /* ---------- surfaces ---------- */
 
 .card {
@@ -462,6 +470,7 @@ select { appearance: none; }
   var STAGES = [
     { id: "scouting", label: "Scouting", blurb: "Barely looked at it." },
     { id: "surveying", label: "Surveying", blurb: "Actively digging into it." },
+    { id: "running", label: "Running with them", blurb: "Already in it \u2014 not yet settled in it." },
     { id: "ready", label: "Ready to decide", blurb: "Nothing left unsettled." },
     { id: "built", label: "Building here", blurb: "Stake in the ground." },
     { id: "ruled-out", label: "Ruled out", blurb: "Not this one." }
@@ -469,10 +478,23 @@ select { appearance: none; }
   var KINDS = [
     { id: "community", label: "Community / households" },
     { id: "church", label: "Church" },
-    { id: "network", label: "Network" },
+    { id: "network", label: "Ministry / network", rootless: true },
     { id: "role", label: "Role" },
     { id: "place", label: "Place / city" },
     { id: "opportunity", label: "Opportunity" }
+  ];
+  var PLACE_MODES = [
+    { id: "in", label: "It would put us there" },
+    { id: "anywhere", label: "It runs from anywhere" },
+    { id: "elsewhere", label: "It would take us away" },
+    { id: "unknown", label: "Don't know yet" }
+  ];
+  var SETTLE_LEVELS = [
+    { id: "no", label: "No", tone: "bad" },
+    { id: "notyet", label: "Not yet", tone: "thin" },
+    { id: "close", label: "Close", tone: "thin" },
+    { id: "yes", label: "Yes, completely", tone: "good" },
+    { id: "unknown", label: "Too early to say", tone: "unknown" }
   ];
   var NOTE_KINDS = [
     { id: "hesitation", label: "Why I hesitated" },
@@ -550,6 +572,7 @@ select { appearance: none; }
     base.kid = byId(KID_LEVELS, check?.kid?.level) || byId(KID_LEVELS, "unknown");
     base.formation = byId(FORMATION_LEVELS, check?.formation?.level) || byId(FORMATION_LEVELS, "unknown");
     base.home = byId(HOME_LEVELS, check?.home) || byId(HOME_LEVELS, "unknown");
+    base.settle = byId(SETTLE_LEVELS, check?.settle) || byId(SETTLE_LEVELS, "unknown");
     base.kidNote = check?.kid?.note || "";
     base.formationNote = check?.formation?.note || "";
     base.household = state2.people.filter((p) => p.groundId === ground.id);
@@ -561,6 +584,7 @@ select { appearance: none; }
       base.gate = "";
     }
     const decided = ground.stage === "built" || ground.stage === "ruled-out";
+    base.running = ground.stage === "running";
     const trusted = ["yes", "some"].includes(base.kid.id);
     const gatedBy = check && !trusted ? `You wouldn't leave your kids with these people yet (${base.kid.label.toLowerCase()})` : check && base.formation.id === "softer" ? "He'd come back softer, not sharper" : "";
     const ready = !decided && trusted && surveyed >= 0.8 && blocks.length === 0 && (base.fit ?? 0) >= 0.6;
@@ -591,6 +615,9 @@ select { appearance: none; }
       return "He'd come back softer, not sharper. That's the thing to fix before anything else.";
     }
     if (s.kid.id === "unknown") return "You haven't been around these people enough to answer the only question that matters.";
+    if (s.running && ["no", "notyet", "close"].includes(s.settle.id)) {
+      return "You're running with them. You haven't settled with them. Name the difference.";
+    }
     if (s.missingMusts.length) {
       return `${s.missingMusts.length} must-have${s.missingMusts.length > 1 ? "s are" : " is"} missing here.`;
     }
@@ -783,10 +810,11 @@ select { appearance: none; }
       id: uid(),
       name: "E3",
       kind: "network",
-      stage: "scouting",
+      stage: "running",
       placeId: "",
+      placeMode: "unknown",
       horizon: "unknown",
-      notes: "What I keep circling back to. Run a check whenever I learn something new about how they actually operate.",
+      notes: "A ministry, not a location. Been running with them for a while \u2014 the open question is whether I could settle in with them completely.",
       createdAt: (/* @__PURE__ */ new Date()).toISOString(),
       seeded: true
     };
@@ -825,8 +853,8 @@ select { appearance: none; }
         {
           id: uid(),
           groundId: e3.id,
-          title: "I don't know where E3 would actually put us",
-          wouldSettle: "A straight answer about location, and whether we'd get to choose it.",
+          title: "I don't know if I could settle in with E3 completely",
+          wouldSettle: "Name the specific thing I'm holding back on, and what would have to be true to let it go.",
           who: "",
           due: "",
           hard: true,
@@ -849,7 +877,14 @@ select { appearance: none; }
       }],
       people: [],
       calling: { placeId: "", place: "", why: "", by: "" },
-      settings: { autoLockMinutes: 15, name: "" }
+      settings: {
+        autoLockMinutes: 15,
+        name: "",
+        verse: {
+          text: "Unless a grain of wheat falls into the ground and dies, it remains alone; but if it dies, it produces much grain.",
+          ref: "John 12:24"
+        }
+      }
     };
   }
 
@@ -1027,13 +1062,24 @@ select { appearance: none; }
       notes: [],
       people: [],
       calling: { placeId: "", place: "", why: "", by: "" },
-      settings: { autoLockMinutes: 15, name: "" }
+      settings: {
+        autoLockMinutes: 15,
+        name: "",
+        verse: {
+          text: "Unless a grain of wheat falls into the ground and dies, it remains alone; but if it dies, it produces much grain.",
+          ref: "John 12:24"
+        }
+      }
     };
     const s = {
       ...base,
       ...data,
       calling: { ...base.calling, ...data.calling || {} },
-      settings: { ...base.settings, ...data.settings || {} }
+      settings: {
+        ...base.settings,
+        ...data.settings || {},
+        verse: { ...base.settings.verse, ...(data.settings || {}).verse || {} }
+      }
     };
     if (!s.domains.length) s.domains = DEFAULT_DOMAINS.map((d) => ({ ...d }));
     const known = new Set(s.domains.map((d) => d.id));
@@ -1051,12 +1097,14 @@ select { appearance: none; }
     s.contexts.forEach((c) => {
       if (!c.horizon) c.horizon = "unknown";
       if (!c.stage) c.stage = "scouting";
+      if (!c.placeMode) c.placeMode = c.placeId ? "in" : "unknown";
     });
     s.checks.forEach((k) => {
       if (!k.us) k.us = { level: "na", note: "" };
       if (!k.kid) k.kid = { level: "unknown", note: "" };
       if (!k.formation) k.formation = { level: "unknown", note: "" };
       if (!k.home) k.home = "unknown";
+      if (!k.settle) k.settle = "unknown";
     });
     s.people.forEach((p) => {
       if (p.groundId === void 0) p.groundId = "";
@@ -1461,6 +1509,7 @@ select { appearance: none; }
       kind: state2.calling?.placeId ? "community" : "place",
       stage: "scouting",
       horizon: "unknown",
+      placeMode: "unknown",
       placeId: state2.calling?.placeId || "",
       notes: "",
       ...defaults
@@ -1471,6 +1520,19 @@ select { appearance: none; }
     const paintPlace = () => {
       placeField.replaceChildren();
       if (draft.kind === "place") return;
+      const rootless = byId(KINDS, draft.kind)?.rootless;
+      const called = state2.calling?.place;
+      if (rootless) {
+        placeField.append(field(
+          called ? `Can this run from ${called}?` : "Does this tie you to a place?",
+          segmented(PLACE_MODES, draft.placeMode || "unknown", (v) => {
+            draft.placeMode = v;
+            draft.placeId = v === "in" ? state2.calling?.placeId || draft.placeId : "";
+          }),
+          "A ministry you carry with you is a different question from a place that holds you."
+        ));
+        return;
+      }
       placeField.append(field(
         "If we said yes, where would we live?",
         segmented(
@@ -1480,10 +1542,22 @@ select { appearance: none; }
             draft.placeId = v;
           }
         ),
-        state2.calling?.place ? `You're called to ${state2.calling.place}. Anything that puts you somewhere else is a different conversation.` : places.length ? "An offer is only as good as the ground it puts you on." : "Add the land first, then link it."
+        called ? `You're called to ${called}. Anything that puts you somewhere else is a different conversation.` : places.length ? "An offer is only as good as the ground it puts you on." : "Add the land first, then link it."
       ));
     };
     paintPlace();
+    const stageField = h("div", {});
+    const paintStage = () => {
+      stageField.replaceChildren();
+      stageField.append(field(
+        "Where does this stand with you?",
+        segmented(STAGES.filter((x) => x.id !== "built" && x.id !== "ready"), draft.stage, (v) => {
+          draft.stage = v;
+        }),
+        byId(STAGES, draft.stage)?.blurb || ""
+      ));
+    };
+    paintStage();
     openSheet(existing ? "Edit" : "Add ground", () => frag(
       field("Name", input({ value: draft.name, placeholder: "A town, a church, an offer", onInput: (e) => {
         draft.name = e.target.value;
@@ -1491,8 +1565,10 @@ select { appearance: none; }
       field("What is it?", segmented(KINDS, draft.kind, (v) => {
         draft.kind = v;
         paintPlace();
+        paintStage();
       })),
       placeField,
+      stageField,
       field("Could we still be here in ten years?", segmented(HORIZONS, draft.horizon, (v) => {
         draft.horizon = v;
       })),
@@ -1540,6 +1616,7 @@ select { appearance: none; }
     if (!check.kid?.level) check.kid = { level: "unknown", note: "" };
     if (!check.formation?.level) check.formation = { level: "unknown", note: "" };
     if (!check.home) check.home = "unknown";
+    if (!check.settle) check.settle = "unknown";
     let only = null;
     openSheet(`Walking ${ground.name}`, () => {
       const readout = h("div", { class: "card", style: "margin-bottom:16px" });
@@ -1649,10 +1726,18 @@ select { appearance: none; }
             check.formation.note = e.target.value;
           }
         }),
-        h("h3", { style: "margin:18px 0 6px" }, "Would we buy a home here?"),
-        segmented(HOME_LEVELS, check.home, (v) => {
-          check.home = v;
-        })
+        ground.kind === "place" ? frag(
+          h("h3", { style: "margin:18px 0 6px" }, "Would we buy a home here?"),
+          segmented(HOME_LEVELS, check.home, (v) => {
+            check.home = v;
+          })
+        ) : frag(
+          h("h3", { style: "margin:18px 0 2px" }, "Could we settle in with them completely?"),
+          h("p", { class: "tiny muted" }, "Running with them and settling with them are not the same thing."),
+          segmented(SETTLE_LEVELS, check.settle, (v) => {
+            check.settle = v;
+          })
+        )
       );
       return frag(
         readout,
@@ -2168,6 +2253,18 @@ select { appearance: none; }
             }, "Turn off the PIN lock")
           ) : h("button", { class: "btn primary block", onClick: setPin }, "Set a PIN")
         ),
+        field("The verse you want in front of you", area({
+          value: state2.settings.verse?.text || "",
+          onInput: (e) => update((st) => {
+            st.settings.verse = { ...st.settings.verse || {}, text: e.target.value };
+          })
+        })),
+        field("Reference", input({
+          value: state2.settings.verse?.ref || "",
+          onInput: (e) => update((st) => {
+            st.settings.verse = { ...st.settings.verse || {}, ref: e.target.value };
+          })
+        })),
         section("Areas of life"),
         h(
           "div",
@@ -2458,16 +2555,27 @@ select { appearance: none; }
         ground.kind !== "place" ? h(
           "div",
           { class: "card" },
-          h("div", { class: "eyebrow" }, "If we said yes, we'd live in"),
-          place ? h(
-            "div",
-            { class: "row spread", style: "margin-top:4px" },
-            h("strong", {}, place.name),
-            h("button", { class: "icon-btn", onClick: () => openGround(place.id) }, "Open")
+          byId(KINDS, ground.kind)?.rootless ? frag(
+            h("div", { class: "eyebrow" }, state2.calling?.place ? `Can this run from ${state2.calling.place}?` : "Does it tie you to a place?"),
+            h(
+              "div",
+              { class: "row spread", style: "margin-top:4px" },
+              h("strong", {}, byId(PLACE_MODES, ground.placeMode || "unknown").label),
+              h("button", { class: "icon-btn", onClick: () => editGround(ground) }, "Change")
+            ),
+            h("p", { class: "tiny muted", style: "margin:8px 0 0" }, "A ministry is a relationship, not an address.")
           ) : frag(
-            h("strong", { class: "tone-thin" }, "Not answered yet"),
-            h("p", { class: "small muted", style: "margin:6px 0 10px" }, "Until you know where it puts you, you can't weigh it."),
-            h("button", { class: "btn sm", onClick: () => editGround(ground) }, "Answer it")
+            h("div", { class: "eyebrow" }, "If we said yes, we'd live in"),
+            place ? h(
+              "div",
+              { class: "row spread", style: "margin-top:4px" },
+              h("strong", {}, place.name),
+              h("button", { class: "icon-btn", onClick: () => openGround(place.id) }, "Open")
+            ) : frag(
+              h("strong", { class: "tone-thin" }, "Not answered yet"),
+              h("p", { class: "small muted", style: "margin:6px 0 10px" }, "Until you know where it puts you, you can't weigh it."),
+              h("button", { class: "btn sm", onClick: () => editGround(ground) }, "Answer it")
+            )
           )
         ) : null,
         h(
@@ -2501,8 +2609,12 @@ select { appearance: none; }
             h(
               "div",
               { class: "row spread", style: "margin-top:8px" },
-              h("span", { class: "small" }, "Buy a home here"),
-              h("span", { class: `small tone-${s.home.tone}` }, s.home.label)
+              h("span", { class: "small" }, ground.kind === "place" ? "Buy a home here" : "Settle in completely"),
+              h(
+                "span",
+                { class: `small tone-${ground.kind === "place" ? s.home.tone : s.settle.tone}` },
+                ground.kind === "place" ? s.home.label : s.settle.label
+              )
             ),
             s.household.length ? h("div", { class: "tiny muted", style: "margin-top:10px" }, `Spiritual family here: ${s.household.map((p) => p.name).join(", ")}`) : h("div", { class: "tiny tone-thin", style: "margin-top:10px" }, "No spiritual family named here yet")
           ),
@@ -2707,6 +2819,8 @@ select { appearance: none; }
       const rows = h("div", { class: "rows" });
       others.forEach((c) => {
         const p = impliedPlace(state2.contexts, c);
+        const rootless = byId(KINDS, c.kind)?.rootless;
+        const mode = byId(PLACE_MODES, c.placeMode || "unknown");
         rows.append(h(
           "button",
           { class: "card-tap", onClick: () => openGround(c.id) },
@@ -2718,8 +2832,8 @@ select { appearance: none; }
           ),
           h(
             "div",
-            { class: `tiny ${p ? "muted" : "tone-thin"}` },
-            p ? `Would put us in ${p.name}` : "No ground attached yet"
+            { class: `tiny ${p || rootless ? "muted" : "tone-thin"}` },
+            p ? `Would put us in ${p.name}` : rootless ? mode.label : "No ground attached yet"
           )
         ));
       });
@@ -2811,7 +2925,7 @@ select { appearance: none; }
         h(
           "div",
           { class: "eyebrow" },
-          staked ? "Building here" : state2.calling?.place && ground.kind !== "place" ? `Who I'd build with in ${state2.calling.place}` : "The ground in front of me"
+          staked ? "Building here" : ground.stage === "running" ? "Running with them, not settled" : state2.calling?.place && ground.kind !== "place" ? `Who I'd build with in ${state2.calling.place}` : "The ground in front of me"
         ),
         h("h1", { style: "margin:2px 0 0" }, ground.name)
       ),
@@ -2843,11 +2957,16 @@ select { appearance: none; }
           h("span", { class: `small tone-${s.formation.tone}` }, s.formation.label)
         ),
         s.formationNote ? h("div", { class: "tiny muted" }, s.formationNote) : null,
-        h(
+        ground.kind === "place" ? h(
           "div",
           { class: "row spread", style: "margin-top:8px" },
           h("span", { class: "small" }, "Would we buy a home here"),
           h("span", { class: `small tone-${home.tone}` }, home.label)
+        ) : h(
+          "div",
+          { class: "row spread", style: "margin-top:8px" },
+          h("span", { class: "small" }, "Could we settle in completely"),
+          h("span", { class: `small tone-${s.settle.tone}` }, s.settle.label)
         ),
         s.gate ? h("p", { class: "tiny tone-thin", style: "margin:10px 0 0" }, s.gate) : null,
         h("button", { class: "icon-btn", style: "margin-top:12px", onClick: () => walkTheLand(ground.id, s.check) }, "Change my answer")
@@ -2877,6 +2996,15 @@ select { appearance: none; }
     }
     if (staked && ground.stakeNote) {
       view2.append(h("p", { class: "small muted", style: "font-style:italic" }, `"${ground.stakeNote}"`));
+    }
+    const verse = state2.settings?.verse;
+    if (verse?.text) {
+      view2.append(h(
+        "blockquote",
+        { class: "verse" },
+        h("p", {}, verse.text),
+        verse.ref ? h("cite", {}, verse.ref) : null
+      ));
     }
     if (!staked && ground.stage !== "ruled-out") {
       view2.append(h(
