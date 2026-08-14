@@ -4,14 +4,14 @@ import * as store from './store.js';
 import { uid, today } from './store.js';
 import {
   WEIGHTS, LEVELS, NOTE_KINDS, CONTEXT_KINDS, CONTEXT_STATUS, PEOPLE_STAGES,
-  byId, scoreCheck, readingWord,
+  US_LEVELS, HORIZONS, byId, scoreCheck, readingWord,
 } from './model.js';
 import {
   h, frag, field, input, area, segmented, chipPicker, openSheet, closeSheet,
   confirmSheet, toast,
 } from './ui.js';
 
-const opts = (list) => list.map((c) => ({ id: c.id, label: c.title || c.name }));
+const opts = (list) => list.map((c) => ({ id: c.id, label: c.title || c.name || c.label }));
 
 function saveBar(onSave, onDelete) {
   return h('div', { class: 'stack', style: 'margin-top:18px' },
@@ -30,18 +30,52 @@ async function confirmDelete(what, run) {
   toast('Deleted');
 }
 
+/* ---------- domain ---------- */
+
+export function editDomain(existing) {
+  const d = existing || { id: uid(), label: '', short: '', blurb: '', color: '#8ea2c8' };
+  const draft = { ...d };
+
+  openSheet(existing ? 'Edit area' : 'New area of life', () => frag(
+    h('p', { class: 'small muted' },
+      'Areas are the big buckets the compass reads separately — walking with God, marriage, family, roots, ministry.'),
+    field('Name', input({ value: draft.label, onInput: (e) => { draft.label = e.target.value; } })),
+    field('Short name', input({ value: draft.short || '', placeholder: 'For tight spaces', onInput: (e) => { draft.short = e.target.value; } })),
+    field('What it covers', area({ value: draft.blurb || '', onInput: (e) => { draft.blurb = e.target.value; } })),
+    field('Colour', h('input', { type: 'color', value: draft.color, onInput: (e) => { draft.color = e.target.value; } })),
+    saveBar(() => {
+      if (!draft.label.trim()) return toast('Give it a name first');
+      store.update((s) => {
+        const i = s.domains.findIndex((x) => x.id === draft.id);
+        if (i < 0) s.domains.push(draft); else s.domains[i] = { ...s.domains[i], ...draft };
+      });
+      closeSheet();
+      toast('Saved');
+    }, existing && store.get().domains.length > 1 ? () => confirmDelete('area', (s) => {
+      const home = s.domains.find((x) => x.id !== draft.id);
+      s.convictions.forEach((c) => { if (c.domainId === draft.id) c.domainId = home.id; });
+      s.domains = s.domains.filter((x) => x.id !== draft.id);
+    }) : null),
+  ));
+}
+
 /* ---------- conviction ---------- */
 
-export function editConviction(existing) {
-  const c = existing || { id: uid(), title: '', weight: 'conviction', summary: '', scriptures: '', practice: '', forming: '' };
+export function editConviction(existing, defaults = {}) {
+  const state = store.get();
+  const c = existing || {
+    id: uid(), domainId: state.domains[0]?.id, title: '', weight: 'conviction',
+    summary: '', scriptures: '', practice: '', forming: '', ...defaults,
+  };
   const draft = { ...c };
 
   openSheet(existing ? 'Edit conviction' : 'New conviction', () => frag(
-    field('What is it?', input({ value: draft.title, placeholder: 'e.g. Disciple making that multiplies', onInput: (e) => { draft.title = e.target.value; } })),
+    field('Which area of life?', segmented(state.domains.map((d) => ({ id: d.id, label: d.short || d.label })), draft.domainId, (v) => { draft.domainId = v; })),
+    field('What is it?', input({ value: draft.title, placeholder: 'e.g. Somewhere long enough to be known', onInput: (e) => { draft.title = e.target.value; } })),
     field('How firmly do I hold it?', segmented(WEIGHTS, draft.weight, (v) => { draft.weight = v; }),
       'Be honest here — this is the weight the compass gives it.'),
     field('In my own words', area({ value: draft.summary, placeholder: 'Say it the way you would say it out loud.', onInput: (e) => { draft.summary = e.target.value; } })),
-    field('Scripture', input({ value: draft.scriptures, placeholder: 'Matthew 28:18-20; 2 Timothy 2:2', onInput: (e) => { draft.scriptures = e.target.value; } })),
+    field('Scripture', input({ value: draft.scriptures, placeholder: 'Jeremiah 29:5-7; Proverbs 27:10', onInput: (e) => { draft.scriptures = e.target.value; } })),
     field('What it looks like when it\'s true of me', area({ value: draft.practice, placeholder: 'The test you\'d actually apply to yourself.', onInput: (e) => { draft.practice = e.target.value; } })),
     field('Where I\'m still working it out', area({ value: draft.forming, placeholder: 'The honest edge of it. Blank is fine.', onInput: (e) => { draft.forming = e.target.value; } })),
     saveBar(() => {
@@ -61,16 +95,20 @@ export function editConviction(existing) {
   ));
 }
 
-/* ---------- context (a "play" — org, church, role) ---------- */
+/* ---------- context (a place, church, network, role) ---------- */
 
-export function editContext(existing) {
-  const c = existing || { id: uid(), name: '', kind: 'network', status: 'considering', notes: '' };
+export function editContext(existing, defaults = {}) {
+  const c = existing || {
+    id: uid(), name: '', kind: 'place', status: 'considering', horizon: 'unknown', notes: '', ...defaults,
+  };
   const draft = { ...c };
 
-  openSheet(existing ? 'Edit' : 'New context', () => frag(
-    field('Name', input({ value: draft.name, placeholder: 'e.g. E3', onInput: (e) => { draft.name = e.target.value; } })),
+  openSheet(existing ? 'Edit' : 'What are you weighing?', () => frag(
+    field('Name', input({ value: draft.name, placeholder: 'A town, a church, a network', onInput: (e) => { draft.name = e.target.value; } })),
     field('What kind?', segmented(CONTEXT_KINDS, draft.kind, (v) => { draft.kind = v; })),
     field('Where I stand with it', segmented(CONTEXT_STATUS, draft.status, (v) => { draft.status = v; })),
+    field('Could we still be here in ten years?', segmented(HORIZONS, draft.horizon, (v) => { draft.horizon = v; }),
+      'The roots question. Guessing is allowed — you can change it every time you learn something.'),
     field('Notes', area({ value: draft.notes, placeholder: 'What I know, who I\'ve talked to, what I\'m watching for.', onInput: (e) => { draft.notes = e.target.value; } })),
     saveBar(() => {
       if (!draft.name.trim()) return toast('Give it a name first');
@@ -95,17 +133,20 @@ export function runCheck(contextId, existing) {
   const state = store.get();
   const ctx = state.contexts.find((c) => c.id === contextId);
   const check = existing
-    ? { ...existing, ratings: JSON.parse(JSON.stringify(existing.ratings || {})) }
-    : { id: uid(), contextId, date: today(), ratings: {}, summary: '' };
+    ? { ...existing, ratings: JSON.parse(JSON.stringify(existing.ratings || {})), us: { ...(existing.us || {}) } }
+    : { id: uid(), contextId, date: today(), ratings: {}, us: { level: 'na', note: '' }, summary: '' };
+  if (!check.us) check.us = { level: 'na', note: '' };
+
+  let only = null; // domain filter, so a 16-row check can be done in pieces
 
   openSheet(`${ctx.name} — check`, () => {
     const readout = h('div', { class: 'card', style: 'margin-bottom:14px' });
     const paint = () => {
-      const r = scoreCheck(check, state.convictions);
+      const r = scoreCheck(check, state.convictions, state.domains);
       readout.replaceChildren(
         h('div', { class: 'row spread' },
           h('strong', {}, r.rated ? readingWord(r.pct) : 'Not rated yet'),
-          h('span', { class: 'muted small' }, r.rated ? `${r.degrees}° off` : `${state.convictions.length} to go`)),
+          h('span', { class: 'muted small tnum' }, r.rated ? `${r.degrees}° off` : `${state.convictions.length} to go`)),
         h('div', { class: 'meter', style: 'margin-top:8px' }, h('i', { style: `width:${Math.round((r.pct || 0) * 100)}%` })),
         r.dealbreakers.length
           ? h('p', { class: 'small lv-conflict', style: 'margin:10px 0 0' },
@@ -114,24 +155,61 @@ export function runCheck(contextId, existing) {
       );
     };
 
-    const rows = state.convictions.map((c) => {
-      const rating = check.ratings[c.id] || (check.ratings[c.id] = { level: 'unknown', note: '' });
-      return h('div', { class: 'card' },
-        h('div', { class: 'row spread', style: 'margin-bottom:8px' },
-          h('strong', { class: 'grow' }, c.title),
-          h('span', { class: 'pill muted' }, byId(WEIGHTS, c.weight)?.label || '')),
-        segmented(LEVELS, rating.level, (v) => { rating.level = v; paint(); }),
-        h('input', {
-          type: 'text', value: rating.note || '', placeholder: 'What did I actually see? (optional)',
-          style: 'margin-top:8px', onInput: (e) => { rating.note = e.target.value; },
-        }));
-    });
+    const rows = h('div', { class: 'stack' });
+    const paintRows = () => {
+      rows.replaceChildren();
+      state.domains.forEach((domain) => {
+        if (only && only !== domain.id) return;
+        const own = state.convictions.filter((c) => c.domainId === domain.id);
+        if (!own.length) return;
+
+        const head = h('div', { class: 'section-head' }, h('h2', {}, domain.label));
+        head.style.borderLeft = `3px solid ${domain.color}`;
+        head.style.paddingLeft = '10px';
+        rows.append(head);
+
+        own.forEach((c) => {
+          const rating = check.ratings[c.id] || (check.ratings[c.id] = { level: 'unknown', note: '' });
+          rows.append(h('div', { class: 'card' },
+            h('div', { class: 'row spread', style: 'margin-bottom:8px' },
+              h('strong', { class: 'grow' }, c.title),
+              h('span', { class: 'pill muted' }, byId(WEIGHTS, c.weight)?.label || '')),
+            segmented(LEVELS, rating.level, (v) => { rating.level = v; paint(); }),
+            h('input', {
+              type: 'text', value: rating.note || '', placeholder: 'What did I actually see? (optional)',
+              style: 'margin-top:8px', onInput: (e) => { rating.note = e.target.value; },
+            })));
+        });
+      });
+    };
+
+    const filter = h('div', { class: 'row wrap', style: 'margin-bottom:12px' });
+    const paintFilter = () => {
+      filter.replaceChildren();
+      filter.append(h('button', { class: `chip${only ? '' : ' on'}`, onClick: () => { only = null; paintFilter(); paintRows(); } }, 'All'));
+      state.domains.forEach((d) => filter.append(h('button', {
+        class: `chip${only === d.id ? ' on' : ''}`,
+        onClick: () => { only = d.id; paintFilter(); paintRows(); },
+      }, d.short || d.label)));
+    };
 
     paint();
+    paintFilter();
+    paintRows();
+
     return frag(
       readout,
       field('Date', h('input', { type: 'date', value: check.date, onInput: (e) => { check.date = e.target.value || today(); } })),
-      h('div', { class: 'stack' }, rows),
+      filter,
+      rows,
+      h('div', { class: 'card', style: 'margin-top:16px' },
+        h('strong', {}, 'Where the two of us land'),
+        h('p', { class: 'small muted' }, 'Not scored. Just asked, every single time.'),
+        segmented(US_LEVELS, check.us.level, (v) => { check.us.level = v; }),
+        h('input', {
+          type: 'text', value: check.us.note || '', placeholder: 'What she said, in her words',
+          style: 'margin-top:8px', onInput: (e) => { check.us.note = e.target.value; },
+        })),
       h('div', { style: 'margin-top:14px' },
         field('Where I land today', area({
           value: check.summary, placeholder: 'One honest paragraph. What would I say if someone asked me right now?',

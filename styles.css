@@ -189,10 +189,33 @@ a { color: var(--gold); }
 .spark { display: flex; gap: 3px; align-items: flex-end; height: 26px; }
 .spark i { display: block; width: 6px; border-radius: 2px; background: var(--gold-dim); }
 
+.domains { display: flex; flex-direction: column; gap: 11px; }
+.domain-row { display: block; width: 100%; }
+.domain-row .meter { margin-top: 6px; }
+.domain-row.domain-alert strong,
+.domain-row.domain-alert > .row > span:first-child { color: var(--text); }
+.us-line { padding-top: 10px; margin-top: 10px; border-top: 1px solid var(--line); }
+
+.tnum { font-variant-numeric: tabular-nums; }
+.strong { font-weight: 600; }
+
+.scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table.grid { border-collapse: collapse; width: 100%; font-size: .85rem; }
+table.grid th, table.grid td { padding: 7px 8px; text-align: right; white-space: nowrap; }
+table.grid tbody th { max-width: 9.5rem; overflow: hidden; text-overflow: ellipsis; }
+table.grid thead th { font-size: .72rem; font-weight: 600; color: var(--muted); border-bottom: 1px solid var(--line); }
+table.grid thead th:first-child,
+table.grid tbody th { text-align: left; font-weight: 600; color: var(--text); }
+table.grid tbody th { position: sticky; left: 0; background: var(--ink-2); }
+table.grid tbody tr + tr th, table.grid tbody tr + tr td { border-top: 1px solid var(--line); }
+table.grid td.cell-alert { outline: 1px solid var(--rust); outline-offset: -1px; }
+
 /* ---------- forms ---------- */
 
 label.field { display: block; margin-bottom: 14px; }
 label.field > span { display: block; font-size: .8rem; color: var(--muted); margin-bottom: 5px; }
+
+input[type=color] { width: 60px; height: 44px; padding: 4px; background: var(--ink-3); border: 1px solid var(--line); border-radius: 11px; }
 
 input[type=text], input[type=password], input[type=date], input[type=number], select, textarea {
   width: 100%; padding: 11px 12px; min-height: var(--tap);

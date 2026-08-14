@@ -1,12 +1,14 @@
-// Home: one needle, one honest reading, and the few things worth doing next.
+// Home: one needle for the whole life, then the five domains underneath it,
+// because a strong ministry reading can hide a bad roots reading.
 
 import * as store from './../store.js';
 import { today } from './../store.js';
-import { scoreCheck, latestCheck, readingWord, byId, WEIGHTS } from './../model.js';
+import { scoreCheck, latestCheck, readingWord, byId, HORIZONS, US_LEVELS } from './../model.js';
 import { h, empty, sectionHead, relDate, daysBetween, toast } from './../ui.js';
-import { runCheck, editNote, editAction } from './../editors.js';
+import { runCheck, editNote, editAction, editContext } from './../editors.js';
 import { openContext } from './plays.js';
 import { openNote } from './log.js';
+import { domainBars } from './parts.js';
 import { go } from './../router.js';
 
 let focusId = null; // which context the needle is reading
@@ -54,6 +56,8 @@ function pickFocus(state) {
   const rated = state.contexts.filter((c) => latestCheck(state.checks, c.id));
   const pool = rated.length ? rated : state.contexts;
   if (focusId && pool.some((c) => c.id === focusId)) return pool.find((c) => c.id === focusId);
+  // Nothing rated yet? Point at where you already are — that's the baseline
+  // every other place gets compared against.
   return pool.find((c) => c.status === 'current')
     || pool.find((c) => c.status === 'considering')
     || pool[0] || null;
@@ -62,7 +66,7 @@ function pickFocus(state) {
 export function render(state) {
   const ctx = pickFocus(state);
   const check = ctx ? latestCheck(state.checks, ctx.id) : null;
-  const result = check ? scoreCheck(check, state.convictions) : null;
+  const result = check ? scoreCheck(check, state.convictions, state.domains) : null;
   const view = h('div', {});
 
   /* ---- the reading ---- */
@@ -71,28 +75,28 @@ export function render(state) {
 
   if (!state.contexts.length) {
     hero.append(h('div', { class: 'compass-read' },
-      h('p', { class: 'muted' }, 'Add the thing you\'re weighing — a network, a church, a role — and the needle has something to read.'),
-      h('button', { class: 'btn primary', onClick: () => go('plays') }, 'Add a context')));
+      h('p', { class: 'muted' }, 'Add what you\'re weighing — a town, a church, a network — and the needle has something to read.'),
+      h('button', { class: 'btn primary', onClick: () => editContext() }, 'Add the first one')));
   } else if (!check) {
     hero.append(h('div', { class: 'compass-read' },
       h('div', { class: 'big' }, ctx.name),
-      h('p', { class: 'muted' }, 'No check run yet. Rate it against your convictions and see where you actually stand.'),
+      h('p', { class: 'muted' }, 'No check run yet. Rate it across all five domains and see where you actually stand.'),
       h('button', { class: 'btn primary', onClick: () => runCheck(ctx.id) }, 'Run a check')));
   } else {
     hero.append(h('div', { class: 'compass-read' },
-      h('div', { class: 'big' }, result.rated ? `${result.degrees}°` : '—'),
+      h('div', { class: 'big tnum' }, result.rated ? `${result.degrees}°` : '—'),
       h('div', {}, readingWord(result.pct), ' with ', h('strong', {}, ctx.name)),
       h('div', { class: 'small muted', style: 'margin-top:4px' }, `Last read ${relDate(check.date, today())}`)));
 
-    if (check.summary) {
-      hero.append(h('p', { class: 'small muted', style: 'margin:12px 0 0; font-style:italic' }, `"${check.summary}"`));
+    if (result.weakest) {
+      hero.append(h('p', { class: 'small muted center', style: 'margin:10px 0 0' },
+        'Weakest: ', h('strong', { class: 'lv-tension' }, result.weakest.domain.label)));
     }
     hero.append(h('div', { class: 'row', style: 'margin-top:14px' },
-      h('button', { class: 'btn sm grow', onClick: () => runCheck(ctx.id) }, 'Re-check'),
+      h('button', { class: 'btn sm grow', onClick: () => runCheck(ctx.id, check) }, 'Update this check'),
       h('button', { class: 'btn sm grow', onClick: () => openContext(ctx.id) }, 'Open')));
   }
 
-  // switcher when more than one context is in play
   if (state.contexts.length > 1) {
     const row = h('div', { class: 'row wrap', style: 'margin-top:14px' });
     state.contexts.forEach((c) => row.append(h('button', {
@@ -103,18 +107,72 @@ export function render(state) {
   }
   view.append(hero);
 
+  /* ---- the five domains ---- */
+  if (result?.byDomain.length) {
+    view.append(sectionHead('Across the whole life'));
+    view.append(h('div', { class: 'card' }, domainBars(result)));
+  }
+
+  /* ---- where the two of you are ---- */
+  if (check) {
+    const us = byId(US_LEVELS, check.us?.level) || byId(US_LEVELS, 'na');
+    const nudge = ['unspoken', 'talking', 'apart'].includes(us.id);
+    view.append(h('div', { class: 'card', style: 'margin-top:12px' },
+      h('div', { class: 'row spread' },
+        h('div', { class: 'grow' },
+          h('strong', {}, 'Us'),
+          h('div', { class: `small ${nudge ? 'lv-tension' : 'muted'}` }, us.label),
+          check.us?.note ? h('div', { class: 'small muted' }, check.us.note) : null),
+        h('button', { class: 'btn sm', onClick: () => runCheck(ctx.id, check) }, 'Update')),
+      nudge
+        ? h('button', {
+          class: 'icon-btn', style: 'margin-top:10px',
+          onClick: () => editAction(null, { title: `Talk through ${ctx.name} together`, contextIds: [ctx.id] }),
+        }, 'Put it on the calendar')
+        : null));
+  }
+
+  /* ---- roots ---- */
+  const places = state.contexts.filter((c) => c.kind === 'place');
+  view.append(sectionHead('Roots', places.length ? 'All' : null, () => go('plays')));
+  if (!places.length) {
+    view.append(empty('No places on the board yet. Put down the towns you\'d actually consider — that\'s the question under all the others.', 'Add a place', () => editContext(null, { kind: 'place' })));
+  } else {
+    const card = h('div', { class: 'card' });
+    places
+      .map((p) => {
+        const k = latestCheck(state.checks, p.id);
+        const r = k ? scoreCheck(k, state.convictions, state.domains) : null;
+        const roots = r?.byDomain.find((d) => d.domain.id === 'roots');
+        return { p, r, roots };
+      })
+      .sort((a, b) => (b.roots?.pct ?? -1) - (a.roots?.pct ?? -1))
+      .forEach(({ p, roots }) => {
+        const hz = byId(HORIZONS, p.horizon) || HORIZONS[0];
+        card.append(h('button', { class: 'card-tap list-item', onClick: () => openContext(p.id) },
+          h('div', { class: 'grow' },
+            h('div', { class: 'row spread' },
+              h('strong', {}, p.name),
+              h('span', { class: 'small muted tnum' }, roots?.rated ? `${Math.round(roots.pct * 100)}% roots` : 'no check')),
+            h('div', { class: 'small muted' }, hz.label))));
+      });
+    view.append(card);
+  }
+
   /* ---- friction ---- */
   if (result?.friction.length) {
     view.append(sectionHead('Where the friction is'));
     const list = h('div', { class: 'card' });
     result.friction.slice(0, 4).forEach((f) => {
+      const domain = state.domains.find((d) => d.id === f.conviction.domainId);
+      const dot = h('span', { class: `dot lv-${f.level.id}`, style: 'margin-top:7px' });
       list.append(h('div', { class: 'list-item' },
-        h('span', { class: `dot lv-${f.level.id}`, style: 'margin-top:7px' }),
+        dot,
         h('div', { class: 'grow' },
           h('div', { class: 'row spread' },
             h('strong', {}, f.conviction.title),
             h('span', { class: `pill lv-${f.level.id}` }, f.level.label)),
-          h('div', { class: 'small muted' }, f.rating?.note || byId(WEIGHTS, f.conviction.weight)?.label),
+          h('div', { class: 'small muted' }, [domain?.label, f.rating?.note].filter(Boolean).join(' · ')),
           h('div', { class: 'row', style: 'margin-top:8px' },
             h('button', {
               class: 'icon-btn',
@@ -142,7 +200,7 @@ export function render(state) {
       h('div', { class: 'row spread' },
         h('div', { class: 'grow' },
           h('strong', {}, `${result.unknown.length} still unknown`),
-          h('div', { class: 'small muted' }, 'Not a mark against them — just things you haven\'t seen enough of yet.')),
+          h('div', { class: 'small muted' }, 'Not a mark against anyone — just things you haven\'t seen enough of yet.')),
         h('button', { class: 'btn sm', onClick: () => runCheck(ctx.id, check) }, 'Update'))));
   }
 

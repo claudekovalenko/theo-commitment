@@ -4,6 +4,7 @@ import * as store from './../store.js';
 import {
   h, frag, field, input, area, openSheet, closeSheet, confirmSheet, toast, sectionHead,
 } from './../ui.js';
+import { editDomain } from './../editors.js';
 
 function download(name, text) {
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
@@ -142,6 +143,21 @@ export function openSettings() {
               },
             }, 'Turn off the PIN lock'))
           : h('button', { class: 'btn primary block', onClick: setPin }, 'Set a PIN')),
+
+      sectionHead('Areas of life'),
+      h('div', { class: 'card' },
+        h('p', { class: 'small muted', style: 'margin-bottom:12px' },
+          'The compass reads each of these separately, so one strong area can\'t hide a weak one.'),
+        h('div', { class: 'stack' },
+          state.domains.map((d) => {
+            const row = h('button', { class: 'card-tap row spread', onClick: () => editDomain(d) },
+              h('span', { class: 'row', style: 'gap:8px' }, h('span', { class: 'dot' }), h('span', {}, d.label)),
+              h('span', { class: 'small muted' },
+                `${state.convictions.filter((c) => c.domainId === d.id).length}`));
+            row.querySelector('.dot').style.color = d.color;
+            return row;
+          }),
+          h('button', { class: 'btn sm', onClick: () => editDomain() }, 'Add an area'))),
 
       sectionHead('Your data'),
       h('div', { class: 'card stack' },

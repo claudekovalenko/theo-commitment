@@ -1,7 +1,8 @@
 // Local-only persistence with optional PIN encryption (AES-GCM / PBKDF2).
 // Nothing here ever touches the network — the data lives in this browser only.
 
-import { seedState } from './seed.js';
+import { seedState, seedConvictions } from './seed.js';
+import { DEFAULT_DOMAINS } from './model.js';
 
 // Some hosts (private windows, sandboxed frames) throw on localStorage. Fall
 // back to memory so the app still runs, and let the UI say so plainly.
@@ -64,8 +65,11 @@ export const isUnlocked = () => state !== null;
 export function open() {
   if (isEncrypted()) throw new Error('locked');
   const raw = LS.get(KEY_PLAIN);
-  state = raw ? migrate(JSON.parse(raw)) : seedState();
-  if (!raw) persist();
+  const parsed = raw ? JSON.parse(raw) : null;
+  state = parsed ? migrate(parsed) : seedState();
+  // Write straight back when we seeded or upgraded, so the new shape is durable
+  // even if the next thing that happens is the browser being closed.
+  if (!parsed || parsed.version !== state.version) persist();
   return state;
 }
 
@@ -77,9 +81,11 @@ export async function unlock(pin) {
     const plain = await crypto.subtle.decrypt(
       { name: 'AES-GCM', iv: unb64(blob.iv) }, key, unb64(blob.ct),
     );
-    state = migrate(JSON.parse(new TextDecoder().decode(plain)));
+    const parsed = JSON.parse(new TextDecoder().decode(plain));
+    state = migrate(parsed);
     cryptoKey = key;
     saltB64 = blob.salt;
+    if (parsed.version !== state.version) await persist();
     return true;
   } catch {
     return false;
@@ -155,7 +161,7 @@ export function importJSON(text, { merge }) {
   if (!merge) {
     state = incoming;
   } else {
-    for (const list of ['convictions', 'contexts', 'checks', 'notes', 'actions', 'people']) {
+    for (const list of ['domains', 'convictions', 'contexts', 'checks', 'notes', 'actions', 'people']) {
       const have = new Set(state[list].map((r) => r.id));
       state[list].push(...(incoming[list] || []).filter((r) => !have.has(r.id)));
     }
@@ -171,14 +177,48 @@ export function wipe() {
 
 /* ---------- schema ---------- */
 
+// v1 shipped with ministry convictions only. v2 introduced domains, so v1 data
+// gets its convictions filed into the domain each one actually belongs to.
+const V1_DOMAINS = {
+  'healthy families': 'family',
+  'disciple making that multiplies': 'ministry',
+  'healthy theology': 'ministry',
+  'complementarian conviction': 'ministry',
+  'strong preaching': 'ministry',
+  'highly missional': 'ministry',
+};
+
 function migrate(data) {
   const base = {
-    version: 1,
+    version: 2,
     createdAt: new Date().toISOString(),
-    convictions: [], contexts: [], checks: [], notes: [], actions: [], people: [],
+    domains: [], convictions: [], contexts: [], checks: [], notes: [], actions: [], people: [],
     settings: { autoLockMinutes: 15, name: '' },
   };
-  const merged = { ...base, ...data, settings: { ...base.settings, ...(data.settings || {}) } };
-  merged.version = 1;
-  return merged;
+  const s = { ...base, ...data, settings: { ...base.settings, ...(data.settings || {}) } };
+
+  if (!s.domains.length) s.domains = DEFAULT_DOMAINS.map((d) => ({ ...d }));
+
+  const known = new Set(s.domains.map((d) => d.id));
+  const fallback = known.has('ministry') ? 'ministry' : s.domains[s.domains.length - 1].id;
+  s.convictions.forEach((c) => {
+    if (!c.domainId || !known.has(c.domainId)) {
+      c.domainId = V1_DOMAINS[(c.title || '').trim().toLowerCase()] || fallback;
+    }
+  });
+
+  // A v1 vault only ever held ministry convictions. Stock the domains that
+  // came with v2 so they aren't empty shells — all marked seeded, so
+  // "Clear the starter content" still removes anything untouched.
+  const starters = seedConvictions();
+  s.domains.forEach((d) => {
+    if (s.convictions.some((c) => c.domainId === d.id)) return;
+    s.convictions.push(...starters.filter((c) => c.domainId === d.id));
+  });
+
+  s.contexts.forEach((c) => { if (!c.horizon) c.horizon = 'unknown'; });
+  s.checks.forEach((k) => { if (!k.us) k.us = { level: 'na', note: '' }; });
+
+  s.version = 2;
+  return s;
 }

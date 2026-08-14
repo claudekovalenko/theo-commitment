@@ -1,11 +1,43 @@
 # True North
 
-A private, offline PWA for keeping track of where your theological convictions
-actually sit, how the ministry you're weighing lines up with them, and what
-you're learning along the way.
+A private, offline PWA for weighing the decisions that touch your whole life at
+once — a town, a church, a network, a role — against what you actually hold.
 
-The icon is a compass needle. That's the whole idea of the app: name your
-convictions, then get an honest reading on the play you're running.
+The icon is a compass needle. That's the whole idea: name your convictions,
+then get an honest reading on the play you're running.
+
+## The architecture: five areas, one needle
+
+Every conviction belongs to an **area of life**, and the compass scores each
+area separately as well as overall:
+
+| Area | What it holds |
+| --- | --- |
+| **Walking with God** | He is the goal, not the means to the rest of it. Listed first, always. |
+| **Marriage** | The covenant that comes before any calling. |
+| **Family & home** | The first congregation you're responsible for. |
+| **Roots & place** | Somewhere long enough to be known and to be missed. |
+| **Theology & ministry** | What you teach, how you disciple, where you go. |
+
+This is the point of the design: a strong ministry score can quietly hide a bad
+roots cost, and a single blended number lets it. Five meters don't. The compass
+also names the weakest area outright, so the thing you'd rather not look at is
+the thing on the screen.
+
+Areas are data, not hardcoded — rename them, recolour them, or add your own in
+Settings, and every conviction can be moved between them.
+
+### Two questions the app keeps asking
+
+**Us.** Every check records where you and your wife land on it — agreed,
+leaning together, still talking, haven't really talked, not in the same place.
+It is deliberately *not* scored. It just gets asked every single time, and when
+the answer is "haven't really talked", the compass says so and offers to make it
+a follow-up.
+
+**The ten-year test.** Every place, church or role carries one question: could
+we still be here in ten years? It shows on the card, and you can revise it
+every time you learn something.
 
 ## What's in it
 
@@ -14,19 +46,24 @@ are with whichever context you're focused on, the friction points behind that
 number, anything due today, and how long it's been since you last wrote
 something down.
 
-**Convictions** — what you hold, and how firmly: non-negotiable, conviction,
-still forming, preference. Each one carries your own wording, the scripture
-behind it, the test for when it's true of you, and the edge you're still
-working out. The weight you assign is what the compass math uses, so being
-honest about "still forming" actually changes the reading.
+**Convictions** — grouped by area, then by how firmly you hold them:
+non-negotiable, conviction, still forming, preference. Each one carries your own
+wording, the scripture behind it, the test for when it's true of you, and the
+edge you're still working out. The weight you assign is what the compass math
+uses, so being honest about "still forming" actually changes the reading.
 
-**Plays** — the networks, churches, roles and opportunities you're weighing.
-Run a *check*: rate the context against every conviction (aligned / mostly /
-tension / conflict / don't know yet), write one honest paragraph, save it.
-Checks are dated, so re-checking over time shows drift rather than a single
-snapshot. Anything you rate "don't know yet" is kept out of the score and
-listed separately — an unknown is a question to go ask, not a mark against
-anyone.
+**Plays** — the places, churches, networks, roles and opportunities you're
+weighing, grouped by kind. Run a *check*: rate it against every conviction
+(aligned / mostly / tension / conflict / don't know yet), answer the "us"
+question, write one honest paragraph, save it. Long checks can be done one area
+at a time using the filter chips. Checks are dated, so re-checking shows drift
+rather than a single snapshot, and anything rated "don't know yet" stays out of
+the score and gets listed separately — an unknown is a question to go ask, not a
+mark against anyone.
+
+Once two things have been checked, a **side-by-side table** appears: contexts
+down the left, areas across the top. That's the view for "which of these places
+could we actually put down roots in".
 
 **Log** — learnings, dated and tagged: scripture, books, sermons,
 conversations, open questions, places you were wrong. Any entry can become a
@@ -42,9 +79,10 @@ been since you last met.
 Each conviction's weight (non-negotiable 3, conviction 2, still forming 1,
 preference 0.5) is multiplied by the level you rated (aligned 1.0, mostly 0.72,
 tension 0.3, conflict 0). The weighted total becomes a percentage, and the
-needle swings `(1 − percentage) × 180°` off north. Non-negotiables rated
-tension or conflict are called out separately, because a good average can hide
-one thing you'd never actually live with.
+needle swings `(1 − percentage) × 180°` off north. The same math runs again per
+area, which is what the five meters show. Non-negotiables rated tension or
+conflict are called out separately, because a good average can hide one thing
+you'd never actually live with.
 
 ## Privacy
 
@@ -79,11 +117,16 @@ app on the home screen — no browser chrome, no obvious label about what it is.
 
 ## Starter content
 
-The app ships pre-filled with the convictions you described — disciple making,
-healthy theology, complementarian conviction, healthy families, strong
-preaching, highly missional — plus E3 as a context to check against. All of it
-is editable, and **Settings → Clear the starter content** removes anything you
-haven't touched while keeping what you've written yourself.
+The app ships pre-filled with sixteen convictions across the five areas —
+abiding before usefulness, one flesh before one calling, somewhere long enough
+to be known, a church we could belong to for a decade, disciple making that
+multiplies, and the rest — plus "Where we are now" and E3 as things to check
+against. All of it is editable, and **Settings → Clear the starter content**
+removes anything you haven't touched while keeping what you've written yourself.
+
+Upgrading from v1 keeps everything: your convictions get filed into the right
+areas, your checks and log entries are untouched, and the areas that didn't
+exist before get stocked with starters so they aren't empty shells.
 
 ## Layout
 
@@ -92,14 +135,15 @@ index.html            shell, lock screen, sheet container
 styles.css            all styling
 sw.js                 offline cache
 manifest.webmanifest  install metadata
-js/store.js           persistence, encryption, import/export
-js/model.js           vocabulary + the scoring math
+js/store.js           persistence, encryption, schema migrations
+js/model.js           areas, vocabulary + the scoring math
 js/seed.js            starter content
 js/ui.js              DOM helpers, sheet, toasts, form controls
 js/editors.js         every add/edit form
 js/router.js          hash routing
-js/views/*.js         one file per tab, plus settings
+js/views/*.js         one file per tab, plus settings and shared parts
 tools/make_icons.py   regenerates icons/ (no dependencies)
+tools/build_single.mjs  bundles dist/true-north.html for single-page hosts
 ```
 
 No build step, no framework, no package dependencies. Edit a file, reload.

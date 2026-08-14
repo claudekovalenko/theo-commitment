@@ -203,10 +203,33 @@ a { color: var(--gold); }
 .spark { display: flex; gap: 3px; align-items: flex-end; height: 26px; }
 .spark i { display: block; width: 6px; border-radius: 2px; background: var(--gold-dim); }
 
+.domains { display: flex; flex-direction: column; gap: 11px; }
+.domain-row { display: block; width: 100%; }
+.domain-row .meter { margin-top: 6px; }
+.domain-row.domain-alert strong,
+.domain-row.domain-alert > .row > span:first-child { color: var(--text); }
+.us-line { padding-top: 10px; margin-top: 10px; border-top: 1px solid var(--line); }
+
+.tnum { font-variant-numeric: tabular-nums; }
+.strong { font-weight: 600; }
+
+.scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table.grid { border-collapse: collapse; width: 100%; font-size: .85rem; }
+table.grid th, table.grid td { padding: 7px 8px; text-align: right; white-space: nowrap; }
+table.grid tbody th { max-width: 9.5rem; overflow: hidden; text-overflow: ellipsis; }
+table.grid thead th { font-size: .72rem; font-weight: 600; color: var(--muted); border-bottom: 1px solid var(--line); }
+table.grid thead th:first-child,
+table.grid tbody th { text-align: left; font-weight: 600; color: var(--text); }
+table.grid tbody th { position: sticky; left: 0; background: var(--ink-2); }
+table.grid tbody tr + tr th, table.grid tbody tr + tr td { border-top: 1px solid var(--line); }
+table.grid td.cell-alert { outline: 1px solid var(--rust); outline-offset: -1px; }
+
 /* ---------- forms ---------- */
 
 label.field { display: block; margin-bottom: 14px; }
 label.field > span { display: block; font-size: .8rem; color: var(--muted); margin-bottom: 5px; }
+
+input[type=color] { width: 60px; height: 44px; padding: 4px; background: var(--ink-3); border: 1px solid var(--line); border-radius: 11px; }
 
 input[type=text], input[type=password], input[type=date], input[type=number], select, textarea {
   width: 100%; padding: 11px 12px; min-height: var(--tap);
@@ -343,9 +366,160 @@ select { appearance: none; }
       __defProp(target, name, { get: all[name], enumerable: true });
   };
 
+  // js/model.js
+  var DEFAULT_DOMAINS = [
+    {
+      id: "god",
+      label: "Walking with God",
+      short: "God",
+      blurb: "He is the goal, not the means to the rest of it.",
+      color: "#d6a854",
+      primary: true
+    },
+    {
+      id: "marriage",
+      label: "Marriage",
+      short: "Marriage",
+      blurb: "The covenant that comes before any calling.",
+      color: "#dc8fa4"
+    },
+    {
+      id: "family",
+      label: "Family & home",
+      short: "Family",
+      blurb: "The first congregation I am responsible for.",
+      color: "#7fc59c"
+    },
+    {
+      id: "roots",
+      label: "Roots & place",
+      short: "Roots",
+      blurb: "Somewhere long enough to be known and to be missed.",
+      color: "#79b2d8"
+    },
+    {
+      id: "ministry",
+      label: "Theology & ministry",
+      short: "Ministry",
+      blurb: "What I teach, how I disciple, where I go.",
+      color: "#b09ae0"
+    }
+  ];
+  var WEIGHTS = [
+    { id: "core", label: "Non-negotiable", weight: 3, help: "I wouldn't join or stay where this is absent." },
+    { id: "conviction", label: "Conviction", weight: 2, help: "Settled for me. I would contend for it." },
+    { id: "forming", label: "Still forming", weight: 1, help: "I lean here, but I'm honestly still working it out." },
+    { id: "preference", label: "Preference", weight: 0.5, help: "I hold it with an open hand." }
+  ];
+  var LEVELS = [
+    { id: "aligned", label: "Aligned", score: 1, help: "It holds here the way I hold it." },
+    { id: "mostly", label: "Mostly", score: 0.72, help: "Same direction, different emphasis." },
+    { id: "tension", label: "Tension", score: 0.3, help: "Real friction. I feel it." },
+    { id: "conflict", label: "Conflict", score: 0, help: "We're not running the same play." },
+    { id: "unknown", label: "Don't know yet", score: null, help: "I haven't seen enough to say." }
+  ];
+  var US_LEVELS = [
+    { id: "together", label: "We're agreed", tone: "aligned" },
+    { id: "leaning", label: "Leaning together", tone: "mostly" },
+    { id: "talking", label: "Still talking it through", tone: "tension" },
+    { id: "unspoken", label: "Haven't really talked", tone: "tension" },
+    { id: "apart", label: "Not in the same place", tone: "conflict" },
+    { id: "na", label: "Just me on this one", tone: "unknown" }
+  ];
+  var HORIZONS = [
+    { id: "unknown", label: "No idea yet", years: null },
+    { id: "season", label: "A season (1\u20132 yrs)", years: 1.5 },
+    { id: "chapter", label: "A chapter (3\u20137 yrs)", years: 5 },
+    { id: "long", label: "A long time (10+)", years: 10 },
+    { id: "life", label: "For good", years: 25 }
+  ];
+  var NOTE_KINDS = [
+    { id: "scripture", label: "Scripture" },
+    { id: "book", label: "Book / article" },
+    { id: "sermon", label: "Sermon / teaching" },
+    { id: "conversation", label: "Conversation" },
+    { id: "question", label: "Open question" },
+    { id: "correction", label: "Where I was wrong" },
+    { id: "observation", label: "Observation" },
+    { id: "prayer", label: "Prayer / discernment" }
+  ];
+  var CONTEXT_KINDS = [
+    { id: "place", label: "Place / town" },
+    { id: "church", label: "Church" },
+    { id: "network", label: "Network / sending org" },
+    { id: "role", label: "Role" },
+    { id: "opportunity", label: "Opportunity" }
+  ];
+  var CONTEXT_STATUS = [
+    { id: "considering", label: "Considering" },
+    { id: "current", label: "Where we are" },
+    { id: "watching", label: "Watching" },
+    { id: "past", label: "Past" }
+  ];
+  var PEOPLE_STAGES = [
+    { id: "praying", label: "Praying for" },
+    { id: "conversation", label: "In conversation" },
+    { id: "new", label: "New believer" },
+    { id: "discipled", label: "Being discipled" },
+    { id: "multiplying", label: "Discipling someone else" }
+  ];
+  var byId = (list, id) => list.find((x) => x.id === id);
+  var weightOf = (c) => (byId(WEIGHTS, c.weight) || WEIGHTS[1]).weight;
+  var levelOf = (id) => byId(LEVELS, id) || byId(LEVELS, "unknown");
+  var domainOf = (domains, c) => byId(domains, c.domainId) || domains[domains.length - 1];
+  function tally(check, convictions) {
+    let got = 0;
+    let possible = 0;
+    const unknown = [];
+    const friction = [];
+    for (const c of convictions) {
+      const rating = check.ratings?.[c.id];
+      const level = levelOf(rating?.level);
+      if (level.score === null) {
+        unknown.push({ conviction: c, rating });
+        continue;
+      }
+      const w = weightOf(c);
+      got += level.score * w;
+      possible += w;
+      if (level.score < 0.7) friction.push({ conviction: c, rating, level, weight: w });
+    }
+    friction.sort((a, b) => b.weight * (1 - b.level.score) - a.weight * (1 - a.level.score));
+    const pct = possible ? got / possible : null;
+    return {
+      pct,
+      degrees: pct === null ? null : Math.round((1 - pct) * 180),
+      rated: possible > 0,
+      unknown,
+      friction,
+      dealbreakers: friction.filter((f) => f.conviction.weight === "core" && f.level.score <= 0.3)
+    };
+  }
+  function scoreCheck(check, convictions, domains) {
+    const overall = tally(check, convictions);
+    overall.byDomain = domains.map((domain) => {
+      const own = convictions.filter((c) => domainOf(domains, c).id === domain.id);
+      return own.length ? { domain, count: own.length, ...tally(check, own) } : null;
+    }).filter(Boolean);
+    overall.weakest = [...overall.byDomain].filter((d) => d.rated).sort((a, b) => a.pct - b.pct)[0] || null;
+    return overall;
+  }
+  function latestCheck(checks, contextId) {
+    return checks.filter((k) => k.contextId === contextId).sort((a, b) => a.date < b.date ? 1 : -1)[0];
+  }
+  function readingWord(pct) {
+    if (pct === null || pct === void 0) return "Unrated";
+    if (pct >= 0.9) return "On heading";
+    if (pct >= 0.75) return "Close to heading";
+    if (pct >= 0.55) return "Drifting";
+    if (pct >= 0.35) return "Off heading";
+    return "Wrong heading";
+  }
+
   // js/seed.js
-  var conviction = (title7, weight, summary, scriptures, practice, forming) => ({
+  var conviction = (domainId, title7, weight, summary, scriptures, practice, forming = "") => ({
     id: uid(),
+    domainId,
     title: title7,
     weight,
     summary,
@@ -355,98 +529,213 @@ select { appearance: none; }
     seeded: true,
     createdAt: (/* @__PURE__ */ new Date()).toISOString()
   });
-  function seedState() {
-    const convictions = [
+  function seedConvictions() {
+    return [
+      /* ---- walking with God ---- */
       conviction(
+        "god",
+        "Abiding before usefulness",
+        "core",
+        "God himself is the goal \u2014 not the ministry I could build for him. If the work grows and I don't know him better, I've lost the thing I was after.",
+        "John 15:4-5; Psalm 27:4; Philippians 3:8",
+        "I have time with God that isn't sermon prep."
+      ),
+      conviction(
+        "god",
+        "Decisions get prayed before they get pitched",
+        "conviction",
+        "The big calls go through prayer and counsel first, not after I've already made up my mind and want it blessed.",
+        "Luke 6:12-13; James 1:5; Proverbs 15:22",
+        "I can name who I prayed with before I decided."
+      ),
+      /* ---- marriage ---- */
+      conviction(
+        "marriage",
+        "One flesh before one calling",
+        "core",
+        "My wife is not a stakeholder in my ministry \u2014 she is my first ministry. No opportunity is worth taking that we aren't agreed on.",
+        "Genesis 2:24; Ephesians 5:25-33; 1 Peter 3:7",
+        "She could tell you exactly what I'm weighing right now, in my words, and she'd say she had a real say in it."
+      ),
+      conviction(
+        "marriage",
+        "Leading by serving first",
+        "conviction",
+        "Headship that looks like Christ: first to serve, first to repent, last to demand. Her flourishing is the measure of my leadership.",
+        "Ephesians 5:25-30; 1 Peter 3:7; Colossians 3:19",
+        "She is more herself, not less, for being married to me."
+      ),
+      /* ---- family & home ---- */
+      conviction(
+        "family",
+        "Healthy families",
+        "conviction",
+        "The home is the first congregation. Ministry that costs me my family is not ministry I want.",
+        "Deuteronomy 6:4-9; Ephesians 6:4; 1 Timothy 3:4-5",
+        "My family would say they get my best, not my leftovers."
+      ),
+      conviction(
+        "family",
+        "A home with an open table",
+        "conviction",
+        "Hospitality isn't separate from the ministry \u2014 our table is part of it, and the kids get to see it up close.",
+        "Romans 12:13; 1 Peter 4:9; Acts 2:46",
+        "People who aren't like us have eaten at our table this month."
+      ),
+      /* ---- roots & place ---- */
+      conviction(
+        "roots",
+        "Somewhere long enough to be known",
+        "core",
+        "Depth takes years. I want to be in a place long enough that people know my kids' names and can tell when I'm off.",
+        "Jeremiah 29:5-7; Proverbs 27:10",
+        "I can picture us here in ten years without flinching."
+      ),
+      conviction(
+        "roots",
+        "A church we could belong to for a decade",
+        "core",
+        "Not a church I could serve at \u2014 a church we could be members of, be pastored by, and grow old in.",
+        "Hebrews 10:24-25; Acts 2:42-47",
+        "If my role ended tomorrow, we'd still want to be there on Sunday."
+      ),
+      conviction(
+        "roots",
+        "Community my wife and kids actually have",
+        "conviction",
+        "Not my network \u2014 theirs. Friendships that don't depend on my title and don't leave when I do.",
+        "Romans 12:10; Galatians 6:2",
+        "She has two or three people she'd call at 11pm, and they live close."
+      ),
+      conviction(
+        "roots",
+        "We could afford to stay",
+        "conviction",
+        "Housing, work and cost of living that don't quietly force a move in three years. Roots need soil we can pay for.",
+        "Luke 14:28-30; 1 Timothy 5:8",
+        "The math works for ten years, not just for the first one."
+      ),
+      conviction(
+        "roots",
+        "Near enough to family",
+        "forming",
+        "How close do we need to be to parents and siblings? I honestly don't know my own answer yet.",
+        "1 Timothy 5:4; Exodus 20:12",
+        "",
+        "Talk this through and land on an actual number of hours."
+      ),
+      /* ---- theology & ministry ---- */
+      conviction(
+        "ministry",
         "Disciple making that multiplies",
         "core",
         "Not programs and not crowds \u2014 named people I am walking with, who will go and do the same with someone else.",
         "Matthew 28:18-20; 2 Timothy 2:2",
-        "I can name who I am discipling right now, and who they are discipling.",
-        ""
+        "I can name who I am discipling right now, and who they are discipling."
       ),
       conviction(
+        "ministry",
         "Healthy theology",
         "core",
         "Doctrine held carefully and taught plainly. Sound teaching is pastoral care, not an academic hobby.",
         "Titus 1:9; 1 Timothy 4:16",
-        "I can say what I believe and why, and where the line is between a conviction and a preference.",
-        ""
+        "I can say what I believe and why, and where the line is between a conviction and a preference."
       ),
       conviction(
+        "ministry",
         "Complementarian conviction",
         "conviction",
         "Biblical submission and distinct, God-given roles in the home and in the church.",
         "Ephesians 5:22-33; 1 Timothy 2:11-13; 1 Peter 3:1-7",
         "I can state this positively and pastorally, not just as a boundary.",
-        "Sharpen the wording here until it is exactly how I would say it out loud to someone who disagrees."
+        "Sharpen the wording until it is exactly how I would say it out loud to someone who disagrees."
       ),
       conviction(
-        "Healthy families",
-        "conviction",
-        "The home is the first congregation. Ministry that costs me my family is not ministry I want.",
-        "Deuteronomy 6:4-9; Ephesians 6:4; 1 Timothy 3:4-5",
-        "My family would say they get my best, not my leftovers.",
-        ""
-      ),
-      conviction(
+        "ministry",
         "Strong preaching",
         "conviction",
         "Text-driven preaching that lets the passage set the agenda, aimed at the heart and at the street.",
         "2 Timothy 4:1-2; Nehemiah 8:8; Acts 20:27",
-        "The point of my message is the point of the passage.",
-        ""
+        "The point of my message is the point of the passage."
       ),
       conviction(
+        "ministry",
         "Highly missional",
         "conviction",
         "Sent, not settled. Oriented toward people and places that do not have it yet.",
         "Acts 1:8; Romans 15:20; 1 Corinthians 9:19-23",
-        "My week has real contact with people far from Jesus in it.",
-        ""
+        "My week has real contact with people far from Jesus in it."
       )
     ];
+  }
+  function seedState() {
+    const convictions = seedConvictions();
     const e3 = {
       id: uid(),
       name: "E3",
       kind: "network",
       status: "considering",
+      horizon: "unknown",
       notes: "What I keep circling back to. Run a check whenever I learn something new about how they actually operate.",
+      createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+      seeded: true
+    };
+    const here = {
+      id: uid(),
+      name: "Where we are now",
+      kind: "place",
+      status: "current",
+      horizon: "unknown",
+      notes: "Rate the place you're in today first. Without a baseline, every other place is just a feeling.",
       createdAt: (/* @__PURE__ */ new Date()).toISOString(),
       seeded: true
     };
     const noteId = uid();
     return {
-      version: 1,
+      version: 2,
       createdAt: (/* @__PURE__ */ new Date()).toISOString(),
       seeded: true,
+      domains: DEFAULT_DOMAINS.map((d) => ({ ...d })),
       convictions,
-      contexts: [e3],
+      contexts: [here, e3],
       checks: [],
       notes: [{
         id: noteId,
         date: today(),
-        title: "Being honest about where I actually am",
+        title: "What I actually want is roots",
         kind: "observation",
-        body: "I don't feel totally comfortable or totally in line with just tools right now, and I want to say that plainly instead of talking myself out of it. That's not a verdict on anybody \u2014 it's a reading. The work is to name what the discomfort is actually about, one conviction at a time.",
+        body: "The thing I carry the most stress about isn't which network to join \u2014 it's whether we can find a place to put down roots. Somewhere with real community, where my family can grow well, and where we could still be in ten years. Every opportunity has to be weighed against that, not the other way around.",
         convictionIds: [],
-        contextIds: [e3.id],
+        contextIds: [],
         source: "",
         seeded: true,
         createdAt: (/* @__PURE__ */ new Date()).toISOString()
       }],
-      actions: [{
-        id: uid(),
-        title: "Name the three questions I need answered before I could say yes",
-        detail: "Specific enough that someone could actually answer them.",
-        due: "",
-        done: false,
-        convictionIds: [],
-        contextIds: [e3.id],
-        fromNoteId: noteId,
-        seeded: true,
-        createdAt: (/* @__PURE__ */ new Date()).toISOString()
-      }],
+      actions: [
+        {
+          id: uid(),
+          title: "Ask her what she would need to feel rooted somewhere",
+          detail: "Her list, in her words. Write it down before I react to any of it.",
+          due: "",
+          done: false,
+          convictionIds: [],
+          contextIds: [],
+          fromNoteId: noteId,
+          seeded: true,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString()
+        },
+        {
+          id: uid(),
+          title: "Name the three questions I need answered before I could say yes",
+          detail: "Specific enough that someone could actually answer them.",
+          due: "",
+          done: false,
+          convictionIds: [],
+          contextIds: [e3.id],
+          seeded: true,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString()
+        }
+      ],
       people: [],
       settings: { autoLockMinutes: 15, name: "" }
     };
@@ -514,8 +803,9 @@ select { appearance: none; }
   function open() {
     if (isEncrypted()) throw new Error("locked");
     const raw = LS.get(KEY_PLAIN);
-    state = raw ? migrate(JSON.parse(raw)) : seedState();
-    if (!raw) persist();
+    const parsed = raw ? JSON.parse(raw) : null;
+    state = parsed ? migrate(parsed) : seedState();
+    if (!parsed || parsed.version !== state.version) persist();
     return state;
   }
   async function unlock(pin) {
@@ -527,9 +817,11 @@ select { appearance: none; }
         key,
         unb64(blob.ct)
       );
-      state = migrate(JSON.parse(new TextDecoder().decode(plain)));
+      const parsed = JSON.parse(new TextDecoder().decode(plain));
+      state = migrate(parsed);
       cryptoKey = key;
       saltB64 = blob.salt;
+      if (parsed.version !== state.version) await persist();
       return true;
     } catch {
       return false;
@@ -590,7 +882,7 @@ select { appearance: none; }
     if (!merge) {
       state = incoming;
     } else {
-      for (const list of ["convictions", "contexts", "checks", "notes", "actions", "people"]) {
+      for (const list of ["domains", "convictions", "contexts", "checks", "notes", "actions", "people"]) {
         const have = new Set(state[list].map((r) => r.id));
         state[list].push(...(incoming[list] || []).filter((r) => !have.has(r.id)));
       }
@@ -603,10 +895,19 @@ select { appearance: none; }
     LS.remove(KEY_ENC);
     lock();
   }
+  var V1_DOMAINS = {
+    "healthy families": "family",
+    "disciple making that multiplies": "ministry",
+    "healthy theology": "ministry",
+    "complementarian conviction": "ministry",
+    "strong preaching": "ministry",
+    "highly missional": "ministry"
+  };
   function migrate(data) {
     const base = {
-      version: 1,
+      version: 2,
       createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+      domains: [],
       convictions: [],
       contexts: [],
       checks: [],
@@ -615,9 +916,28 @@ select { appearance: none; }
       people: [],
       settings: { autoLockMinutes: 15, name: "" }
     };
-    const merged = { ...base, ...data, settings: { ...base.settings, ...data.settings || {} } };
-    merged.version = 1;
-    return merged;
+    const s = { ...base, ...data, settings: { ...base.settings, ...data.settings || {} } };
+    if (!s.domains.length) s.domains = DEFAULT_DOMAINS.map((d) => ({ ...d }));
+    const known = new Set(s.domains.map((d) => d.id));
+    const fallback = known.has("ministry") ? "ministry" : s.domains[s.domains.length - 1].id;
+    s.convictions.forEach((c) => {
+      if (!c.domainId || !known.has(c.domainId)) {
+        c.domainId = V1_DOMAINS[(c.title || "").trim().toLowerCase()] || fallback;
+      }
+    });
+    const starters = seedConvictions();
+    s.domains.forEach((d) => {
+      if (s.convictions.some((c) => c.domainId === d.id)) return;
+      s.convictions.push(...starters.filter((c) => c.domainId === d.id));
+    });
+    s.contexts.forEach((c) => {
+      if (!c.horizon) c.horizon = "unknown";
+    });
+    s.checks.forEach((k) => {
+      if (!k.us) k.us = { level: "na", note: "" };
+    });
+    s.version = 2;
+    return s;
   }
 
   // js/ui.js
@@ -812,6 +1132,436 @@ select { appearance: none; }
     else location.hash = target;
   }
 
+  // js/editors.js
+  var opts = (list) => list.map((c) => ({ id: c.id, label: c.title || c.name || c.label }));
+  function saveBar(onSave, onDelete) {
+    return h(
+      "div",
+      { class: "stack", style: "margin-top:18px" },
+      h("button", { class: "btn primary block", onClick: onSave }, "Save"),
+      onDelete ? h("button", { class: "btn ghost danger block", onClick: onDelete }, "Delete") : null
+    );
+  }
+  async function confirmDelete(what, run) {
+    const ok = await confirmSheet({
+      title: `Delete ${what}?`,
+      message: "This can't be undone from inside the app.",
+      confirmLabel: "Delete",
+      danger: true
+    });
+    if (!ok) return;
+    update(run);
+    closeSheet(true);
+    toast("Deleted");
+  }
+  function editDomain(existing) {
+    const d = existing || { id: uid(), label: "", short: "", blurb: "", color: "#8ea2c8" };
+    const draft = { ...d };
+    openSheet(existing ? "Edit area" : "New area of life", () => frag(
+      h(
+        "p",
+        { class: "small muted" },
+        "Areas are the big buckets the compass reads separately \u2014 walking with God, marriage, family, roots, ministry."
+      ),
+      field("Name", input({ value: draft.label, onInput: (e) => {
+        draft.label = e.target.value;
+      } })),
+      field("Short name", input({ value: draft.short || "", placeholder: "For tight spaces", onInput: (e) => {
+        draft.short = e.target.value;
+      } })),
+      field("What it covers", area({ value: draft.blurb || "", onInput: (e) => {
+        draft.blurb = e.target.value;
+      } })),
+      field("Colour", h("input", { type: "color", value: draft.color, onInput: (e) => {
+        draft.color = e.target.value;
+      } })),
+      saveBar(() => {
+        if (!draft.label.trim()) return toast("Give it a name first");
+        update((s) => {
+          const i = s.domains.findIndex((x) => x.id === draft.id);
+          if (i < 0) s.domains.push(draft);
+          else s.domains[i] = { ...s.domains[i], ...draft };
+        });
+        closeSheet();
+        toast("Saved");
+      }, existing && get().domains.length > 1 ? () => confirmDelete("area", (s) => {
+        const home = s.domains.find((x) => x.id !== draft.id);
+        s.convictions.forEach((c) => {
+          if (c.domainId === draft.id) c.domainId = home.id;
+        });
+        s.domains = s.domains.filter((x) => x.id !== draft.id);
+      }) : null)
+    ));
+  }
+  function editConviction(existing, defaults = {}) {
+    const state2 = get();
+    const c = existing || {
+      id: uid(),
+      domainId: state2.domains[0]?.id,
+      title: "",
+      weight: "conviction",
+      summary: "",
+      scriptures: "",
+      practice: "",
+      forming: "",
+      ...defaults
+    };
+    const draft = { ...c };
+    openSheet(existing ? "Edit conviction" : "New conviction", () => frag(
+      field("Which area of life?", segmented(state2.domains.map((d) => ({ id: d.id, label: d.short || d.label })), draft.domainId, (v) => {
+        draft.domainId = v;
+      })),
+      field("What is it?", input({ value: draft.title, placeholder: "e.g. Somewhere long enough to be known", onInput: (e) => {
+        draft.title = e.target.value;
+      } })),
+      field(
+        "How firmly do I hold it?",
+        segmented(WEIGHTS, draft.weight, (v) => {
+          draft.weight = v;
+        }),
+        "Be honest here \u2014 this is the weight the compass gives it."
+      ),
+      field("In my own words", area({ value: draft.summary, placeholder: "Say it the way you would say it out loud.", onInput: (e) => {
+        draft.summary = e.target.value;
+      } })),
+      field("Scripture", input({ value: draft.scriptures, placeholder: "Jeremiah 29:5-7; Proverbs 27:10", onInput: (e) => {
+        draft.scriptures = e.target.value;
+      } })),
+      field("What it looks like when it's true of me", area({ value: draft.practice, placeholder: "The test you'd actually apply to yourself.", onInput: (e) => {
+        draft.practice = e.target.value;
+      } })),
+      field("Where I'm still working it out", area({ value: draft.forming, placeholder: "The honest edge of it. Blank is fine.", onInput: (e) => {
+        draft.forming = e.target.value;
+      } })),
+      saveBar(() => {
+        if (!draft.title.trim()) return toast("Give it a name first");
+        update((s) => {
+          const i = s.convictions.findIndex((x) => x.id === draft.id);
+          draft.seeded = false;
+          if (i < 0) s.convictions.push({ ...draft, createdAt: (/* @__PURE__ */ new Date()).toISOString() });
+          else s.convictions[i] = { ...s.convictions[i], ...draft };
+        });
+        closeSheet();
+        toast("Saved");
+      }, existing ? () => confirmDelete("conviction", (s) => {
+        s.convictions = s.convictions.filter((x) => x.id !== draft.id);
+        s.checks.forEach((k) => delete k.ratings[draft.id]);
+      }) : null)
+    ));
+  }
+  function editContext(existing, defaults = {}) {
+    const c = existing || {
+      id: uid(),
+      name: "",
+      kind: "place",
+      status: "considering",
+      horizon: "unknown",
+      notes: "",
+      ...defaults
+    };
+    const draft = { ...c };
+    openSheet(existing ? "Edit" : "What are you weighing?", () => frag(
+      field("Name", input({ value: draft.name, placeholder: "A town, a church, a network", onInput: (e) => {
+        draft.name = e.target.value;
+      } })),
+      field("What kind?", segmented(CONTEXT_KINDS, draft.kind, (v) => {
+        draft.kind = v;
+      })),
+      field("Where I stand with it", segmented(CONTEXT_STATUS, draft.status, (v) => {
+        draft.status = v;
+      })),
+      field(
+        "Could we still be here in ten years?",
+        segmented(HORIZONS, draft.horizon, (v) => {
+          draft.horizon = v;
+        }),
+        "The roots question. Guessing is allowed \u2014 you can change it every time you learn something."
+      ),
+      field("Notes", area({ value: draft.notes, placeholder: "What I know, who I've talked to, what I'm watching for.", onInput: (e) => {
+        draft.notes = e.target.value;
+      } })),
+      saveBar(() => {
+        if (!draft.name.trim()) return toast("Give it a name first");
+        update((s) => {
+          const i = s.contexts.findIndex((x) => x.id === draft.id);
+          draft.seeded = false;
+          if (i < 0) s.contexts.push({ ...draft, createdAt: (/* @__PURE__ */ new Date()).toISOString() });
+          else s.contexts[i] = { ...s.contexts[i], ...draft };
+        });
+        closeSheet();
+        toast("Saved");
+      }, existing ? () => confirmDelete("context", (s) => {
+        s.contexts = s.contexts.filter((x) => x.id !== draft.id);
+        s.checks = s.checks.filter((k) => k.contextId !== draft.id);
+      }) : null)
+    ));
+  }
+  function runCheck(contextId, existing) {
+    const state2 = get();
+    const ctx = state2.contexts.find((c) => c.id === contextId);
+    const check = existing ? { ...existing, ratings: JSON.parse(JSON.stringify(existing.ratings || {})), us: { ...existing.us || {} } } : { id: uid(), contextId, date: today(), ratings: {}, us: { level: "na", note: "" }, summary: "" };
+    if (!check.us) check.us = { level: "na", note: "" };
+    let only = null;
+    openSheet(`${ctx.name} \u2014 check`, () => {
+      const readout = h("div", { class: "card", style: "margin-bottom:14px" });
+      const paint = () => {
+        const r = scoreCheck(check, state2.convictions, state2.domains);
+        readout.replaceChildren(
+          h(
+            "div",
+            { class: "row spread" },
+            h("strong", {}, r.rated ? readingWord(r.pct) : "Not rated yet"),
+            h("span", { class: "muted small tnum" }, r.rated ? `${r.degrees}\xB0 off` : `${state2.convictions.length} to go`)
+          ),
+          h("div", { class: "meter", style: "margin-top:8px" }, h("i", { style: `width:${Math.round((r.pct || 0) * 100)}%` })),
+          r.dealbreakers.length ? h(
+            "p",
+            { class: "small lv-conflict", style: "margin:10px 0 0" },
+            `${r.dealbreakers.length} non-negotiable${r.dealbreakers.length > 1 ? "s" : ""} in the red.`
+          ) : null
+        );
+      };
+      const rows = h("div", { class: "stack" });
+      const paintRows = () => {
+        rows.replaceChildren();
+        state2.domains.forEach((domain) => {
+          if (only && only !== domain.id) return;
+          const own = state2.convictions.filter((c) => c.domainId === domain.id);
+          if (!own.length) return;
+          const head = h("div", { class: "section-head" }, h("h2", {}, domain.label));
+          head.style.borderLeft = `3px solid ${domain.color}`;
+          head.style.paddingLeft = "10px";
+          rows.append(head);
+          own.forEach((c) => {
+            const rating = check.ratings[c.id] || (check.ratings[c.id] = { level: "unknown", note: "" });
+            rows.append(h(
+              "div",
+              { class: "card" },
+              h(
+                "div",
+                { class: "row spread", style: "margin-bottom:8px" },
+                h("strong", { class: "grow" }, c.title),
+                h("span", { class: "pill muted" }, byId(WEIGHTS, c.weight)?.label || "")
+              ),
+              segmented(LEVELS, rating.level, (v) => {
+                rating.level = v;
+                paint();
+              }),
+              h("input", {
+                type: "text",
+                value: rating.note || "",
+                placeholder: "What did I actually see? (optional)",
+                style: "margin-top:8px",
+                onInput: (e) => {
+                  rating.note = e.target.value;
+                }
+              })
+            ));
+          });
+        });
+      };
+      const filter2 = h("div", { class: "row wrap", style: "margin-bottom:12px" });
+      const paintFilter = () => {
+        filter2.replaceChildren();
+        filter2.append(h("button", { class: `chip${only ? "" : " on"}`, onClick: () => {
+          only = null;
+          paintFilter();
+          paintRows();
+        } }, "All"));
+        state2.domains.forEach((d) => filter2.append(h("button", {
+          class: `chip${only === d.id ? " on" : ""}`,
+          onClick: () => {
+            only = d.id;
+            paintFilter();
+            paintRows();
+          }
+        }, d.short || d.label)));
+      };
+      paint();
+      paintFilter();
+      paintRows();
+      return frag(
+        readout,
+        field("Date", h("input", { type: "date", value: check.date, onInput: (e) => {
+          check.date = e.target.value || today();
+        } })),
+        filter2,
+        rows,
+        h(
+          "div",
+          { class: "card", style: "margin-top:16px" },
+          h("strong", {}, "Where the two of us land"),
+          h("p", { class: "small muted" }, "Not scored. Just asked, every single time."),
+          segmented(US_LEVELS, check.us.level, (v) => {
+            check.us.level = v;
+          }),
+          h("input", {
+            type: "text",
+            value: check.us.note || "",
+            placeholder: "What she said, in her words",
+            style: "margin-top:8px",
+            onInput: (e) => {
+              check.us.note = e.target.value;
+            }
+          })
+        ),
+        h(
+          "div",
+          { style: "margin-top:14px" },
+          field("Where I land today", area({
+            value: check.summary,
+            placeholder: "One honest paragraph. What would I say if someone asked me right now?",
+            onInput: (e) => {
+              check.summary = e.target.value;
+            }
+          }))
+        ),
+        saveBar(() => {
+          update((s) => {
+            const i = s.checks.findIndex((x) => x.id === check.id);
+            if (i < 0) s.checks.push({ ...check, createdAt: (/* @__PURE__ */ new Date()).toISOString() });
+            else s.checks[i] = check;
+          });
+          closeSheet();
+          toast("Check saved");
+        }, existing ? () => confirmDelete("check", (s) => {
+          s.checks = s.checks.filter((x) => x.id !== check.id);
+        }) : null)
+      );
+    });
+  }
+  function editNote(existing, defaults = {}) {
+    const state2 = get();
+    const n = existing || {
+      id: uid(),
+      date: today(),
+      title: "",
+      kind: "observation",
+      body: "",
+      source: "",
+      convictionIds: [],
+      contextIds: [],
+      ...defaults
+    };
+    const draft = { ...n, convictionIds: [...n.convictionIds || []], contextIds: [...n.contextIds || []] };
+    openSheet(existing ? "Edit entry" : "New log entry", () => frag(
+      field("Date", h("input", { type: "date", value: draft.date, onInput: (e) => {
+        draft.date = e.target.value || today();
+      } })),
+      field("What kind?", segmented(NOTE_KINDS, draft.kind, (v) => {
+        draft.kind = v;
+      })),
+      field("Headline", input({ value: draft.title, placeholder: "The one line I want to remember", onInput: (e) => {
+        draft.title = e.target.value;
+      } })),
+      field("The learning", area({ value: draft.body, style: "min-height:150px", placeholder: "What happened, what it taught me, what it changes.", onInput: (e) => {
+        draft.body = e.target.value;
+      } })),
+      field("Source", input({ value: draft.source, placeholder: "Passage, book, who said it", onInput: (e) => {
+        draft.source = e.target.value;
+      } })),
+      field("Convictions this touches", chipPicker(opts(state2.convictions), draft.convictionIds, (v) => {
+        draft.convictionIds = v;
+      })),
+      field("Contexts", chipPicker(opts(state2.contexts), draft.contextIds, (v) => {
+        draft.contextIds = v;
+      })),
+      saveBar(() => {
+        if (!draft.title.trim() && !draft.body.trim()) return toast("Write something first");
+        update((s) => {
+          const i = s.notes.findIndex((x) => x.id === draft.id);
+          draft.seeded = false;
+          if (i < 0) s.notes.push({ ...draft, createdAt: (/* @__PURE__ */ new Date()).toISOString() });
+          else s.notes[i] = { ...s.notes[i], ...draft };
+        });
+        closeSheet();
+        toast("Logged");
+      }, existing ? () => confirmDelete("entry", (s) => {
+        s.notes = s.notes.filter((x) => x.id !== draft.id);
+      }) : null)
+    ));
+  }
+  function editAction(existing, defaults = {}) {
+    const state2 = get();
+    const a = existing || {
+      id: uid(),
+      title: "",
+      detail: "",
+      due: "",
+      done: false,
+      convictionIds: [],
+      contextIds: [],
+      ...defaults
+    };
+    const draft = { ...a, convictionIds: [...a.convictionIds || []], contextIds: [...a.contextIds || []] };
+    openSheet(existing ? "Edit follow-up" : "New follow-up", () => frag(
+      field("What am I going to do?", input({ value: draft.title, placeholder: "Small enough to actually finish", onInput: (e) => {
+        draft.title = e.target.value;
+      } })),
+      field("Detail", area({ value: draft.detail, onInput: (e) => {
+        draft.detail = e.target.value;
+      } })),
+      field("By when", h("input", { type: "date", value: draft.due, onInput: (e) => {
+        draft.due = e.target.value;
+      } })),
+      field("Convictions", chipPicker(opts(state2.convictions), draft.convictionIds, (v) => {
+        draft.convictionIds = v;
+      })),
+      field("Contexts", chipPicker(opts(state2.contexts), draft.contextIds, (v) => {
+        draft.contextIds = v;
+      })),
+      saveBar(() => {
+        if (!draft.title.trim()) return toast("Name it first");
+        update((s) => {
+          const i = s.actions.findIndex((x) => x.id === draft.id);
+          draft.seeded = false;
+          if (i < 0) s.actions.push({ ...draft, createdAt: (/* @__PURE__ */ new Date()).toISOString() });
+          else s.actions[i] = { ...s.actions[i], ...draft };
+        });
+        closeSheet();
+        toast("Saved");
+      }, existing ? () => confirmDelete("follow-up", (s) => {
+        s.actions = s.actions.filter((x) => x.id !== draft.id);
+      }) : null)
+    ));
+  }
+  function editPerson(existing) {
+    const p = existing || { id: uid(), name: "", stage: "conversation", nextStep: "", nextDue: "", lastMet: "", notes: "" };
+    const draft = { ...p };
+    openSheet(existing ? "Edit person" : "Someone I'm walking with", () => frag(
+      field("Name", input({ value: draft.name, onInput: (e) => {
+        draft.name = e.target.value;
+      } })),
+      field("Where they are", segmented(PEOPLE_STAGES, draft.stage, (v) => {
+        draft.stage = v;
+      })),
+      field("Next step", input({ value: draft.nextStep, placeholder: "The next real thing", onInput: (e) => {
+        draft.nextStep = e.target.value;
+      } })),
+      field("By when", h("input", { type: "date", value: draft.nextDue, onInput: (e) => {
+        draft.nextDue = e.target.value;
+      } })),
+      field("Last time we met", h("input", { type: "date", value: draft.lastMet, onInput: (e) => {
+        draft.lastMet = e.target.value;
+      } })),
+      field("Notes", area({ value: draft.notes, placeholder: "What we're working through. Pray-fors.", onInput: (e) => {
+        draft.notes = e.target.value;
+      } })),
+      saveBar(() => {
+        if (!draft.name.trim()) return toast("Name first");
+        update((s) => {
+          const i = s.people.findIndex((x) => x.id === draft.id);
+          if (i < 0) s.people.push({ ...draft, createdAt: (/* @__PURE__ */ new Date()).toISOString() });
+          else s.people[i] = { ...s.people[i], ...draft };
+        });
+        closeSheet();
+        toast("Saved");
+      }, existing ? () => confirmDelete("person", (s) => {
+        s.people = s.people.filter((x) => x.id !== draft.id);
+      }) : null)
+    ));
+  }
+
   // js/views/settings.js
   function download(name, text) {
     const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
@@ -974,6 +1724,35 @@ select { appearance: none; }
             }, "Turn off the PIN lock")
           ) : h("button", { class: "btn primary block", onClick: setPin }, "Set a PIN")
         ),
+        sectionHead("Areas of life"),
+        h(
+          "div",
+          { class: "card" },
+          h(
+            "p",
+            { class: "small muted", style: "margin-bottom:12px" },
+            "The compass reads each of these separately, so one strong area can't hide a weak one."
+          ),
+          h(
+            "div",
+            { class: "stack" },
+            state2.domains.map((d) => {
+              const row2 = h(
+                "button",
+                { class: "card-tap row spread", onClick: () => editDomain(d) },
+                h("span", { class: "row", style: "gap:8px" }, h("span", { class: "dot" }), h("span", {}, d.label)),
+                h(
+                  "span",
+                  { class: "small muted" },
+                  `${state2.convictions.filter((c) => c.domainId === d.id).length}`
+                )
+              );
+              row2.querySelector(".dot").style.color = d.color;
+              return row2;
+            }),
+            h("button", { class: "btn sm", onClick: () => editDomain() }, "Add an area")
+          )
+        ),
         sectionHead("Your data"),
         h(
           "div",
@@ -1038,402 +1817,6 @@ select { appearance: none; }
     title: () => title3
   });
 
-  // js/model.js
-  var WEIGHTS = [
-    { id: "core", label: "Non-negotiable", weight: 3, help: "I wouldn't join or stay where this is absent." },
-    { id: "conviction", label: "Conviction", weight: 2, help: "Settled for me. I would contend for it." },
-    { id: "forming", label: "Still forming", weight: 1, help: "I lean here, but I'm honestly still working it out." },
-    { id: "preference", label: "Preference", weight: 0.5, help: "I hold it with an open hand." }
-  ];
-  var LEVELS = [
-    { id: "aligned", label: "Aligned", score: 1, help: "They hold it the way I hold it." },
-    { id: "mostly", label: "Mostly", score: 0.72, help: "Same direction, different emphasis." },
-    { id: "tension", label: "Tension", score: 0.3, help: "Real friction. I feel it." },
-    { id: "conflict", label: "Conflict", score: 0, help: "We're not running the same play." },
-    { id: "unknown", label: "Don't know yet", score: null, help: "I haven't seen enough to say." }
-  ];
-  var NOTE_KINDS = [
-    { id: "scripture", label: "Scripture" },
-    { id: "book", label: "Book / article" },
-    { id: "sermon", label: "Sermon / teaching" },
-    { id: "conversation", label: "Conversation" },
-    { id: "question", label: "Open question" },
-    { id: "correction", label: "Where I was wrong" },
-    { id: "observation", label: "Observation" },
-    { id: "prayer", label: "Prayer / discernment" }
-  ];
-  var CONTEXT_KINDS = [
-    { id: "network", label: "Network / sending org" },
-    { id: "church", label: "Church" },
-    { id: "role", label: "Role" },
-    { id: "opportunity", label: "Opportunity" },
-    { id: "partner", label: "Partner" }
-  ];
-  var CONTEXT_STATUS = [
-    { id: "considering", label: "Considering" },
-    { id: "current", label: "Current" },
-    { id: "watching", label: "Watching" },
-    { id: "past", label: "Past" }
-  ];
-  var PEOPLE_STAGES = [
-    { id: "praying", label: "Praying for" },
-    { id: "conversation", label: "In conversation" },
-    { id: "new", label: "New believer" },
-    { id: "discipled", label: "Being discipled" },
-    { id: "multiplying", label: "Discipling someone else" }
-  ];
-  var byId = (list, id) => list.find((x) => x.id === id);
-  var weightOf = (c) => (byId(WEIGHTS, c.weight) || WEIGHTS[1]).weight;
-  var levelOf = (id) => byId(LEVELS, id) || byId(LEVELS, "unknown");
-  function scoreCheck(check, convictions) {
-    let got = 0;
-    let possible = 0;
-    const unknown = [];
-    const friction = [];
-    for (const c of convictions) {
-      const rating = check.ratings?.[c.id];
-      const level = levelOf(rating?.level);
-      if (level.score === null) {
-        unknown.push({ conviction: c, rating });
-        continue;
-      }
-      const w = weightOf(c);
-      got += level.score * w;
-      possible += w;
-      if (level.score < 0.7) friction.push({ conviction: c, rating, level, weight: w });
-    }
-    friction.sort((a, b) => b.weight * (1 - b.level.score) - a.weight * (1 - a.level.score));
-    const pct = possible ? got / possible : null;
-    return {
-      pct,
-      degrees: pct === null ? null : Math.round((1 - pct) * 180),
-      rated: possible > 0,
-      unknown,
-      friction,
-      dealbreakers: friction.filter((f) => f.conviction.weight === "core" && f.level.score <= 0.3)
-    };
-  }
-  function latestCheck(checks, contextId) {
-    return checks.filter((k) => k.contextId === contextId).sort((a, b) => a.date < b.date ? 1 : -1)[0];
-  }
-  function readingWord(pct) {
-    if (pct === null) return "Unrated";
-    if (pct >= 0.9) return "On heading";
-    if (pct >= 0.75) return "Close to heading";
-    if (pct >= 0.55) return "Drifting";
-    if (pct >= 0.35) return "Off heading";
-    return "Wrong heading";
-  }
-
-  // js/editors.js
-  var opts = (list) => list.map((c) => ({ id: c.id, label: c.title || c.name }));
-  function saveBar(onSave, onDelete) {
-    return h(
-      "div",
-      { class: "stack", style: "margin-top:18px" },
-      h("button", { class: "btn primary block", onClick: onSave }, "Save"),
-      onDelete ? h("button", { class: "btn ghost danger block", onClick: onDelete }, "Delete") : null
-    );
-  }
-  async function confirmDelete(what, run) {
-    const ok = await confirmSheet({
-      title: `Delete ${what}?`,
-      message: "This can't be undone from inside the app.",
-      confirmLabel: "Delete",
-      danger: true
-    });
-    if (!ok) return;
-    update(run);
-    closeSheet(true);
-    toast("Deleted");
-  }
-  function editConviction(existing) {
-    const c = existing || { id: uid(), title: "", weight: "conviction", summary: "", scriptures: "", practice: "", forming: "" };
-    const draft = { ...c };
-    openSheet(existing ? "Edit conviction" : "New conviction", () => frag(
-      field("What is it?", input({ value: draft.title, placeholder: "e.g. Disciple making that multiplies", onInput: (e) => {
-        draft.title = e.target.value;
-      } })),
-      field(
-        "How firmly do I hold it?",
-        segmented(WEIGHTS, draft.weight, (v) => {
-          draft.weight = v;
-        }),
-        "Be honest here \u2014 this is the weight the compass gives it."
-      ),
-      field("In my own words", area({ value: draft.summary, placeholder: "Say it the way you would say it out loud.", onInput: (e) => {
-        draft.summary = e.target.value;
-      } })),
-      field("Scripture", input({ value: draft.scriptures, placeholder: "Matthew 28:18-20; 2 Timothy 2:2", onInput: (e) => {
-        draft.scriptures = e.target.value;
-      } })),
-      field("What it looks like when it's true of me", area({ value: draft.practice, placeholder: "The test you'd actually apply to yourself.", onInput: (e) => {
-        draft.practice = e.target.value;
-      } })),
-      field("Where I'm still working it out", area({ value: draft.forming, placeholder: "The honest edge of it. Blank is fine.", onInput: (e) => {
-        draft.forming = e.target.value;
-      } })),
-      saveBar(() => {
-        if (!draft.title.trim()) return toast("Give it a name first");
-        update((s) => {
-          const i = s.convictions.findIndex((x) => x.id === draft.id);
-          draft.seeded = false;
-          if (i < 0) s.convictions.push({ ...draft, createdAt: (/* @__PURE__ */ new Date()).toISOString() });
-          else s.convictions[i] = { ...s.convictions[i], ...draft };
-        });
-        closeSheet();
-        toast("Saved");
-      }, existing ? () => confirmDelete("conviction", (s) => {
-        s.convictions = s.convictions.filter((x) => x.id !== draft.id);
-        s.checks.forEach((k) => delete k.ratings[draft.id]);
-      }) : null)
-    ));
-  }
-  function editContext(existing) {
-    const c = existing || { id: uid(), name: "", kind: "network", status: "considering", notes: "" };
-    const draft = { ...c };
-    openSheet(existing ? "Edit" : "New context", () => frag(
-      field("Name", input({ value: draft.name, placeholder: "e.g. E3", onInput: (e) => {
-        draft.name = e.target.value;
-      } })),
-      field("What kind?", segmented(CONTEXT_KINDS, draft.kind, (v) => {
-        draft.kind = v;
-      })),
-      field("Where I stand with it", segmented(CONTEXT_STATUS, draft.status, (v) => {
-        draft.status = v;
-      })),
-      field("Notes", area({ value: draft.notes, placeholder: "What I know, who I've talked to, what I'm watching for.", onInput: (e) => {
-        draft.notes = e.target.value;
-      } })),
-      saveBar(() => {
-        if (!draft.name.trim()) return toast("Give it a name first");
-        update((s) => {
-          const i = s.contexts.findIndex((x) => x.id === draft.id);
-          draft.seeded = false;
-          if (i < 0) s.contexts.push({ ...draft, createdAt: (/* @__PURE__ */ new Date()).toISOString() });
-          else s.contexts[i] = { ...s.contexts[i], ...draft };
-        });
-        closeSheet();
-        toast("Saved");
-      }, existing ? () => confirmDelete("context", (s) => {
-        s.contexts = s.contexts.filter((x) => x.id !== draft.id);
-        s.checks = s.checks.filter((k) => k.contextId !== draft.id);
-      }) : null)
-    ));
-  }
-  function runCheck(contextId, existing) {
-    const state2 = get();
-    const ctx = state2.contexts.find((c) => c.id === contextId);
-    const check = existing ? { ...existing, ratings: JSON.parse(JSON.stringify(existing.ratings || {})) } : { id: uid(), contextId, date: today(), ratings: {}, summary: "" };
-    openSheet(`${ctx.name} \u2014 check`, () => {
-      const readout = h("div", { class: "card", style: "margin-bottom:14px" });
-      const paint = () => {
-        const r = scoreCheck(check, state2.convictions);
-        readout.replaceChildren(
-          h(
-            "div",
-            { class: "row spread" },
-            h("strong", {}, r.rated ? readingWord(r.pct) : "Not rated yet"),
-            h("span", { class: "muted small" }, r.rated ? `${r.degrees}\xB0 off` : `${state2.convictions.length} to go`)
-          ),
-          h("div", { class: "meter", style: "margin-top:8px" }, h("i", { style: `width:${Math.round((r.pct || 0) * 100)}%` })),
-          r.dealbreakers.length ? h(
-            "p",
-            { class: "small lv-conflict", style: "margin:10px 0 0" },
-            `${r.dealbreakers.length} non-negotiable${r.dealbreakers.length > 1 ? "s" : ""} in the red.`
-          ) : null
-        );
-      };
-      const rows = state2.convictions.map((c) => {
-        const rating = check.ratings[c.id] || (check.ratings[c.id] = { level: "unknown", note: "" });
-        return h(
-          "div",
-          { class: "card" },
-          h(
-            "div",
-            { class: "row spread", style: "margin-bottom:8px" },
-            h("strong", { class: "grow" }, c.title),
-            h("span", { class: "pill muted" }, byId(WEIGHTS, c.weight)?.label || "")
-          ),
-          segmented(LEVELS, rating.level, (v) => {
-            rating.level = v;
-            paint();
-          }),
-          h("input", {
-            type: "text",
-            value: rating.note || "",
-            placeholder: "What did I actually see? (optional)",
-            style: "margin-top:8px",
-            onInput: (e) => {
-              rating.note = e.target.value;
-            }
-          })
-        );
-      });
-      paint();
-      return frag(
-        readout,
-        field("Date", h("input", { type: "date", value: check.date, onInput: (e) => {
-          check.date = e.target.value || today();
-        } })),
-        h("div", { class: "stack" }, rows),
-        h(
-          "div",
-          { style: "margin-top:14px" },
-          field("Where I land today", area({
-            value: check.summary,
-            placeholder: "One honest paragraph. What would I say if someone asked me right now?",
-            onInput: (e) => {
-              check.summary = e.target.value;
-            }
-          }))
-        ),
-        saveBar(() => {
-          update((s) => {
-            const i = s.checks.findIndex((x) => x.id === check.id);
-            if (i < 0) s.checks.push({ ...check, createdAt: (/* @__PURE__ */ new Date()).toISOString() });
-            else s.checks[i] = check;
-          });
-          closeSheet();
-          toast("Check saved");
-        }, existing ? () => confirmDelete("check", (s) => {
-          s.checks = s.checks.filter((x) => x.id !== check.id);
-        }) : null)
-      );
-    });
-  }
-  function editNote(existing, defaults = {}) {
-    const state2 = get();
-    const n = existing || {
-      id: uid(),
-      date: today(),
-      title: "",
-      kind: "observation",
-      body: "",
-      source: "",
-      convictionIds: [],
-      contextIds: [],
-      ...defaults
-    };
-    const draft = { ...n, convictionIds: [...n.convictionIds || []], contextIds: [...n.contextIds || []] };
-    openSheet(existing ? "Edit entry" : "New log entry", () => frag(
-      field("Date", h("input", { type: "date", value: draft.date, onInput: (e) => {
-        draft.date = e.target.value || today();
-      } })),
-      field("What kind?", segmented(NOTE_KINDS, draft.kind, (v) => {
-        draft.kind = v;
-      })),
-      field("Headline", input({ value: draft.title, placeholder: "The one line I want to remember", onInput: (e) => {
-        draft.title = e.target.value;
-      } })),
-      field("The learning", area({ value: draft.body, style: "min-height:150px", placeholder: "What happened, what it taught me, what it changes.", onInput: (e) => {
-        draft.body = e.target.value;
-      } })),
-      field("Source", input({ value: draft.source, placeholder: "Passage, book, who said it", onInput: (e) => {
-        draft.source = e.target.value;
-      } })),
-      field("Convictions this touches", chipPicker(opts(state2.convictions), draft.convictionIds, (v) => {
-        draft.convictionIds = v;
-      })),
-      field("Contexts", chipPicker(opts(state2.contexts), draft.contextIds, (v) => {
-        draft.contextIds = v;
-      })),
-      saveBar(() => {
-        if (!draft.title.trim() && !draft.body.trim()) return toast("Write something first");
-        update((s) => {
-          const i = s.notes.findIndex((x) => x.id === draft.id);
-          draft.seeded = false;
-          if (i < 0) s.notes.push({ ...draft, createdAt: (/* @__PURE__ */ new Date()).toISOString() });
-          else s.notes[i] = { ...s.notes[i], ...draft };
-        });
-        closeSheet();
-        toast("Logged");
-      }, existing ? () => confirmDelete("entry", (s) => {
-        s.notes = s.notes.filter((x) => x.id !== draft.id);
-      }) : null)
-    ));
-  }
-  function editAction(existing, defaults = {}) {
-    const state2 = get();
-    const a = existing || {
-      id: uid(),
-      title: "",
-      detail: "",
-      due: "",
-      done: false,
-      convictionIds: [],
-      contextIds: [],
-      ...defaults
-    };
-    const draft = { ...a, convictionIds: [...a.convictionIds || []], contextIds: [...a.contextIds || []] };
-    openSheet(existing ? "Edit follow-up" : "New follow-up", () => frag(
-      field("What am I going to do?", input({ value: draft.title, placeholder: "Small enough to actually finish", onInput: (e) => {
-        draft.title = e.target.value;
-      } })),
-      field("Detail", area({ value: draft.detail, onInput: (e) => {
-        draft.detail = e.target.value;
-      } })),
-      field("By when", h("input", { type: "date", value: draft.due, onInput: (e) => {
-        draft.due = e.target.value;
-      } })),
-      field("Convictions", chipPicker(opts(state2.convictions), draft.convictionIds, (v) => {
-        draft.convictionIds = v;
-      })),
-      field("Contexts", chipPicker(opts(state2.contexts), draft.contextIds, (v) => {
-        draft.contextIds = v;
-      })),
-      saveBar(() => {
-        if (!draft.title.trim()) return toast("Name it first");
-        update((s) => {
-          const i = s.actions.findIndex((x) => x.id === draft.id);
-          draft.seeded = false;
-          if (i < 0) s.actions.push({ ...draft, createdAt: (/* @__PURE__ */ new Date()).toISOString() });
-          else s.actions[i] = { ...s.actions[i], ...draft };
-        });
-        closeSheet();
-        toast("Saved");
-      }, existing ? () => confirmDelete("follow-up", (s) => {
-        s.actions = s.actions.filter((x) => x.id !== draft.id);
-      }) : null)
-    ));
-  }
-  function editPerson(existing) {
-    const p = existing || { id: uid(), name: "", stage: "conversation", nextStep: "", nextDue: "", lastMet: "", notes: "" };
-    const draft = { ...p };
-    openSheet(existing ? "Edit person" : "Someone I'm walking with", () => frag(
-      field("Name", input({ value: draft.name, onInput: (e) => {
-        draft.name = e.target.value;
-      } })),
-      field("Where they are", segmented(PEOPLE_STAGES, draft.stage, (v) => {
-        draft.stage = v;
-      })),
-      field("Next step", input({ value: draft.nextStep, placeholder: "The next real thing", onInput: (e) => {
-        draft.nextStep = e.target.value;
-      } })),
-      field("By when", h("input", { type: "date", value: draft.nextDue, onInput: (e) => {
-        draft.nextDue = e.target.value;
-      } })),
-      field("Last time we met", h("input", { type: "date", value: draft.lastMet, onInput: (e) => {
-        draft.lastMet = e.target.value;
-      } })),
-      field("Notes", area({ value: draft.notes, placeholder: "What we're working through. Pray-fors.", onInput: (e) => {
-        draft.notes = e.target.value;
-      } })),
-      saveBar(() => {
-        if (!draft.name.trim()) return toast("Name first");
-        update((s) => {
-          const i = s.people.findIndex((x) => x.id === draft.id);
-          if (i < 0) s.people.push({ ...draft, createdAt: (/* @__PURE__ */ new Date()).toISOString() });
-          else s.people[i] = { ...s.people[i], ...draft };
-        });
-        closeSheet();
-        toast("Saved");
-      }, existing ? () => confirmDelete("person", (s) => {
-        s.people = s.people.filter((x) => x.id !== draft.id);
-      }) : null)
-    ));
-  }
-
   // js/views/plays.js
   var plays_exports = {};
   __export(plays_exports, {
@@ -1441,49 +1824,106 @@ select { appearance: none; }
     render: () => render,
     title: () => title
   });
-  function sparkline(checks, convictions) {
+
+  // js/views/parts.js
+  function domainBars(result, { onPick } = {}) {
+    const wrap = h("div", { class: "domains" });
+    result.byDomain.forEach((d) => {
+      const pct = d.rated ? Math.round(d.pct * 100) : null;
+      const row2 = h(
+        onPick ? "button" : "div",
+        {
+          class: `domain-row${onPick ? " card-tap" : ""}`,
+          onClick: onPick ? () => onPick(d) : null
+        },
+        h(
+          "div",
+          { class: "row spread" },
+          h(
+            "span",
+            { class: "row", style: "gap:7px" },
+            h("span", { class: "dot" }),
+            h("span", {}, d.domain.label),
+            d.domain.primary ? h("span", { class: "small muted" }, "\xB7 first") : null
+          ),
+          h("span", { class: "small muted tnum" }, pct === null ? "not rated" : `${pct}%`)
+        ),
+        h("div", { class: "meter" }, h("i", { style: `width:${pct ?? 0}%` }))
+      );
+      row2.querySelector(".dot").style.color = d.domain.color;
+      const fill = row2.querySelector(".meter > i");
+      fill.style.background = d.domain.color;
+      if (!d.rated) fill.style.opacity = ".25";
+      if (d.dealbreakers.length) row2.classList.add("domain-alert");
+      wrap.append(row2);
+    });
+    return wrap;
+  }
+  function usLine(check, { compact = false } = {}) {
+    const level = byId(US_LEVELS, check?.us?.level) || byId(US_LEVELS, "na");
+    if (level.id === "na" && compact) return null;
+    return h(
+      "div",
+      { class: "row spread us-line" },
+      h("span", { class: "small muted" }, "Us"),
+      h("span", { class: `small pill lv-${level.tone}` }, level.label)
+    );
+  }
+  function horizonLine(ctx) {
+    const hz = byId(HORIZONS, ctx.horizon) || HORIZONS[0];
+    return h(
+      "div",
+      { class: "row spread" },
+      h("span", { class: "small muted" }, "Could we still be here in ten years?"),
+      h("span", { class: "small" }, hz.label)
+    );
+  }
+
+  // js/views/plays.js
+  var readingOf = (state2, ctx) => {
+    const check = latestCheck(state2.checks, ctx.id);
+    return { check, r: check ? scoreCheck(check, state2.convictions, state2.domains) : null };
+  };
+  function sparkline(checks, state2) {
     const pts = [...checks].sort((a, b) => a.date < b.date ? -1 : 1).slice(-10);
     if (pts.length < 2) return null;
     const bar = h("div", { class: "spark" });
     pts.forEach((k) => {
-      const r = scoreCheck(k, convictions);
-      bar.append(h("i", { style: `height:${Math.max(3, Math.round((r.pct || 0) * 26))}px`, title: `${fmtDate(k.date)} \u2014 ${Math.round((r.pct || 0) * 100)}%` }));
+      const r = scoreCheck(k, state2.convictions, state2.domains);
+      bar.append(h("i", {
+        style: `height:${Math.max(3, Math.round((r.pct || 0) * 26))}px`,
+        title: `${fmtDate(k.date)} \u2014 ${Math.round((r.pct || 0) * 100)}%`
+      }));
     });
     return bar;
   }
-  function readingRow(state2, ctx) {
-    const check = latestCheck(state2.checks, ctx.id);
-    const r = check ? scoreCheck(check, state2.convictions) : null;
-    return h(
-      "div",
-      {},
-      h(
-        "div",
-        { class: "row spread" },
-        h(
-          "div",
-          { class: "grow" },
-          h("strong", {}, ctx.name),
-          h(
-            "div",
-            { class: "small muted" },
-            [byId(CONTEXT_KINDS, ctx.kind)?.label, byId(CONTEXT_STATUS, ctx.status)?.label].filter(Boolean).join(" \xB7 ")
-          )
-        ),
-        h(
-          "div",
-          { style: "text-align:right" },
-          h("div", { style: "font-weight:600" }, r?.rated ? `${r.degrees}\xB0` : "\u2014"),
-          h("div", { class: "small muted" }, r?.rated ? readingWord(r.pct) : "No check")
-        )
-      ),
-      r?.rated ? h("div", { class: "meter", style: "margin-top:10px" }, h("i", { style: `width:${Math.round(r.pct * 100)}%` })) : null,
-      r?.dealbreakers.length ? h(
-        "div",
-        { class: "small lv-conflict", style: "margin-top:8px" },
-        `${r.dealbreakers.length} non-negotiable${r.dealbreakers.length > 1 ? "s" : ""} in the red`
-      ) : null
-    );
+  function compareTable(state2, rated) {
+    const table = h("table", { class: "grid" });
+    const head = h("tr", {}, h("th", {}, "Where"));
+    state2.domains.forEach((d) => {
+      const th = h("th", { class: "tnum" }, d.short || d.label);
+      th.style.color = d.color;
+      head.append(th);
+    });
+    head.append(h("th", { class: "tnum" }, "All"));
+    table.append(h("thead", {}, head));
+    const body = h("tbody", {});
+    rated.forEach(({ ctx, r }) => {
+      const tr = h("tr", {}, h("th", { scope: "row" }, ctx.name));
+      state2.domains.forEach((d) => {
+        const cell = r.byDomain.find((x) => x.domain.id === d.id);
+        const td = h("td", { class: "tnum" }, cell?.rated ? `${Math.round(cell.pct * 100)}` : "\u2013");
+        if (cell?.rated) {
+          td.style.background = `color-mix(in srgb, ${d.color} ${Math.round(cell.pct * 55)}%, transparent)`;
+          if (cell.dealbreakers.length) td.classList.add("cell-alert");
+        }
+        tr.append(td);
+      });
+      tr.append(h("td", { class: "tnum strong" }, r.rated ? `${Math.round(r.pct * 100)}` : "\u2013"));
+      body.append(tr);
+    });
+    table.append(body);
+    return h("div", { class: "scroll-x" }, table);
   }
   function openContext(id) {
     const build = () => {
@@ -1492,7 +1932,7 @@ select { appearance: none; }
       if (!ctx) return h("p", { class: "muted" }, "Gone.");
       const checks = state2.checks.filter((k) => k.contextId === id).sort((a, b) => a.date < b.date ? 1 : -1);
       const latest = checks[0];
-      const r = latest ? scoreCheck(latest, state2.convictions) : null;
+      const r = latest ? scoreCheck(latest, state2.convictions, state2.domains) : null;
       const notes = state2.notes.filter((n) => (n.contextIds || []).includes(id)).sort((a, b) => a.date < b.date ? 1 : -1);
       const acts = state2.actions.filter((a) => (a.contextIds || []).includes(id) && !a.done);
       return frag(
@@ -1511,17 +1951,27 @@ select { appearance: none; }
             h(
               "div",
               { class: "row spread" },
-              h("strong", {}, `${r.degrees}\xB0 off \u2014 ${readingWord(r.pct)}`),
+              h("strong", { class: "tnum" }, `${r.degrees}\xB0 off \u2014 ${readingWord(r.pct)}`),
               h("span", { class: "small muted" }, relDate(latest.date, today()))
             ),
-            h("div", { class: "meter", style: "margin-top:8px" }, h("i", { style: `width:${Math.round(r.pct * 100)}%` })),
-            latest.summary ? h("p", { class: "small muted", style: "margin:10px 0 0; font-style:italic" }, `"${latest.summary}"`) : null,
+            h("div", { style: "margin-top:12px" }, domainBars(r)),
+            latest.summary ? h("p", { class: "small muted", style: "margin:12px 0 0; font-style:italic" }, `"${latest.summary}"`) : null,
             (() => {
-              const s = sparkline(checks, state2.convictions);
+              const s = sparkline(checks, state2);
               return s ? h("div", { style: "margin-top:12px" }, s) : null;
             })()
           ) : h("p", { class: "muted", style: "margin:0" }, "No reading yet."),
-          h("button", { class: "btn primary block", style: "margin-top:14px", onClick: () => runCheck(id) }, latest ? "Run a new check" : "Run the first check")
+          h(
+            "button",
+            { class: "btn primary block", style: "margin-top:14px", onClick: () => runCheck(id, latest) },
+            latest ? "Run a new check" : "Run the first check"
+          )
+        ),
+        h(
+          "div",
+          { class: "card" },
+          horizonLine(ctx),
+          latest ? usLine(latest) : null
         ),
         r?.friction.length ? h(
           "div",
@@ -1541,7 +1991,7 @@ select { appearance: none; }
                 { class: "row", style: "margin-top:8px" },
                 h("button", {
                   class: "icon-btn",
-                  onClick: () => editAction(null, { title: `Ask ${ctx.name} about ${f.conviction.title.toLowerCase()}`, convictionIds: [f.conviction.id], contextIds: [id] })
+                  onClick: () => editAction(null, { title: `Ask about ${f.conviction.title.toLowerCase()} \u2014 ${ctx.name}`, convictionIds: [f.conviction.id], contextIds: [id] })
                 }, "Follow up")
               )
             )
@@ -1557,7 +2007,7 @@ select { appearance: none; }
           {},
           sectionHead("History"),
           h("div", { class: "card" }, checks.map((k) => {
-            const kr = scoreCheck(k, state2.convictions);
+            const kr = scoreCheck(k, state2.convictions, state2.domains);
             return h(
               "button",
               { class: "card-tap list-item", onClick: () => runCheck(id, k) },
@@ -1568,7 +2018,7 @@ select { appearance: none; }
                   "div",
                   { class: "row spread" },
                   h("strong", {}, fmtDate(k.date)),
-                  h("span", { class: "muted" }, kr.rated ? `${kr.degrees}\xB0` : "\u2014")
+                  h("span", { class: "muted tnum" }, kr.rated ? `${kr.degrees}\xB0` : "\u2014")
                 ),
                 k.summary ? h("div", { class: "small muted truncate" }, k.summary) : null
               )
@@ -1609,20 +2059,78 @@ select { appearance: none; }
     };
     openSheet(() => get().contexts.find((c) => c.id === id)?.name || "Context", build);
   }
+  function contextCard(state2, ctx) {
+    const { r } = readingOf(state2, ctx);
+    const hz = byId(HORIZONS, ctx.horizon) || HORIZONS[0];
+    const card = h(
+      "button",
+      { class: "card card-tap", onClick: () => openContext(ctx.id) },
+      h(
+        "div",
+        { class: "row spread" },
+        h(
+          "div",
+          { class: "grow" },
+          h("strong", {}, ctx.name),
+          h(
+            "div",
+            { class: "small muted" },
+            [byId(CONTEXT_KINDS, ctx.kind)?.label, byId(CONTEXT_STATUS, ctx.status)?.label].filter(Boolean).join(" \xB7 ")
+          )
+        ),
+        h(
+          "div",
+          { style: "text-align:right" },
+          h("div", { class: "tnum", style: "font-weight:600" }, r?.rated ? `${r.degrees}\xB0` : "\u2014"),
+          h("div", { class: "small muted" }, r?.rated ? readingWord(r.pct) : "No check")
+        )
+      ),
+      r?.rated ? h("div", { style: "margin-top:12px" }, domainBars(r)) : null,
+      ctx.kind === "place" ? h("div", { class: "small muted", style: "margin-top:10px" }, `Ten-year test: ${hz.label.toLowerCase()}`) : null,
+      r?.dealbreakers.length ? h(
+        "div",
+        { class: "small lv-conflict", style: "margin-top:8px" },
+        `${r.dealbreakers.length} non-negotiable${r.dealbreakers.length > 1 ? "s" : ""} in the red`
+      ) : null
+    );
+    return card;
+  }
   function render(state2) {
     const view = h("div", {});
     view.append(h(
       "p",
       { class: "muted small" },
-      "The plays you're weighing. A check is just you, rating them honestly against your own convictions."
+      "Everything you're weighing, read across all five areas of life. A check is just you, rating it honestly."
     ));
     if (!state2.contexts.length) {
-      view.append(empty("Nothing here yet. Add the network, church or role you're actually weighing.", "Add a context", () => editContext()));
+      view.append(empty("Nothing here yet. Start with the town you're in and one you'd consider.", "Add one", () => editContext()));
       return view;
     }
-    const order = { current: 0, considering: 1, watching: 2, past: 3 };
-    [...state2.contexts].sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9) || a.name.localeCompare(b.name)).forEach((c) => view.append(h("button", { class: "card card-tap", onClick: () => openContext(c.id) }, readingRow(state2, c))));
-    view.append(h("button", { class: "btn block", style: "margin-top:14px", onClick: () => editContext() }, "Add a context"));
+    const rated = state2.contexts.map((ctx) => ({ ctx, ...readingOf(state2, ctx) })).filter((x) => x.r?.rated);
+    if (rated.length > 1) {
+      view.append(sectionHead("Side by side"));
+      view.append(h(
+        "div",
+        { class: "card" },
+        compareTable(state2, rated),
+        h("p", { class: "small muted", style: "margin:10px 0 0" }, "Percent aligned per area. Higher is closer to your heading.")
+      ));
+    }
+    const groups = [
+      ["place", "Places"],
+      ["church", "Churches"],
+      ["network", "Networks"],
+      ["role", "Roles"],
+      ["opportunity", "Opportunities"]
+    ];
+    const order = { considering: 0, current: 1, watching: 2, past: 3 };
+    groups.forEach(([kind, label]) => {
+      const group = state2.contexts.filter((c) => c.kind === kind).sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9) || a.name.localeCompare(b.name));
+      if (!group.length) return;
+      view.append(sectionHead(label, "Add", () => editContext(null, { kind })));
+      group.forEach((c) => view.append(contextCard(state2, c)));
+    });
+    view.append(h("button", { class: "btn block", style: "margin-top:14px", onClick: () => editContext() }, "Add something to weigh"));
     return view;
   }
   var title = "Plays";
@@ -1790,7 +2298,7 @@ select { appearance: none; }
   function render3(state2) {
     const ctx = pickFocus(state2);
     const check = ctx ? latestCheck(state2.checks, ctx.id) : null;
-    const result = check ? scoreCheck(check, state2.convictions) : null;
+    const result = check ? scoreCheck(check, state2.convictions, state2.domains) : null;
     const view = h("div", {});
     const hero = h("div", { class: "card" });
     hero.append(h("div", { class: "compass" }, compassSvg(result?.rated ? result.degrees : null)));
@@ -1798,32 +2306,37 @@ select { appearance: none; }
       hero.append(h(
         "div",
         { class: "compass-read" },
-        h("p", { class: "muted" }, "Add the thing you're weighing \u2014 a network, a church, a role \u2014 and the needle has something to read."),
-        h("button", { class: "btn primary", onClick: () => go("plays") }, "Add a context")
+        h("p", { class: "muted" }, "Add what you're weighing \u2014 a town, a church, a network \u2014 and the needle has something to read."),
+        h("button", { class: "btn primary", onClick: () => editContext() }, "Add the first one")
       ));
     } else if (!check) {
       hero.append(h(
         "div",
         { class: "compass-read" },
         h("div", { class: "big" }, ctx.name),
-        h("p", { class: "muted" }, "No check run yet. Rate it against your convictions and see where you actually stand."),
+        h("p", { class: "muted" }, "No check run yet. Rate it across all five domains and see where you actually stand."),
         h("button", { class: "btn primary", onClick: () => runCheck(ctx.id) }, "Run a check")
       ));
     } else {
       hero.append(h(
         "div",
         { class: "compass-read" },
-        h("div", { class: "big" }, result.rated ? `${result.degrees}\xB0` : "\u2014"),
+        h("div", { class: "big tnum" }, result.rated ? `${result.degrees}\xB0` : "\u2014"),
         h("div", {}, readingWord(result.pct), " with ", h("strong", {}, ctx.name)),
         h("div", { class: "small muted", style: "margin-top:4px" }, `Last read ${relDate(check.date, today())}`)
       ));
-      if (check.summary) {
-        hero.append(h("p", { class: "small muted", style: "margin:12px 0 0; font-style:italic" }, `"${check.summary}"`));
+      if (result.weakest) {
+        hero.append(h(
+          "p",
+          { class: "small muted center", style: "margin:10px 0 0" },
+          "Weakest: ",
+          h("strong", { class: "lv-tension" }, result.weakest.domain.label)
+        ));
       }
       hero.append(h(
         "div",
         { class: "row", style: "margin-top:14px" },
-        h("button", { class: "btn sm grow", onClick: () => runCheck(ctx.id) }, "Re-check"),
+        h("button", { class: "btn sm grow", onClick: () => runCheck(ctx.id, check) }, "Update this check"),
         h("button", { class: "btn sm grow", onClick: () => openContext(ctx.id) }, "Open")
       ));
     }
@@ -1839,14 +2352,76 @@ select { appearance: none; }
       hero.append(row2);
     }
     view.append(hero);
+    if (result?.byDomain.length) {
+      view.append(sectionHead("Across the whole life"));
+      view.append(h("div", { class: "card" }, domainBars(result)));
+    }
+    if (check) {
+      const us = byId(US_LEVELS, check.us?.level) || byId(US_LEVELS, "na");
+      const nudge = ["unspoken", "talking", "apart"].includes(us.id);
+      view.append(h(
+        "div",
+        { class: "card", style: "margin-top:12px" },
+        h(
+          "div",
+          { class: "row spread" },
+          h(
+            "div",
+            { class: "grow" },
+            h("strong", {}, "Us"),
+            h("div", { class: `small ${nudge ? "lv-tension" : "muted"}` }, us.label),
+            check.us?.note ? h("div", { class: "small muted" }, check.us.note) : null
+          ),
+          h("button", { class: "btn sm", onClick: () => runCheck(ctx.id, check) }, "Update")
+        ),
+        nudge ? h("button", {
+          class: "icon-btn",
+          style: "margin-top:10px",
+          onClick: () => editAction(null, { title: `Talk through ${ctx.name} together`, contextIds: [ctx.id] })
+        }, "Put it on the calendar") : null
+      ));
+    }
+    const places = state2.contexts.filter((c) => c.kind === "place");
+    view.append(sectionHead("Roots", places.length ? "All" : null, () => go("plays")));
+    if (!places.length) {
+      view.append(empty("No places on the board yet. Put down the towns you'd actually consider \u2014 that's the question under all the others.", "Add a place", () => editContext(null, { kind: "place" })));
+    } else {
+      const card = h("div", { class: "card" });
+      places.map((p) => {
+        const k = latestCheck(state2.checks, p.id);
+        const r = k ? scoreCheck(k, state2.convictions, state2.domains) : null;
+        const roots = r?.byDomain.find((d) => d.domain.id === "roots");
+        return { p, r, roots };
+      }).sort((a, b) => (b.roots?.pct ?? -1) - (a.roots?.pct ?? -1)).forEach(({ p, roots }) => {
+        const hz = byId(HORIZONS, p.horizon) || HORIZONS[0];
+        card.append(h(
+          "button",
+          { class: "card-tap list-item", onClick: () => openContext(p.id) },
+          h(
+            "div",
+            { class: "grow" },
+            h(
+              "div",
+              { class: "row spread" },
+              h("strong", {}, p.name),
+              h("span", { class: "small muted tnum" }, roots?.rated ? `${Math.round(roots.pct * 100)}% roots` : "no check")
+            ),
+            h("div", { class: "small muted" }, hz.label)
+          )
+        ));
+      });
+      view.append(card);
+    }
     if (result?.friction.length) {
       view.append(sectionHead("Where the friction is"));
       const list = h("div", { class: "card" });
       result.friction.slice(0, 4).forEach((f) => {
+        const domain = state2.domains.find((d) => d.id === f.conviction.domainId);
+        const dot = h("span", { class: `dot lv-${f.level.id}`, style: "margin-top:7px" });
         list.append(h(
           "div",
           { class: "list-item" },
-          h("span", { class: `dot lv-${f.level.id}`, style: "margin-top:7px" }),
+          dot,
           h(
             "div",
             { class: "grow" },
@@ -1856,7 +2431,7 @@ select { appearance: none; }
               h("strong", {}, f.conviction.title),
               h("span", { class: `pill lv-${f.level.id}` }, f.level.label)
             ),
-            h("div", { class: "small muted" }, f.rating?.note || byId(WEIGHTS, f.conviction.weight)?.label),
+            h("div", { class: "small muted" }, [domain?.label, f.rating?.note].filter(Boolean).join(" \xB7 ")),
             h(
               "div",
               { class: "row", style: "margin-top:8px" },
@@ -1894,7 +2469,7 @@ select { appearance: none; }
             "div",
             { class: "grow" },
             h("strong", {}, `${result.unknown.length} still unknown`),
-            h("div", { class: "small muted" }, "Not a mark against them \u2014 just things you haven't seen enough of yet.")
+            h("div", { class: "small muted" }, "Not a mark against anyone \u2014 just things you haven't seen enough of yet.")
           ),
           h("button", { class: "btn sm", onClick: () => runCheck(ctx.id, check) }, "Update")
         )
@@ -1982,16 +2557,20 @@ select { appearance: none; }
       const state2 = get();
       const c = state2.convictions.find((x) => x.id === id);
       if (!c) return h("p", { class: "muted" }, "Gone.");
+      const domain = state2.domains.find((d) => d.id === c.domainId);
       const across = state2.contexts.map((ctx) => {
         const check = latestCheck(state2.checks, ctx.id);
         const rating = check?.ratings?.[id];
-        return rating ? { ctx, level: levelOf(rating.level), note: rating.note, date: check.date } : null;
+        return rating ? { ctx, level: levelOf(rating.level), note: rating.note } : null;
       }).filter(Boolean).filter((x) => x.level.id !== "unknown");
       const notes = state2.notes.filter((n) => (n.convictionIds || []).includes(id)).sort((a, b) => a.date < b.date ? 1 : -1);
+      const domainChip = h("span", { class: "chip" }, domain?.label || "");
+      if (domain) domainChip.style.borderColor = domain.color;
       return frag(
         h(
           "div",
           { class: "row wrap", style: "margin-bottom:12px" },
+          domainChip,
           h("span", { class: "chip on" }, byId(WEIGHTS, c.weight)?.label || ""),
           h("button", { class: "chip", onClick: () => editConviction(c) }, "Edit"),
           h("button", { class: "chip", onClick: () => editNote(null, { convictionIds: [id], kind: "observation" }) }, "Log a learning")
@@ -2050,34 +2629,49 @@ select { appearance: none; }
     };
     openSheet(() => get().convictions.find((x) => x.id === id)?.title || "Conviction", build);
   }
+  var WEIGHT_ORDER = WEIGHTS.map((w) => w.id);
   function render4(state2) {
     const view = h("div", {});
     if (!state2.convictions.length) {
       view.append(empty("Start with one. What would you not budge on?", "Add a conviction", () => editConviction()));
       return view;
     }
-    const counts = WEIGHTS.map((w) => ({ w, n: state2.convictions.filter((c) => c.weight === w.id).length }));
-    view.append(h("div", { class: "card row wrap" }, counts.filter((x) => x.n).map((x) => h(
-      "div",
-      { class: "grow" },
-      h("div", { class: "small muted" }, x.w.label),
-      h("strong", {}, String(x.n))
-    ))));
-    WEIGHTS.forEach((w) => {
-      const group = state2.convictions.filter((c) => c.weight === w.id);
-      if (!group.length) return;
-      view.append(sectionHead(w.label));
-      view.append(h("p", { class: "small muted", style: "margin-top:-4px" }, w.help));
+    state2.domains.forEach((domain) => {
+      const group = state2.convictions.filter((c) => c.domainId === domain.id).sort((a, b) => WEIGHT_ORDER.indexOf(a.weight) - WEIGHT_ORDER.indexOf(b.weight));
+      const head = h(
+        "div",
+        { class: "section-head" },
+        h("h2", {}, domain.label),
+        h("button", { class: "icon-btn", onClick: () => editConviction(null, { domainId: domain.id }) }, "Add")
+      );
+      head.style.borderLeft = `3px solid ${domain.color}`;
+      head.style.paddingLeft = "10px";
+      view.append(head);
+      if (domain.blurb) view.append(h("p", { class: "small muted", style: "margin-top:-4px" }, domain.blurb));
+      if (!group.length) {
+        view.append(h("p", { class: "small muted" }, "Nothing here yet."));
+        return;
+      }
       group.forEach((c) => view.append(h(
         "button",
         { class: "card card-tap", onClick: () => openConviction(c.id) },
-        h("strong", {}, c.title),
+        h(
+          "div",
+          { class: "row spread" },
+          h("strong", { class: "grow" }, c.title),
+          h("span", { class: "pill muted" }, byId(WEIGHTS, c.weight)?.label || "")
+        ),
         c.summary ? h("div", { class: "small muted", style: "margin-top:4px" }, c.summary) : null,
         c.scriptures ? h("div", { class: "small", style: "margin-top:6px; color:var(--gold-dim)" }, c.scriptures) : null,
         c.forming ? h("div", { class: "small muted", style: "margin-top:6px" }, "\u25CF still working this one out") : null
       )));
     });
-    view.append(h("button", { class: "btn block", style: "margin-top:18px", onClick: () => editConviction() }, "Add a conviction"));
+    view.append(h(
+      "div",
+      { class: "stack", style: "margin-top:22px" },
+      h("button", { class: "btn block", onClick: () => editConviction() }, "Add a conviction"),
+      h("button", { class: "btn ghost block", onClick: () => editDomain() }, "Add an area of life")
+    ));
     return view;
   }
   var title4 = "Convictions";
