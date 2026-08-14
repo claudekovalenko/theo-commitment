@@ -15,9 +15,10 @@ const LS = {
   },
   set(k, v) {
     if (persistent) {
-      try { localStorage.setItem(k, v); return; } catch { persistent = false; }
+      try { localStorage.setItem(k, v); return true; } catch { persistent = false; }
     }
     mem.set(k, v);
+    return false;
   },
   remove(k) {
     if (persistent) {
@@ -28,6 +29,15 @@ const LS = {
 };
 
 export const isPersistent = () => persistent;
+
+// Anything that wants to know whether writes are actually landing.
+let lastSaved = null;
+const statusWatchers = new Set();
+export const saveStatus = () => ({ persistent, lastSaved });
+export function onSaveStatus(fn) {
+  statusWatchers.add(fn);
+  return () => statusWatchers.delete(fn);
+}
 
 const KEY_PLAIN = 'tn.v1.data';
 const KEY_ENC = 'tn.v1.enc';
@@ -67,6 +77,7 @@ export function open() {
   const raw = LS.get(KEY_PLAIN);
   const parsed = raw ? JSON.parse(raw) : null;
   state = parsed ? migrate(parsed) : seedState();
+  lastSaved = state.updatedAt || null; // so "last saved" is true across restarts
   // Write straight back when we seeded or upgraded, so the new shape is durable
   // even if the next thing that happens is the browser being closed.
   if (!parsed || parsed.version !== state.version) persist();
@@ -83,6 +94,7 @@ export async function unlock(pin) {
     );
     const parsed = JSON.parse(new TextDecoder().decode(plain));
     state = migrate(parsed);
+    lastSaved = state.updatedAt || null;
     cryptoKey = key;
     saltB64 = blob.salt;
     if (parsed.version !== state.version) await persist();
@@ -124,14 +136,25 @@ export function get() {
 let writeTimer = null;
 async function persist() {
   const json = JSON.stringify(state);
+  let landed;
   if (cryptoKey) {
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, cryptoKey, new TextEncoder().encode(json));
-    LS.set(KEY_ENC, JSON.stringify({ v: 1, salt: saltB64, iv: b64(iv), ct: b64(ct) }));
+    landed = LS.set(KEY_ENC, JSON.stringify({ v: 1, salt: saltB64, iv: b64(iv), ct: b64(ct) }));
     LS.remove(KEY_PLAIN);
   } else {
-    LS.set(KEY_PLAIN, json);
+    landed = LS.set(KEY_PLAIN, json);
   }
+  if (landed) lastSaved = new Date().toISOString();
+  statusWatchers.forEach((fn) => fn(saveStatus()));
+  return landed;
+}
+
+/** Write immediately — used when the app is about to be backgrounded or closed. */
+export function flush() {
+  if (!state) return Promise.resolve(false);
+  clearTimeout(writeTimer);
+  return persist().catch(() => false);
 }
 
 /** Mutate state through a function, then save (debounced) and notify listeners. */

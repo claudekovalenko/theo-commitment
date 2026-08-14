@@ -110,16 +110,27 @@ function start() {
   touch();
   render();
 
-  if (!store.isPersistent()) {
-    const warn = $('#warn');
-    warn.textContent = 'This browser is blocking local storage here, so anything you write will be gone on '
-      + 'reload. Open the page in its own tab (or install it) and it will save normally.';
-    warn.hidden = false;
-  }
+  if (!store.isPersistent()) warnNotSaving();
+}
+
+function warnNotSaving() {
+  const warn = $('#warn');
+  warn.textContent = 'This browser is blocking storage here, so nothing is being saved. Open the app in its own '
+    + 'tab (or install it to your home screen) and it will save normally.';
+  warn.hidden = false;
 }
 
 function boot() {
   initSheet();
+
+  // iOS in particular will kill a backgrounded tab before a debounced write lands.
+  const flush = () => { store.flush(); };
+  window.addEventListener('pagehide', flush);
+  window.addEventListener('beforeunload', flush);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') flush();
+  });
+  store.onSaveStatus((st) => { if (!st.persistent) warnNotSaving(); });
   wireLock();
   watchIdle();
 

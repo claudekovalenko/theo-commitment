@@ -905,12 +905,13 @@ select { appearance: none; }
       if (persistent) {
         try {
           localStorage.setItem(k, v);
-          return;
+          return true;
         } catch {
           persistent = false;
         }
       }
       mem.set(k, v);
+      return false;
     },
     remove(k) {
       if (persistent) {
@@ -925,6 +926,13 @@ select { appearance: none; }
     }
   };
   var isPersistent = () => persistent;
+  var lastSaved = null;
+  var statusWatchers = /* @__PURE__ */ new Set();
+  var saveStatus = () => ({ persistent, lastSaved });
+  function onSaveStatus(fn) {
+    statusWatchers.add(fn);
+    return () => statusWatchers.delete(fn);
+  }
   var KEY_PLAIN = "tn.v1.data";
   var KEY_ENC = "tn.v1.enc";
   var PBKDF2_ROUNDS = 31e4;
@@ -952,6 +960,7 @@ select { appearance: none; }
     const raw = LS.get(KEY_PLAIN);
     const parsed = raw ? JSON.parse(raw) : null;
     state = parsed ? migrate(parsed) : seedState();
+    lastSaved = state.updatedAt || null;
     if (!parsed || parsed.version !== state.version) persist();
     return state;
   }
@@ -966,6 +975,7 @@ select { appearance: none; }
       );
       const parsed = JSON.parse(new TextDecoder().decode(plain));
       state = migrate(parsed);
+      lastSaved = state.updatedAt || null;
       cryptoKey = key;
       saltB64 = blob.salt;
       if (parsed.version !== state.version) await persist();
@@ -999,14 +1009,23 @@ select { appearance: none; }
   var writeTimer = null;
   async function persist() {
     const json = JSON.stringify(state);
+    let landed;
     if (cryptoKey) {
       const iv = crypto.getRandomValues(new Uint8Array(12));
       const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, cryptoKey, new TextEncoder().encode(json));
-      LS.set(KEY_ENC, JSON.stringify({ v: 1, salt: saltB64, iv: b64(iv), ct: b64(ct) }));
+      landed = LS.set(KEY_ENC, JSON.stringify({ v: 1, salt: saltB64, iv: b64(iv), ct: b64(ct) }));
       LS.remove(KEY_PLAIN);
     } else {
-      LS.set(KEY_PLAIN, json);
+      landed = LS.set(KEY_PLAIN, json);
     }
+    if (landed) lastSaved = (/* @__PURE__ */ new Date()).toISOString();
+    statusWatchers.forEach((fn) => fn(saveStatus()));
+    return landed;
+  }
+  function flush() {
+    if (!state) return Promise.resolve(false);
+    clearTimeout(writeTimer);
+    return persist().catch(() => false);
   }
   function update(fn) {
     fn(state);
@@ -2218,6 +2237,35 @@ select { appearance: none; }
             s.settings.name = e.target.value;
           })
         })),
+        section("Is it saving?"),
+        (() => {
+          const st = saveStatus();
+          return h(
+            "div",
+            { class: "card" },
+            h(
+              "div",
+              { class: "row spread" },
+              h("span", { class: "small" }, "Storage on this device"),
+              h(
+                "span",
+                { class: `small tone-${st.persistent ? "good" : "bad"}` },
+                st.persistent ? "Working" : "Blocked"
+              )
+            ),
+            h(
+              "div",
+              { class: "row spread", style: "margin-top:8px" },
+              h("span", { class: "small" }, "Last saved"),
+              h("span", { class: "small muted" }, st.lastSaved ? new Date(st.lastSaved).toLocaleString() : "not yet")
+            ),
+            h(
+              "p",
+              { class: "tiny muted", style: "margin:10px 0 0" },
+              st.persistent ? "Entries live in this browser only. A different browser \u2014 or Safari versus the home-screen app \u2014 is a different notebook." : "Nothing you write here is being kept. Open the page in its own browser tab, or install it to the home screen."
+            )
+          );
+        })(),
         section("Privacy"),
         h(
           "div",
@@ -3618,14 +3666,26 @@ select { appearance: none; }
     $("#btn-lock").hidden = !isEncrypted();
     touch();
     render6();
-    if (!isPersistent()) {
-      const warn = $("#warn");
-      warn.textContent = "This browser is blocking local storage here, so anything you write will be gone on reload. Open the page in its own tab (or install it) and it will save normally.";
-      warn.hidden = false;
-    }
+    if (!isPersistent()) warnNotSaving();
+  }
+  function warnNotSaving() {
+    const warn = $("#warn");
+    warn.textContent = "This browser is blocking storage here, so nothing is being saved. Open the app in its own tab (or install it to your home screen) and it will save normally.";
+    warn.hidden = false;
   }
   function boot() {
     initSheet();
+    const flush2 = () => {
+      flush();
+    };
+    window.addEventListener("pagehide", flush2);
+    window.addEventListener("beforeunload", flush2);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") flush2();
+    });
+    onSaveStatus((st) => {
+      if (!st.persistent) warnNotSaving();
+    });
     wireLock();
     watchIdle();
     onRoute(render6);

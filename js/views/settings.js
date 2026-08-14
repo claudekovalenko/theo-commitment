@@ -116,6 +116,23 @@ export function openSettings() {
         onInput: (e) => store.update((s) => { s.settings.name = e.target.value; }),
       })),
 
+      section('Is it saving?'),
+      (() => {
+        const st = store.saveStatus();
+        return h('div', { class: 'card' },
+          h('div', { class: 'row spread' },
+            h('span', { class: 'small' }, 'Storage on this device'),
+            h('span', { class: `small tone-${st.persistent ? 'good' : 'bad'}` },
+              st.persistent ? 'Working' : 'Blocked')),
+          h('div', { class: 'row spread', style: 'margin-top:8px' },
+            h('span', { class: 'small' }, 'Last saved'),
+            h('span', { class: 'small muted' }, st.lastSaved ? new Date(st.lastSaved).toLocaleString() : 'not yet')),
+          h('p', { class: 'tiny muted', style: 'margin:10px 0 0' },
+            st.persistent
+              ? 'Entries live in this browser only. A different browser — or Safari versus the home-screen app — is a different notebook.'
+              : 'Nothing you write here is being kept. Open the page in its own browser tab, or install it to the home screen.'));
+      })(),
+
       section('Privacy'),
       h('div', { class: 'card' },
         h('p', { class: 'small muted', style: 'margin-bottom:12px' },

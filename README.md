@@ -119,6 +119,19 @@ here in ten years?
 | **In the way** | Everything unsettled, and what would settle it |
 | **Journal** | What you're learning, and the people you're walking with |
 
+## Where your entries live
+
+In **this browser, on this device**, and nowhere else. That has one consequence
+worth knowing before you trust it with anything: Safari and the home-screen app
+can be separate notebooks on iOS, and a different browser or device is always a
+separate notebook. Write in one, stay in it.
+
+**Settings → Is it saving?** shows whether storage is working and when the last
+write landed. If it says *Blocked*, nothing is being kept — that happens in
+private windows and in sandboxed frames — and a banner says so at the top of the
+app. Writes are also flushed the moment the app is backgrounded or closed, so a
+quick add followed by a swipe-away still lands.
+
 ## Privacy
 
 - Everything lives in this browser's local storage on this device. No account,
