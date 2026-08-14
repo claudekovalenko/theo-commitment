@@ -1,7 +1,7 @@
 // Offline shell. Everything the app needs is cached on install; there are no
 // other network requests to worry about, because the app never makes any.
 
-const CACHE = 'good-ground-v1';
+const CACHE = 'good-ground-v2';
 
 const ASSETS = [
   './',

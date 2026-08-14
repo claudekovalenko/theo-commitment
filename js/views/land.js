@@ -83,6 +83,21 @@ export function openGround(id) {
           : null),
 
       s.check ? frag(
+        section('The test that decides it'),
+        h('div', { class: 'card' },
+          h('div', { class: 'row spread' },
+            h('span', { class: 'small' }, 'Kids here, unsupervised'),
+            h('span', { class: `small tone-${s.kid.tone}` }, s.kid.label)),
+          s.kidNote ? h('div', { class: 'tiny muted' }, s.kidNote) : null,
+          h('div', { class: 'row spread', style: 'margin-top:8px' },
+            h('span', { class: 'small' }, 'He\'d come back'),
+            h('span', { class: `small tone-${s.formation.tone}` }, s.formation.label)),
+          h('div', { class: 'row spread', style: 'margin-top:8px' },
+            h('span', { class: 'small' }, 'Buy a home here'),
+            h('span', { class: `small tone-${s.home.tone}` }, s.home.label)),
+          s.household.length
+            ? h('div', { class: 'tiny muted', style: 'margin-top:10px' }, `Spiritual family here: ${s.household.map((p) => p.name).join(', ')}`)
+            : h('div', { class: 'tiny tone-thin', style: 'margin-top:10px' }, 'No spiritual family named here yet')),
         section('The soil'),
         areaBars(s),
         h('div', { class: 'card', style: 'margin-top:14px' },
@@ -158,6 +173,7 @@ function groundRow(state, ground, s) {
     h('div', { class: 'bar', style: 'margin-top:10px' },
       h('i', { style: `width:${Math.round(s.depth * 100)}%; background: var(--soil)` })),
     h('div', { class: 'small muted', style: 'margin-top:10px' }, verdict(s)),
+    s.check ? h('div', { class: `tiny tone-${s.kid.tone}`, style: 'margin-top:4px' }, `Kids unsupervised: ${s.kid.label.toLowerCase()}`) : null,
     brings.length ? h('div', { class: 'tiny muted', style: 'margin-top:6px' }, `Would put us here: ${brings.map((b) => b.name).join(', ')}`) : null);
 }
 

@@ -3,10 +3,10 @@
 
 import * as store from './../store.js';
 import { today } from './../store.js';
-import { survey, verdict, rankGrounds, byId, HORIZONS, impliedPlace } from './../model.js';
+import { survey, verdict, rankGrounds, byId, HORIZONS, HOME_LEVELS } from './../model.js';
 import { h, empty, section, relDate, toast } from './../ui.js';
 import {
-  walkTheLand, editGround, editBlock, breakGround, captureHesitation, editNote,
+  walkTheLand, editGround, editBlock, breakGround, captureHesitation, editNote, editPerson,
 } from './../editors.js';
 import { plot, areaBars, usLine } from './parts.js';
 import { openGround } from './land.js';
@@ -38,6 +38,8 @@ export function render(state) {
   const { ground, s } = target;
   const staked = ground.stage === 'built';
 
+  view.append(h('p', { class: 'eyebrow', style: 'margin-bottom:14px' }, 'God first, continually'));
+
   view.append(h('div', { class: 'row spread', style: 'align-items:flex-end' },
     h('div', {},
       h('div', { class: 'eyebrow' }, staked ? 'Building here' : 'The ground in front of me'),
@@ -49,6 +51,40 @@ export function render(state) {
 
   view.append(h('p', { class: 'verdict' }, verdict(s)));
 
+  if (s.check) {
+    const home = byId(HOME_LEVELS, s.home?.id || 'unknown');
+    view.append(h('div', { class: 'card', style: 'margin-top:12px' },
+      h('div', { class: 'eyebrow' }, 'The test that decides it'),
+      h('div', { class: 'row spread', style: 'margin-top:8px' },
+        h('span', { class: 'small' }, 'Kids here, unsupervised'),
+        h('span', { class: `small tone-${s.kid.tone}` }, s.kid.label)),
+      s.kidNote ? h('div', { class: 'tiny muted' }, s.kidNote) : null,
+      h('div', { class: 'row spread', style: 'margin-top:8px' },
+        h('span', { class: 'small' }, 'He\'d come back'),
+        h('span', { class: `small tone-${s.formation.tone}` }, s.formation.label)),
+      s.formationNote ? h('div', { class: 'tiny muted' }, s.formationNote) : null,
+      h('div', { class: 'row spread', style: 'margin-top:8px' },
+        h('span', { class: 'small' }, 'Would we buy a home here'),
+        h('span', { class: `small tone-${home.tone}` }, home.label)),
+      s.gate ? h('p', { class: 'tiny tone-thin', style: 'margin:10px 0 0' }, s.gate) : null,
+      h('button', { class: 'icon-btn', style: 'margin-top:12px', onClick: () => walkTheLand(ground.id, s.check) }, 'Change my answer')));
+  }
+
+  // spiritual family, by name
+  view.append(section('Spiritual family here', 'Add', () => editPerson(null, { groundId: ground.id })));
+  if (!s.household.length) {
+    view.append(h('p', { class: 'muted small' },
+      'No one named yet. Intertwined is people you could call at 11pm — if you can\'t name them, the ground isn\'t ready.'));
+  } else {
+    const rows = h('div', { class: 'rows' });
+    s.household.forEach((p) => rows.append(h('button', { class: 'card-tap', onClick: () => editPerson(p) },
+      h('div', { class: 'row spread' },
+        h('strong', {}, p.name),
+        h('span', { class: 'tiny muted' }, p.lastMet ? `last met ${relDate(p.lastMet, today()).toLowerCase()}` : 'never logged')),
+      p.nextStep ? h('div', { class: 'tiny muted' }, p.nextStep) : null)));
+    view.append(rows);
+  }
+
   if (staked && ground.stakeNote) {
     view.append(h('p', { class: 'small muted', style: 'font-style:italic' }, `"${ground.stakeNote}"`));
   }
@@ -57,11 +93,20 @@ export function render(state) {
   if (!staked && ground.stage !== 'ruled-out') {
     // Before you've walked it there's nothing to decide — go look at it first.
     view.append(h('div', { class: 'stack', style: 'margin:16px 0 4px' },
-      s.check
-        ? h('button', { class: 'btn primary block', onClick: () => breakGround(ground) },
-          s.inTheWay.length ? 'I\'m ready to build here' : 'Break ground here')
-        : h('button', { class: 'btn primary block', onClick: () => walkTheLand(ground.id) }, 'Walk the land'),
-      h('button', { class: 'btn ghost block', onClick: () => captureHesitation(ground) }, 'Not yet — here\'s why')));
+      !s.check
+        ? h('button', { class: 'btn primary block', onClick: () => walkTheLand(ground.id) }, 'Walk the land')
+        : s.gatedBy
+          // Don't invite a man to build where he wouldn't leave his son.
+          ? h('button', {
+            class: 'btn primary block',
+            onClick: () => editBlock(null, { groundId: ground.id, hard: true, title: s.gatedBy }),
+          }, 'Name what would have to change')
+          : h('button', { class: 'btn primary block', onClick: () => breakGround(ground) },
+            s.inTheWay.length ? 'I\'m ready to build here' : 'Break ground here'),
+      h('button', { class: 'btn ghost block', onClick: () => captureHesitation(ground) }, 'Not yet — here\'s why'),
+      s.gatedBy
+        ? h('button', { class: 'btn ghost block small', onClick: () => breakGround(ground) }, 'Decide anyway')
+        : null));
   }
 
   /* ---- what's in the way ---- */
@@ -92,6 +137,11 @@ export function render(state) {
               h('div', { class: 'tiny muted' },
                 [b.hard ? 'Can\'t decide without it' : null, b.who, b.due ? relDate(b.due, today()) : null]
                   .filter(Boolean).join(' · ') || 'No plan to settle it yet'))));
+        } else if (item.kind === 'gate') {
+          rows.append(h('button', { class: 'card-tap', onClick: () => walkTheLand(ground.id, s.check) },
+            h('div', { class: 'row spread' },
+              h('span', { class: 'grow tone-bad' }, item.label),
+              h('span', { class: 'tiny muted' }, 'the gate'))));
         } else {
           rows.append(h('button', { class: 'card-tap', onClick: () => walkTheLand(ground.id, s.check) },
             h('div', { class: 'row spread' },

@@ -4,7 +4,7 @@ import * as store from './store.js';
 import { uid, today } from './store.js';
 import {
   WEIGHTS, LEVELS, NOTE_KINDS, KINDS, STAGES, PEOPLE_STAGES, US_LEVELS, HORIZONS,
-  byId, survey, verdict,
+  KID_LEVELS, FORMATION_LEVELS, HOME_LEVELS, byId, survey, verdict,
 } from './model.js';
 import {
   h, frag, field, input, area, segmented, chipPicker, openSheet, closeSheet,
@@ -151,9 +151,22 @@ export function walkTheLand(groundId, existing) {
   const state = store.get();
   const ground = state.contexts.find((c) => c.id === groundId);
   const check = existing
-    ? { ...existing, ratings: JSON.parse(JSON.stringify(existing.ratings || {})), us: { ...(existing.us || {}) } }
-    : { id: uid(), contextId: groundId, date: today(), ratings: {}, us: { level: 'na', note: '' }, summary: '' };
+    ? {
+      ...existing,
+      ratings: JSON.parse(JSON.stringify(existing.ratings || {})),
+      us: { ...(existing.us || {}) },
+      kid: { ...(existing.kid || {}) },
+      formation: { ...(existing.formation || {}) },
+    }
+    : {
+      id: uid(), contextId: groundId, date: today(), ratings: {},
+      us: { level: 'na', note: '' }, kid: { level: 'unknown', note: '' },
+      formation: { level: 'unknown', note: '' }, home: 'unknown', summary: '',
+    };
   if (!check.us) check.us = { level: 'na', note: '' };
+  if (!check.kid?.level) check.kid = { level: 'unknown', note: '' };
+  if (!check.formation?.level) check.formation = { level: 'unknown', note: '' };
+  if (!check.home) check.home = 'unknown';
 
   let only = null;
 
@@ -165,7 +178,8 @@ export function walkTheLand(groundId, existing) {
         h('div', { class: 'verdict' }, verdict(s)),
         h('div', { class: 'row spread small muted', style: 'margin-top:8px' },
           h('span', {}, `${Math.round(s.surveyed * 100)}% surveyed`),
-          h('span', { class: 'tnum' }, s.rated ? `${Math.round(s.fit * 100)}% fit` : '')));
+          h('span', { class: 'tnum' }, s.rated ? `${Math.round(s.fit * 100)}% fit` : '')),
+        s.gate ? h('p', { class: 'tiny tone-thin', style: 'margin:8px 0 0' }, s.gate) : null);
     };
 
     const rows = h('div', { class: 'stack' });
@@ -210,9 +224,29 @@ export function walkTheLand(groundId, existing) {
     paintFilter();
     paintRows();
 
+    const gate = h('div', { class: 'card', style: 'margin-bottom:16px' },
+      h('div', { class: 'eyebrow' }, 'The test that decides it'),
+      h('h3', { style: 'margin:6px 0 2px' }, 'Could I leave my kids with these people, unsupervised?'),
+      h('p', { class: 'tiny muted' }, 'Not the leaders. The ordinary households you\'d actually be around.'),
+      segmented(KID_LEVELS, check.kid.level, (v) => { check.kid.level = v; paint(); }),
+      h('input', {
+        type: 'text', value: check.kid.note || '', placeholder: 'Who, specifically — or what gives you pause',
+        style: 'margin-top:8px', onInput: (e) => { check.kid.note = e.target.value; },
+      }),
+      h('h3', { style: 'margin:18px 0 2px' }, 'And he\'d come back formed — which way?'),
+      h('p', { class: 'tiny muted' }, 'Safe and soft is still a no. You want him sent, not sheltered.'),
+      segmented(FORMATION_LEVELS, check.formation.level, (v) => { check.formation.level = v; paint(); }),
+      h('input', {
+        type: 'text', value: check.formation.note || '', placeholder: 'What you\'ve actually watched happen to kids here',
+        style: 'margin-top:8px', onInput: (e) => { check.formation.note = e.target.value; },
+      }),
+      h('h3', { style: 'margin:18px 0 6px' }, 'Would we buy a home here?'),
+      segmented(HOME_LEVELS, check.home, (v) => { check.home = v; }));
+
     return frag(
       readout,
       field('Date walked', h('input', { type: 'date', value: check.date, onInput: (e) => { check.date = e.target.value || today(); } })),
+      gate,
       filter,
       rows,
       h('div', { class: 'card', style: 'margin-top:18px' },
@@ -327,6 +361,12 @@ export function breakGround(ground) {
   let date = today();
 
   openSheet(`Build on ${ground.name}?`, () => frag(
+    s.gatedBy
+      ? h('div', { class: 'card', style: 'margin-bottom:16px' },
+        h('strong', { class: 'tone-bad' }, s.gatedBy),
+        h('p', { class: 'small muted', style: 'margin:8px 0 0' },
+          'This is the one you said decides it. Building here means deciding it doesn\'t.'))
+      : null,
     s.inTheWay.length
       ? h('div', { class: 'card', style: 'margin-bottom:16px' },
         h('strong', { class: 'tone-thin' }, `${s.inTheWay.length} thing${s.inTheWay.length > 1 ? 's are' : ' is'} still unsettled`),
@@ -405,13 +445,21 @@ export function editNote(existing, defaults = {}) {
 
 /* ---------- people ---------- */
 
-export function editPerson(existing) {
-  const p = existing || { id: uid(), name: '', stage: 'conversation', nextStep: '', nextDue: '', lastMet: '', notes: '' };
+export function editPerson(existing, defaults = {}) {
+  const state = store.get();
+  const p = existing || {
+    id: uid(), name: '', stage: 'conversation', groundId: '', household: false,
+    nextStep: '', nextDue: '', lastMet: '', notes: '', ...defaults,
+  };
   const draft = { ...p };
 
   openSheet(existing ? 'Edit person' : 'Someone I\'m walking with', () => frag(
     field('Name', input({ value: draft.name, onInput: (e) => { draft.name = e.target.value; } })),
     field('Where they are', segmented(PEOPLE_STAGES, draft.stage, (v) => { draft.stage = v; })),
+    field('Where are they?', segmented(
+      [...state.contexts.filter((g) => g.kind === 'place').map((g) => ({ id: g.id, label: g.name })), { id: '', label: 'Nowhere yet' }],
+      draft.groundId || '', (v) => { draft.groundId = v; },
+    ), 'Spiritual family is countable. This is how a place stops being a feeling.'),
     field('Next step', input({ value: draft.nextStep, onInput: (e) => { draft.nextStep = e.target.value; } })),
     field('By when', h('input', { type: 'date', value: draft.nextDue, onInput: (e) => { draft.nextDue = e.target.value; } })),
     field('Last time we met', h('input', { type: 'date', value: draft.lastMet, onInput: (e) => { draft.lastMet = e.target.value; } })),

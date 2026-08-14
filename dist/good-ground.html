@@ -432,6 +432,26 @@ select { appearance: none; }
     { id: "apart", label: "Not in the same place", tone: "bad" },
     { id: "na", label: "Just me on this one", tone: "unknown" }
   ];
+  var KID_LEVELS = [
+    { id: "no", label: "No", help: "Not for an afternoon.", cap: 0.22, tone: "bad" },
+    { id: "supervised", label: "Only with me there", help: "I'd be watching the whole time.", cap: 0.45, tone: "bad" },
+    { id: "some", label: "A few of them", help: "Certain households, not the room.", cap: 0.72, tone: "thin" },
+    { id: "yes", label: "Yes \u2014 gladly, for a week", help: "Unsupervised, and glad about it.", cap: 1, tone: "good" },
+    { id: "unknown", label: "Haven't seen enough", help: "No basis to answer yet.", cap: 0.55, tone: "unknown" }
+  ];
+  var FORMATION_LEVELS = [
+    { id: "softer", label: "Softer, more comfortable", cap: 0.5, tone: "bad" },
+    { id: "flat", label: "About the same", cap: 0.8, tone: "thin" },
+    { id: "sharper", label: "Sharper, more on mission", cap: 1, tone: "good" },
+    { id: "unknown", label: "Don't know yet", cap: 0.75, tone: "unknown" }
+  ];
+  var HOME_LEVELS = [
+    { id: "no", label: "No", tone: "bad" },
+    { id: "maybe", label: "Could see it", tone: "thin" },
+    { id: "yes", label: "Yes", tone: "good" },
+    { id: "done", label: "We already have", tone: "good" },
+    { id: "unknown", label: "Too early to say", tone: "unknown" }
+  ];
   var HORIZONS = [
     { id: "unknown", label: "No idea yet" },
     { id: "season", label: "A season (1\u20132 yrs)" },
@@ -519,9 +539,24 @@ select { appearance: none; }
     const blocks = state2.blocks.filter((b) => b.groundId === ground.id && b.status === "open");
     const surveyed = reqs.length ? (reqs.length - base.unsurveyed.length) / reqs.length : 0;
     const penalty = Math.min(0.35, blocks.filter((b) => b.hard).length * 0.12 + blocks.length * 0.03);
-    const depth = Math.max(0, Math.min(1, surveyed * (0.4 + 0.6 * (base.fit ?? 0)) - penalty));
+    let depth = Math.max(0, Math.min(1, surveyed * (0.4 + 0.6 * (base.fit ?? 0)) - penalty));
+    base.kid = byId(KID_LEVELS, check?.kid?.level) || byId(KID_LEVELS, "unknown");
+    base.formation = byId(FORMATION_LEVELS, check?.formation?.level) || byId(FORMATION_LEVELS, "unknown");
+    base.home = byId(HOME_LEVELS, check?.home) || byId(HOME_LEVELS, "unknown");
+    base.kidNote = check?.kid?.note || "";
+    base.formationNote = check?.formation?.note || "";
+    base.household = state2.people.filter((p) => p.groundId === ground.id);
+    if (check) {
+      const cap = Math.min(base.kid.cap, base.formation.cap);
+      base.gate = depth > cap ? base.kid.cap <= base.formation.cap ? `Capped by the kid test: ${base.kid.label.toLowerCase()}` : `Capped by which way he'd be formed: ${base.formation.label.toLowerCase()}` : "";
+      depth = Math.min(depth, cap);
+    } else {
+      base.gate = "";
+    }
     const decided = ground.stage === "built" || ground.stage === "ruled-out";
-    const ready = !decided && surveyed >= 0.8 && blocks.length === 0 && (base.fit ?? 0) >= 0.6;
+    const trusted = ["yes", "some"].includes(base.kid.id);
+    const gatedBy = check && !trusted ? `You wouldn't leave your kids with these people yet (${base.kid.label.toLowerCase()})` : check && base.formation.id === "softer" ? "He'd come back softer, not sharper" : "";
+    const ready = !decided && trusted && surveyed >= 0.8 && blocks.length === 0 && (base.fit ?? 0) >= 0.6;
     return {
       ...base,
       check,
@@ -531,15 +566,24 @@ select { appearance: none; }
       ready,
       stage: decided ? ground.stage : ready ? "ready" : surveyed > 0.15 ? "surveying" : "scouting",
       inTheWay: [
+        ...gatedBy ? [{ kind: "gate", label: gatedBy }] : [],
         ...blocks.map((b) => ({ kind: "block", block: b, label: b.title })),
         ...base.unsurveyed.map((u) => ({ kind: "unsurveyed", req: u.req, label: u.req.title }))
-      ]
+      ],
+      gatedBy
     };
   }
   function verdict(s) {
     if (s.stage === "built") return "You broke ground here.";
     if (s.stage === "ruled-out") return "You ruled this one out.";
     if (!s.check) return "Not surveyed yet. Walk the land.";
+    if (s.kid.id === "no" || s.kid.id === "supervised") {
+      return "You wouldn't leave your kids here unsupervised. Until that changes, nothing else counts.";
+    }
+    if (s.formation.id === "softer") {
+      return "He'd come back softer, not sharper. That's the thing to fix before anything else.";
+    }
+    if (s.kid.id === "unknown") return "You haven't been around these people enough to answer the only question that matters.";
     if (s.missingMusts.length) {
       return `${s.missingMusts.length} must-have${s.missingMusts.length > 1 ? "s are" : " is"} missing here.`;
     }
@@ -640,6 +684,22 @@ select { appearance: none; }
         "Not a church I could serve at \u2014 a church we could be members of, be pastored by, and grow old in.",
         "Hebrews 10:24-25; Acts 2:42-47",
         "If my role ended tomorrow, we'd still want to be there on Sunday."
+      ),
+      conviction(
+        "roots",
+        "Spiritual family, not just a congregation",
+        "core",
+        "Households we are actually intertwined with \u2014 in each other's homes, in each other's business. People I could name, not a service I attend.",
+        "Acts 2:44-47; Romans 12:10; 1 Thessalonians 2:8",
+        "I can name the households, and my kids know their kitchens."
+      ),
+      conviction(
+        "roots",
+        "People I'd leave my kids with",
+        "core",
+        "Ordinary families here \u2014 not the leaders on stage \u2014 that I would trust with my son unsupervised, and he'd come home more on mission, not less.",
+        "Titus 2:3-8; Deuteronomy 6:6-9; Proverbs 13:20",
+        "I could drop him off for a week and not think twice."
       ),
       conviction(
         "roots",
@@ -926,7 +986,7 @@ select { appearance: none; }
     if (!merge) {
       state = incoming;
     } else {
-      for (const list of ["domains", "convictions", "contexts", "checks", "notes", "actions", "people"]) {
+      for (const list of ["domains", "convictions", "contexts", "checks", "blocks", "notes", "people"]) {
         const have = new Set(state[list].map((r) => r.id));
         state[list].push(...(incoming[list] || []).filter((r) => !have.has(r.id)));
       }
@@ -980,6 +1040,12 @@ select { appearance: none; }
     });
     s.checks.forEach((k) => {
       if (!k.us) k.us = { level: "na", note: "" };
+      if (!k.kid) k.kid = { level: "unknown", note: "" };
+      if (!k.formation) k.formation = { level: "unknown", note: "" };
+      if (!k.home) k.home = "unknown";
+    });
+    s.people.forEach((p) => {
+      if (p.groundId === void 0) p.groundId = "";
     });
     if (Array.isArray(data.actions) && data.actions.length) {
       s.blocks = s.blocks.concat(data.actions.map((a) => ({
@@ -1377,8 +1443,27 @@ select { appearance: none; }
   function walkTheLand(groundId, existing) {
     const state2 = get();
     const ground = state2.contexts.find((c) => c.id === groundId);
-    const check = existing ? { ...existing, ratings: JSON.parse(JSON.stringify(existing.ratings || {})), us: { ...existing.us || {} } } : { id: uid(), contextId: groundId, date: today(), ratings: {}, us: { level: "na", note: "" }, summary: "" };
+    const check = existing ? {
+      ...existing,
+      ratings: JSON.parse(JSON.stringify(existing.ratings || {})),
+      us: { ...existing.us || {} },
+      kid: { ...existing.kid || {} },
+      formation: { ...existing.formation || {} }
+    } : {
+      id: uid(),
+      contextId: groundId,
+      date: today(),
+      ratings: {},
+      us: { level: "na", note: "" },
+      kid: { level: "unknown", note: "" },
+      formation: { level: "unknown", note: "" },
+      home: "unknown",
+      summary: ""
+    };
     if (!check.us) check.us = { level: "na", note: "" };
+    if (!check.kid?.level) check.kid = { level: "unknown", note: "" };
+    if (!check.formation?.level) check.formation = { level: "unknown", note: "" };
+    if (!check.home) check.home = "unknown";
     let only = null;
     openSheet(`Walking ${ground.name}`, () => {
       const readout = h("div", { class: "card", style: "margin-bottom:16px" });
@@ -1391,7 +1476,8 @@ select { appearance: none; }
             { class: "row spread small muted", style: "margin-top:8px" },
             h("span", {}, `${Math.round(s.surveyed * 100)}% surveyed`),
             h("span", { class: "tnum" }, s.rated ? `${Math.round(s.fit * 100)}% fit` : "")
-          )
+          ),
+          s.gate ? h("p", { class: "tiny tone-thin", style: "margin:8px 0 0" }, s.gate) : null
         );
       };
       const rows = h("div", { class: "stack" });
@@ -1453,11 +1539,51 @@ select { appearance: none; }
       paint();
       paintFilter();
       paintRows();
+      const gate = h(
+        "div",
+        { class: "card", style: "margin-bottom:16px" },
+        h("div", { class: "eyebrow" }, "The test that decides it"),
+        h("h3", { style: "margin:6px 0 2px" }, "Could I leave my kids with these people, unsupervised?"),
+        h("p", { class: "tiny muted" }, "Not the leaders. The ordinary households you'd actually be around."),
+        segmented(KID_LEVELS, check.kid.level, (v) => {
+          check.kid.level = v;
+          paint();
+        }),
+        h("input", {
+          type: "text",
+          value: check.kid.note || "",
+          placeholder: "Who, specifically \u2014 or what gives you pause",
+          style: "margin-top:8px",
+          onInput: (e) => {
+            check.kid.note = e.target.value;
+          }
+        }),
+        h("h3", { style: "margin:18px 0 2px" }, "And he'd come back formed \u2014 which way?"),
+        h("p", { class: "tiny muted" }, "Safe and soft is still a no. You want him sent, not sheltered."),
+        segmented(FORMATION_LEVELS, check.formation.level, (v) => {
+          check.formation.level = v;
+          paint();
+        }),
+        h("input", {
+          type: "text",
+          value: check.formation.note || "",
+          placeholder: "What you've actually watched happen to kids here",
+          style: "margin-top:8px",
+          onInput: (e) => {
+            check.formation.note = e.target.value;
+          }
+        }),
+        h("h3", { style: "margin:18px 0 6px" }, "Would we buy a home here?"),
+        segmented(HOME_LEVELS, check.home, (v) => {
+          check.home = v;
+        })
+      );
       return frag(
         readout,
         field("Date walked", h("input", { type: "date", value: check.date, onInput: (e) => {
           check.date = e.target.value || today();
         } })),
+        gate,
         filter,
         rows,
         h(
@@ -1626,6 +1752,16 @@ select { appearance: none; }
     let note = "";
     let date = today();
     openSheet(`Build on ${ground.name}?`, () => frag(
+      s.gatedBy ? h(
+        "div",
+        { class: "card", style: "margin-bottom:16px" },
+        h("strong", { class: "tone-bad" }, s.gatedBy),
+        h(
+          "p",
+          { class: "small muted", style: "margin:8px 0 0" },
+          "This is the one you said decides it. Building here means deciding it doesn't."
+        )
+      ) : null,
       s.inTheWay.length ? h(
         "div",
         { class: "card", style: "margin-bottom:16px" },
@@ -1738,8 +1874,20 @@ select { appearance: none; }
       }) : null)
     ));
   }
-  function editPerson(existing) {
-    const p = existing || { id: uid(), name: "", stage: "conversation", nextStep: "", nextDue: "", lastMet: "", notes: "" };
+  function editPerson(existing, defaults = {}) {
+    const state2 = get();
+    const p = existing || {
+      id: uid(),
+      name: "",
+      stage: "conversation",
+      groundId: "",
+      household: false,
+      nextStep: "",
+      nextDue: "",
+      lastMet: "",
+      notes: "",
+      ...defaults
+    };
     const draft = { ...p };
     openSheet(existing ? "Edit person" : "Someone I'm walking with", () => frag(
       field("Name", input({ value: draft.name, onInput: (e) => {
@@ -1748,6 +1896,13 @@ select { appearance: none; }
       field("Where they are", segmented(PEOPLE_STAGES, draft.stage, (v) => {
         draft.stage = v;
       })),
+      field("Where are they?", segmented(
+        [...state2.contexts.filter((g) => g.kind === "place").map((g) => ({ id: g.id, label: g.name })), { id: "", label: "Nowhere yet" }],
+        draft.groundId || "",
+        (v) => {
+          draft.groundId = v;
+        }
+      ), "Spiritual family is countable. This is how a place stops being a feeling."),
       field("Next step", input({ value: draft.nextStep, onInput: (e) => {
         draft.nextStep = e.target.value;
       } })),
@@ -2250,6 +2405,31 @@ select { appearance: none; }
           ground.stage !== "built" && ground.kind === "place" ? h("button", { class: "btn block", onClick: () => breakGround(ground) }, "Decide on this ground") : null
         ),
         s.check ? frag(
+          section("The test that decides it"),
+          h(
+            "div",
+            { class: "card" },
+            h(
+              "div",
+              { class: "row spread" },
+              h("span", { class: "small" }, "Kids here, unsupervised"),
+              h("span", { class: `small tone-${s.kid.tone}` }, s.kid.label)
+            ),
+            s.kidNote ? h("div", { class: "tiny muted" }, s.kidNote) : null,
+            h(
+              "div",
+              { class: "row spread", style: "margin-top:8px" },
+              h("span", { class: "small" }, "He'd come back"),
+              h("span", { class: `small tone-${s.formation.tone}` }, s.formation.label)
+            ),
+            h(
+              "div",
+              { class: "row spread", style: "margin-top:8px" },
+              h("span", { class: "small" }, "Buy a home here"),
+              h("span", { class: `small tone-${s.home.tone}` }, s.home.label)
+            ),
+            s.household.length ? h("div", { class: "tiny muted", style: "margin-top:10px" }, `Spiritual family here: ${s.household.map((p) => p.name).join(", ")}`) : h("div", { class: "tiny tone-thin", style: "margin-top:10px" }, "No spiritual family named here yet")
+          ),
           section("The soil"),
           areaBars(s),
           h(
@@ -2365,6 +2545,7 @@ select { appearance: none; }
         h("i", { style: `width:${Math.round(s.depth * 100)}%; background: var(--soil)` })
       ),
       h("div", { class: "small muted", style: "margin-top:10px" }, verdict(s)),
+      s.check ? h("div", { class: `tiny tone-${s.kid.tone}`, style: "margin-top:4px" }, `Kids unsupervised: ${s.kid.label.toLowerCase()}`) : null,
       brings.length ? h("div", { class: "tiny muted", style: "margin-top:6px" }, `Would put us here: ${brings.map((b) => b.name).join(", ")}`) : null
     );
   }
@@ -2449,6 +2630,7 @@ select { appearance: none; }
     }
     const { ground, s } = target;
     const staked = ground.stage === "built";
+    view2.append(h("p", { class: "eyebrow", style: "margin-bottom:14px" }, "God first, continually"));
     view2.append(h(
       "div",
       { class: "row spread", style: "align-items:flex-end" },
@@ -2466,6 +2648,58 @@ select { appearance: none; }
       plot(s.depth, { staked, label: staked ? `Stake in the ground ${relDate(ground.stakedAt || today(), today()).toLowerCase()}` : `${Math.round(s.depth * 100)}% rooted \xB7 ${Math.round(s.surveyed * 100)}% of the land walked` })
     ));
     view2.append(h("p", { class: "verdict" }, verdict(s)));
+    if (s.check) {
+      const home = byId(HOME_LEVELS, s.home?.id || "unknown");
+      view2.append(h(
+        "div",
+        { class: "card", style: "margin-top:12px" },
+        h("div", { class: "eyebrow" }, "The test that decides it"),
+        h(
+          "div",
+          { class: "row spread", style: "margin-top:8px" },
+          h("span", { class: "small" }, "Kids here, unsupervised"),
+          h("span", { class: `small tone-${s.kid.tone}` }, s.kid.label)
+        ),
+        s.kidNote ? h("div", { class: "tiny muted" }, s.kidNote) : null,
+        h(
+          "div",
+          { class: "row spread", style: "margin-top:8px" },
+          h("span", { class: "small" }, "He'd come back"),
+          h("span", { class: `small tone-${s.formation.tone}` }, s.formation.label)
+        ),
+        s.formationNote ? h("div", { class: "tiny muted" }, s.formationNote) : null,
+        h(
+          "div",
+          { class: "row spread", style: "margin-top:8px" },
+          h("span", { class: "small" }, "Would we buy a home here"),
+          h("span", { class: `small tone-${home.tone}` }, home.label)
+        ),
+        s.gate ? h("p", { class: "tiny tone-thin", style: "margin:10px 0 0" }, s.gate) : null,
+        h("button", { class: "icon-btn", style: "margin-top:12px", onClick: () => walkTheLand(ground.id, s.check) }, "Change my answer")
+      ));
+    }
+    view2.append(section("Spiritual family here", "Add", () => editPerson(null, { groundId: ground.id })));
+    if (!s.household.length) {
+      view2.append(h(
+        "p",
+        { class: "muted small" },
+        "No one named yet. Intertwined is people you could call at 11pm \u2014 if you can't name them, the ground isn't ready."
+      ));
+    } else {
+      const rows = h("div", { class: "rows" });
+      s.household.forEach((p) => rows.append(h(
+        "button",
+        { class: "card-tap", onClick: () => editPerson(p) },
+        h(
+          "div",
+          { class: "row spread" },
+          h("strong", {}, p.name),
+          h("span", { class: "tiny muted" }, p.lastMet ? `last met ${relDate(p.lastMet, today()).toLowerCase()}` : "never logged")
+        ),
+        p.nextStep ? h("div", { class: "tiny muted" }, p.nextStep) : null
+      )));
+      view2.append(rows);
+    }
     if (staked && ground.stakeNote) {
       view2.append(h("p", { class: "small muted", style: "font-style:italic" }, `"${ground.stakeNote}"`));
     }
@@ -2473,12 +2707,16 @@ select { appearance: none; }
       view2.append(h(
         "div",
         { class: "stack", style: "margin:16px 0 4px" },
-        s.check ? h(
+        !s.check ? h("button", { class: "btn primary block", onClick: () => walkTheLand(ground.id) }, "Walk the land") : s.gatedBy ? h("button", {
+          class: "btn primary block",
+          onClick: () => editBlock(null, { groundId: ground.id, hard: true, title: s.gatedBy })
+        }, "Name what would have to change") : h(
           "button",
           { class: "btn primary block", onClick: () => breakGround(ground) },
           s.inTheWay.length ? "I'm ready to build here" : "Break ground here"
-        ) : h("button", { class: "btn primary block", onClick: () => walkTheLand(ground.id) }, "Walk the land"),
-        h("button", { class: "btn ghost block", onClick: () => captureHesitation(ground) }, "Not yet \u2014 here's why")
+        ),
+        h("button", { class: "btn ghost block", onClick: () => captureHesitation(ground) }, "Not yet \u2014 here's why"),
+        s.gatedBy ? h("button", { class: "btn ghost block small", onClick: () => breakGround(ground) }, "Decide anyway") : null
       ));
     }
     if (!staked) {
@@ -2517,6 +2755,17 @@ select { appearance: none; }
                   { class: "tiny muted" },
                   [b.hard ? "Can't decide without it" : null, b.who, b.due ? relDate(b.due, today()) : null].filter(Boolean).join(" \xB7 ") || "No plan to settle it yet"
                 )
+              )
+            ));
+          } else if (item.kind === "gate") {
+            rows.append(h(
+              "button",
+              { class: "card-tap", onClick: () => walkTheLand(ground.id, s.check) },
+              h(
+                "div",
+                { class: "row spread" },
+                h("span", { class: "grow tone-bad" }, item.label),
+                h("span", { class: "tiny muted" }, "the gate")
               )
             ));
           } else {

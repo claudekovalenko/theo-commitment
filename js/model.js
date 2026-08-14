@@ -68,6 +68,35 @@ export const US_LEVELS = [
   { id: 'na', label: 'Just me on this one', tone: 'unknown' },
 ];
 
+/**
+ * The test that decides the ground. Not a requirement among others — a gate.
+ * If you wouldn't leave your kids with these people, nothing else counts yet.
+ */
+export const KID_LEVELS = [
+  { id: 'no', label: 'No', help: 'Not for an afternoon.', cap: 0.22, tone: 'bad' },
+  { id: 'supervised', label: 'Only with me there', help: 'I\'d be watching the whole time.', cap: 0.45, tone: 'bad' },
+  { id: 'some', label: 'A few of them', help: 'Certain households, not the room.', cap: 0.72, tone: 'thin' },
+  { id: 'yes', label: 'Yes — gladly, for a week', help: 'Unsupervised, and glad about it.', cap: 1, tone: 'good' },
+  { id: 'unknown', label: 'Haven\'t seen enough', help: 'No basis to answer yet.', cap: 0.55, tone: 'unknown' },
+];
+
+/** And the other half: he comes back formed. Formed which direction? */
+export const FORMATION_LEVELS = [
+  { id: 'softer', label: 'Softer, more comfortable', cap: 0.5, tone: 'bad' },
+  { id: 'flat', label: 'About the same', cap: 0.8, tone: 'thin' },
+  { id: 'sharper', label: 'Sharper, more on mission', cap: 1, tone: 'good' },
+  { id: 'unknown', label: 'Don\'t know yet', cap: 0.75, tone: 'unknown' },
+];
+
+/** The commitment behind the commitment. */
+export const HOME_LEVELS = [
+  { id: 'no', label: 'No', tone: 'bad' },
+  { id: 'maybe', label: 'Could see it', tone: 'thin' },
+  { id: 'yes', label: 'Yes', tone: 'good' },
+  { id: 'done', label: 'We already have', tone: 'good' },
+  { id: 'unknown', label: 'Too early to say', tone: 'unknown' },
+];
+
 export const HORIZONS = [
   { id: 'unknown', label: 'No idea yet' },
   { id: 'season', label: 'A season (1–2 yrs)' },
@@ -179,10 +208,35 @@ export function survey(state, ground) {
 
   // Depth of the root drawing: how far down you could actually go here.
   const penalty = Math.min(0.35, blocks.filter((b) => b.hard).length * 0.12 + blocks.length * 0.03);
-  const depth = Math.max(0, Math.min(1, surveyed * (0.4 + 0.6 * (base.fit ?? 0)) - penalty));
+  let depth = Math.max(0, Math.min(1, surveyed * (0.4 + 0.6 * (base.fit ?? 0)) - penalty));
+
+  // The gate. Roots don't go deeper than the people you'd trust with your kids.
+  base.kid = byId(KID_LEVELS, check?.kid?.level) || byId(KID_LEVELS, 'unknown');
+  base.formation = byId(FORMATION_LEVELS, check?.formation?.level) || byId(FORMATION_LEVELS, 'unknown');
+  base.home = byId(HOME_LEVELS, check?.home) || byId(HOME_LEVELS, 'unknown');
+  base.kidNote = check?.kid?.note || '';
+  base.formationNote = check?.formation?.note || '';
+
+  base.household = state.people.filter((p) => p.groundId === ground.id);
+
+  if (check) {
+    const cap = Math.min(base.kid.cap, base.formation.cap);
+    base.gate = depth > cap
+      ? (base.kid.cap <= base.formation.cap
+        ? `Capped by the kid test: ${base.kid.label.toLowerCase()}`
+        : `Capped by which way he'd be formed: ${base.formation.label.toLowerCase()}`)
+      : '';
+    depth = Math.min(depth, cap);
+  } else {
+    base.gate = '';
+  }
 
   const decided = ground.stage === 'built' || ground.stage === 'ruled-out';
-  const ready = !decided && surveyed >= 0.8 && blocks.length === 0 && (base.fit ?? 0) >= 0.6;
+  const trusted = ['yes', 'some'].includes(base.kid.id);
+  const gatedBy = check && !trusted
+    ? `You wouldn't leave your kids with these people yet (${base.kid.label.toLowerCase()})`
+    : (check && base.formation.id === 'softer' ? 'He\'d come back softer, not sharper' : '');
+  const ready = !decided && trusted && surveyed >= 0.8 && blocks.length === 0 && (base.fit ?? 0) >= 0.6;
 
   return {
     ...base,
@@ -193,9 +247,11 @@ export function survey(state, ground) {
     ready,
     stage: decided ? ground.stage : (ready ? 'ready' : (surveyed > 0.15 ? 'surveying' : 'scouting')),
     inTheWay: [
+      ...(gatedBy ? [{ kind: 'gate', label: gatedBy }] : []),
       ...blocks.map((b) => ({ kind: 'block', block: b, label: b.title })),
       ...base.unsurveyed.map((u) => ({ kind: 'unsurveyed', req: u.req, label: u.req.title })),
     ],
+    gatedBy,
   };
 }
 
@@ -204,6 +260,13 @@ export function verdict(s) {
   if (s.stage === 'built') return 'You broke ground here.';
   if (s.stage === 'ruled-out') return 'You ruled this one out.';
   if (!s.check) return 'Not surveyed yet. Walk the land.';
+  if (s.kid.id === 'no' || s.kid.id === 'supervised') {
+    return 'You wouldn\'t leave your kids here unsupervised. Until that changes, nothing else counts.';
+  }
+  if (s.formation.id === 'softer') {
+    return 'He\'d come back softer, not sharper. That\'s the thing to fix before anything else.';
+  }
+  if (s.kid.id === 'unknown') return 'You haven\'t been around these people enough to answer the only question that matters.';
   if (s.missingMusts.length) {
     return `${s.missingMusts.length} must-have${s.missingMusts.length > 1 ? 's are' : ' is'} missing here.`;
   }

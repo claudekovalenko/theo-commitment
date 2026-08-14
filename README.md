@@ -8,6 +8,32 @@ Not a compass, not a scorecard. You already know roughly what you want. What
 you keep not doing is saying *we're building here* — so this app treats that
 hesitation as the thing to work on, and turns it into a finite list.
 
+## The gate
+
+Two questions decide a piece of ground, and they sit above everything else:
+
+1. **Could I leave my kids with these people, unsupervised?** Not the leaders on
+   stage — the ordinary households you'd actually be around.
+2. **He'd come back formed. Which direction — sharper and more on mission, or
+   softer and more comfortable?**
+
+Safe-but-soft is still a no. Both answers cap how deep the roots can grow, no
+matter how well the place scores on everything else: *only with me there* caps
+it at 45%, *softer* caps it at 50%. When the gate is red the app won't invite
+you to build — the primary button becomes **Name what would have to change**,
+and the verdict says it plainly: *You wouldn't leave your kids here
+unsupervised. Until that changes, nothing else counts.* You can still decide
+anyway; it just makes you look at what you're overriding first.
+
+Under the two questions sits a third: **would we buy a home here?**
+
+And **spiritual family is counted by name.** Every person you're walking with
+belongs to a piece of ground, so a place either has households you could name or
+it doesn't. "Intertwined" is people, not a feeling.
+
+Above all of it, on every screen: **God first, continually.** He's listed first
+because he's the goal, not because he scores highest.
+
 ## How it thinks
 
 **Ground.** A town, a church, an offer, a role. Anything that isn't a town

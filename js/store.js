@@ -161,7 +161,7 @@ export function importJSON(text, { merge }) {
   if (!merge) {
     state = incoming;
   } else {
-    for (const list of ['domains', 'convictions', 'contexts', 'checks', 'notes', 'actions', 'people']) {
+    for (const list of ['domains', 'convictions', 'contexts', 'checks', 'blocks', 'notes', 'people']) {
       const have = new Set(state[list].map((r) => r.id));
       state[list].push(...(incoming[list] || []).filter((r) => !have.has(r.id)));
     }
@@ -220,7 +220,13 @@ function migrate(data) {
     if (!c.horizon) c.horizon = 'unknown';
     if (!c.stage) c.stage = 'scouting';
   });
-  s.checks.forEach((k) => { if (!k.us) k.us = { level: 'na', note: '' }; });
+  s.checks.forEach((k) => {
+    if (!k.us) k.us = { level: 'na', note: '' };
+    if (!k.kid) k.kid = { level: 'unknown', note: '' };
+    if (!k.formation) k.formation = { level: 'unknown', note: '' };
+    if (!k.home) k.home = 'unknown';
+  });
+  s.people.forEach((p) => { if (p.groundId === undefined) p.groundId = ''; });
 
   // v2 kept follow-ups in `actions`. In v3 anything outstanding is a thing
   // standing between you and a decision, so they become blocks.
