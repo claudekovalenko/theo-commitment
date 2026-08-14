@@ -2,7 +2,7 @@
 
 import * as store from './../store.js';
 import {
-  h, frag, field, input, area, openSheet, closeSheet, confirmSheet, toast, sectionHead,
+  h, frag, field, input, area, openSheet, closeSheet, confirmSheet, toast, section,
 } from './../ui.js';
 import { editDomain } from './../editors.js';
 
@@ -47,7 +47,7 @@ function exportSheet() {
     h('p', { class: 'muted small' }, 'A plain-text copy of everything. Keep it somewhere you trust — it is not encrypted.'),
     h('button', {
       class: 'btn primary block',
-      onClick: () => download(`true-north-${new Date().toISOString().slice(0, 10)}.json`, json),
+      onClick: () => download(`good-ground-${new Date().toISOString().slice(0, 10)}.json`, json),
     }, 'Download file'),
     h('button', {
       class: 'btn block', style: 'margin-top:10px',
@@ -116,7 +116,7 @@ export function openSettings() {
         onInput: (e) => store.update((s) => { s.settings.name = e.target.value; }),
       })),
 
-      sectionHead('Privacy'),
+      section('Privacy'),
       h('div', { class: 'card' },
         h('p', { class: 'small muted', style: 'margin-bottom:12px' },
           locked
@@ -144,10 +144,10 @@ export function openSettings() {
             }, 'Turn off the PIN lock'))
           : h('button', { class: 'btn primary block', onClick: setPin }, 'Set a PIN')),
 
-      sectionHead('Areas of life'),
+      section('Areas of life'),
       h('div', { class: 'card' },
         h('p', { class: 'small muted', style: 'margin-bottom:12px' },
-          'The compass reads each of these separately, so one strong area can\'t hide a weak one.'),
+          'Each area is measured on its own, so strong ground in one place can\'t hide thin soil somewhere else.'),
         h('div', { class: 'stack' },
           state.domains.map((d) => {
             const row = h('button', { class: 'card-tap row spread', onClick: () => editDomain(d) },
@@ -159,7 +159,7 @@ export function openSettings() {
           }),
           h('button', { class: 'btn sm', onClick: () => editDomain() }, 'Add an area'))),
 
-      sectionHead('Your data'),
+      section('Your data'),
       h('div', { class: 'card stack' },
         h('button', { class: 'btn block', onClick: exportSheet }, 'Back up'),
         h('button', { class: 'btn block', onClick: importSheet }, 'Restore from a backup'),
@@ -174,7 +174,7 @@ export function openSettings() {
               });
               if (!ok) return;
               store.update((s) => {
-                for (const list of ['convictions', 'contexts', 'notes', 'actions']) {
+                for (const list of ['convictions', 'contexts', 'notes', 'blocks']) {
                   s[list] = s[list].filter((r) => !r.seeded);
                 }
                 s.checks = s.checks.filter((k) => s.contexts.some((c) => c.id === k.contextId));
@@ -199,9 +199,9 @@ export function openSettings() {
           },
         }, 'Erase everything')),
 
-      sectionHead('About'),
+      section('About'),
       h('p', { class: 'small muted' },
-        'True North keeps everything in this browser\'s local storage on this device. There is no account, no sync '
+        'Good Ground keeps everything in this browser\'s local storage on this device. There is no account, no sync '
         + 'and no server — the app never makes a network request. That also means a backup is the only copy that '
         + 'survives clearing your browser data.'),
       h('p', { class: 'small muted' },

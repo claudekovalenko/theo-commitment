@@ -1,4 +1,4 @@
-// Builds dist/true-north.html — the whole app as one self-contained file, for
+// Builds dist/good-ground.html — the whole app as one self-contained file, for
 // hosts that can only serve a single page. The multi-file version in the repo
 // root is the real one: it keeps the service worker, so it works offline.
 //
@@ -30,5 +30,5 @@ html = html
   .replace('href="icons/apple-touch-icon.png"', `href="${await dataUri('icons/apple-touch-icon.png', 'image/png')}"`);
 
 await mkdir(join(ROOT, 'dist'), { recursive: true });
-await writeFile(join(ROOT, 'dist/true-north.html'), html);
-console.log(`dist/true-north.html — ${(html.length / 1024).toFixed(0)} KB`);
+await writeFile(join(ROOT, 'dist/good-ground.html'), html);
+console.log(`dist/good-ground.html — ${(html.length / 1024).toFixed(0)} KB`);

@@ -149,8 +149,8 @@ export function empty(text, actionLabel, onAction) {
     actionLabel ? h('button', { class: 'btn sm', onClick: onAction }, actionLabel) : null);
 }
 
-export function sectionHead(title, actionLabel, onAction) {
-  return h('div', { class: 'section-head' },
+export function section(title, actionLabel, onAction) {
+  return h('div', { class: 'section' },
     h('h2', {}, title),
     actionLabel ? h('button', { class: 'icon-btn', onClick: onAction }, actionLabel) : null);
 }

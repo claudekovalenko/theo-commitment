@@ -1,171 +1,110 @@
-# True North
+# Good Ground
 
-A private, offline PWA for weighing the decisions that touch your whole life at
-once — a town, a church, a network, a role — against what you actually hold.
+A private, offline app for one question:
 
-The icon is a compass needle. That's the whole idea: name your convictions,
-then get an honest reading on the play you're running.
+> **Is this ground I could build on?**
 
-## The question the app is built around
+Not a compass, not a scorecard. You already know roughly what you want. What
+you keep not doing is saying *we're building here* — so this app treats that
+hesitation as the thing to work on, and turns it into a finite list.
 
-**Where are we going to raise our family?**
+## How it thinks
 
-That question sits at the top of the compass and names the second tab, because
-everything else is an answer to it. A network, a church, a role — each one is a
-way of ending up somewhere. So places are the unit: anything that isn't a place
-carries one required question, *if we said yes, where would we live?*, and until
-that's answered the app says so in plain sight rather than letting you score an
-opportunity in the abstract.
+**Ground.** A town, a church, an offer, a role. Anything that isn't a town
+carries one required question — *if we said yes, where would we live?* — because
+an offer is only as good as the land it puts you on.
 
-Places rank by their roots reading, list what would take you there, and compare
-side by side against every area of life.
+**The soil.** What has to be true of a place before you'd build there, grouped
+by area of life: walking with God, marriage, family & home, the ground itself
+(community, church, cost, staying power), theology & ministry. Each one is
+weighted from *must have* down to *nice to have*, and that weight is what every
+survey is scored against.
 
-## The architecture: five areas, one needle
+**Walking the land.** Rate a place against every requirement: yes / mostly /
+thin / no / unsurveyed. Unsurveyed is a real answer — it stays out of the score
+and turns into something to go find out. Every walk is dated, so you can see a
+place change as you learn it.
 
-Every conviction belongs to an **area of life**, and the compass scores each
-area separately as well as overall:
+**Roots.** The drawing on the home screen is the whole model in one picture: how
+deep you could actually root here. Depth is earned by walking the land and by
+settling what's in the way — never by wanting it badly. There's a dashed line
+marked *deep enough to stay*; either your roots reach it or they don't.
 
-| Area | What it holds |
-| --- | --- |
-| **Walking with God** | He is the goal, not the means to the rest of it. Listed first, always. |
-| **Marriage** | The covenant that comes before any calling. |
-| **Family & home** | The first congregation you're responsible for. |
-| **Roots & place** | Somewhere long enough to be known and to be missed. |
-| **Theology & ministry** | What you teach, how you disciple, where you go. |
+**In the way.** Everything unsettled, in one list. Each one names what would
+settle it and who could answer. When you look at a place and still don't say
+yes, the app asks why and writes it down — and if the same reason comes back
+three times, it says so. That isn't hesitation any more; it's an answer.
 
-This is the point of the design: a strong ministry score can quietly hide a bad
-roots cost, and a single blended number lets it. Five meters don't. The compass
-also names the weakest area outright, so the thing you'd rather not look at is
-the thing on the screen.
+**Breaking ground.** The point of the app. When you commit, you write one
+sentence about what you're saying yes to, and the sapling becomes a house. You
+can commit with things still unsettled — the app will show you exactly what
+they are first, because saying yes with your eyes open is different from
+drifting into it.
 
-Areas are data, not hardcoded — rename them, recolour them, or add your own in
-Settings, and every conviction can be moved between them.
+## The two questions it always asks
 
-### Two questions the app keeps asking
-
-**Us.** Every check records where you and your wife land on it — agreed,
+**Us.** Every survey records where you and your wife land on it — agreed,
 leaning together, still talking, haven't really talked, not in the same place.
-It is deliberately *not* scored. It just gets asked every single time, and when
-the answer is "haven't really talked", the compass says so and offers to make it
-a follow-up.
+Never scored. Just asked, every time.
 
-**The ten-year test.** Every place, church or role carries one question: could
-we still be here in ten years? It shows on the card, and you can revise it
-every time you learn something.
+**Ten years.** Every piece of ground carries one question: could we still be
+here in ten years?
 
-Note the difference the app tries to hold: walking with God is listed **first**
-because it's the highest value; roots is **central** because it's the decision
-actually on the table. Those aren't the same claim, and the design keeps them
-apart.
+## Tabs
 
-## What's in it
-
-**Compass** — one needle, one reading. It shows how far off your heading you
-are with whichever context you're focused on, the friction points behind that
-number, anything due today, and how long it's been since you last wrote
-something down.
-
-**Convictions** — grouped by area, then by how firmly you hold them:
-non-negotiable, conviction, still forming, preference. Each one carries your own
-wording, the scripture behind it, the test for when it's true of you, and the
-edge you're still working out. The weight you assign is what the compass math
-uses, so being honest about "still forming" actually changes the reading.
-
-**Where** — places first, ranked by how well they'd hold a family, each showing
-its ten-year test and what would take you there. Below them: anything still
-missing an answer to "where would this put us?", then everything already tied to
-a place. Run a *check*: rate it against every conviction
-(aligned / mostly / tension / conflict / don't know yet), answer the "us"
-question, write one honest paragraph, save it. Long checks can be done one area
-at a time using the filter chips. Checks are dated, so re-checking shows drift
-rather than a single snapshot, and anything rated "don't know yet" stays out of
-the score and gets listed separately — an unknown is a question to go ask, not a
-mark against anyone.
-
-Once two things have been checked, a **side-by-side table** appears: places and
-opportunities down the left, areas across the top. That's the view for "which of
-these could we actually put down roots in".
-
-**Log** — learnings, dated and tagged: scripture, books, sermons,
-conversations, open questions, places you were wrong. Any entry can become a
-follow-up in one tap.
-
-**People** — disciple-making by name, with the next real step and how long it's
-been since you last met.
-
-**Do** — the follow-ups, with what's due surfaced first.
-
-### How the reading is calculated
-
-Each conviction's weight (non-negotiable 3, conviction 2, still forming 1,
-preference 0.5) is multiplied by the level you rated (aligned 1.0, mostly 0.72,
-tension 0.3, conflict 0). The weighted total becomes a percentage, and the
-needle swings `(1 − percentage) × 180°` off north. The same math runs again per
-area, which is what the five meters show. Non-negotiables rated tension or
-conflict are called out separately, because a good average can hide one thing
-you'd never actually live with.
+| | |
+| --- | --- |
+| **Ground** | The one place in front of you, and what stands between you and yes |
+| **Land** | Every piece of ground, ranked and compared area by area |
+| **Soil** | What the ground has to hold, by area of life |
+| **In the way** | Everything unsettled, and what would settle it |
+| **Journal** | What you're learning, and the people you're walking with |
 
 ## Privacy
 
-- Everything lives in this browser's local storage on your device. No account,
+- Everything lives in this browser's local storage on this device. No account,
   no sync, no server, no analytics.
 - The app makes **zero** network requests. Its Content-Security-Policy blocks
-  outbound connections outright, so nothing can leak even by accident.
-- Optional PIN lock: turning it on encrypts all your data at rest with AES-GCM,
-  using a key derived from your PIN (PBKDF2-SHA256, 310k rounds). The key only
-  ever exists in memory while the app is unlocked, and it re-locks after an idle
-  timeout you choose.
-- Nobody can recover that PIN for you — not even by rebuilding the app. Take a
-  backup (Settings → Back up) before you turn the lock on.
-- A backup file is plain JSON and is *not* encrypted. Keep it somewhere you
-  trust.
+  outbound connections outright.
+- Optional PIN lock encrypts everything at rest (AES-GCM, key derived with
+  PBKDF2-SHA256, 310k rounds), held in memory only while unlocked, with an idle
+  auto-lock. Nobody can recover the PIN for you — back up first.
+- A backup file is plain JSON and is *not* encrypted.
 
 ## Running it
 
-Any static host works. Locally:
+Any static host. Locally:
 
 ```sh
 python3 -m http.server 8000
-# then open http://localhost:8000
 ```
 
-To install it on your phone, it needs to be served over HTTPS. The simplest
-route is GitHub Pages: repo **Settings → Pages → Deploy from a branch**, pick
-this branch and the root folder. Then open the page in Safari or Chrome and use
-**Share → Add to Home Screen** (iOS) or the install icon in the address bar
-(Android / desktop). Once installed it runs offline and looks like any other
-app on the home screen — no browser chrome, no obvious label about what it is.
+For your phone it needs HTTPS — GitHub Pages off this branch works: repo
+**Settings → Pages → Deploy from a branch → root**. Then Share → Add to Home
+Screen (iOS) or the install icon (Android / desktop). It runs offline once
+installed.
 
-## Starter content
+## Upgrading
 
-The app ships pre-filled with sixteen convictions across the five areas —
-abiding before usefulness, one flesh before one calling, somewhere long enough
-to be known, a church we could belong to for a decade, disciple making that
-multiplies, and the rest — plus "Where we are now" and E3 as things to check
-against. All of it is editable, and **Settings → Clear the starter content**
-removes anything you haven't touched while keeping what you've written yourself.
-
-Upgrading from v1 keeps everything: your convictions get filed into the right
-areas, your checks and log entries are untouched, and the areas that didn't
-exist before get stocked with starters so they aren't empty shells.
+Old data migrates in place. Convictions become requirements, contexts become
+ground, checks become surveys, and anything that was an open follow-up becomes
+something in the way. Nothing you wrote is discarded.
 
 ## Layout
 
 ```
 index.html            shell, lock screen, sheet container
-styles.css            all styling
+styles.css            the whole visual system
 sw.js                 offline cache
-manifest.webmanifest  install metadata
-js/store.js           persistence, encryption, schema migrations
-js/model.js           areas, vocabulary + the scoring math
+js/store.js           persistence, encryption, migrations
+js/model.js           vocabulary, survey math, verdicts
 js/seed.js            starter content
-js/ui.js              DOM helpers, sheet, toasts, form controls
-js/editors.js         every add/edit form
-js/router.js          hash routing
-js/views/where.js     places, comparisons, and every context sheet
-js/views/*.js         one file per tab, plus settings and shared parts
+js/ui.js              DOM helpers, sheet, form controls
+js/editors.js         every add/edit form, plus breaking ground
+js/views/parts.js     the root drawing and area bars
+js/views/*.js         one file per tab, plus settings
 tools/make_icons.py   regenerates icons/ (no dependencies)
-tools/build_single.mjs  bundles dist/true-north.html for single-page hosts
+tools/build_single.mjs  bundles dist/good-ground.html for single-page hosts
 ```
 
-No build step, no framework, no package dependencies. Edit a file, reload.
+No build step, no framework, no dependencies. Edit a file, reload.

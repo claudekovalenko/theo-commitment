@@ -1,0 +1,3105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Good Ground</title>
+<meta name="description" content="Private notebook for one question: is this ground I could build on?">
+<meta name="theme-color" content="#f1efe8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141714" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Good Ground">
+<link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAB0ElEQVR42tVXTUtCURC9DxM0qcw07FtbGA8iKioKKQr6sI9di4SIxE2bokVEm2jZsmW7tv3NiaONXvWac5/vaS6OPL0zc86cOz4YpZQiRmwkRql0iqbnZwLBeDJBkWiEdE6FD8dxAiVuRjwRbxTQS3LGaHysKgC2eymwXVil8/JuBXj2UmMoHCZl2z0In7+u6fW71AD8hjNrF2wSrp6OW4ibgRhpvYnJpFwAuutEzpA6IRaQyS0YbW8HxCLHNwEYMik5QzKYYgE29ttcw+AI6PsV9H0I+/43/BcvoiBexZ4EmGZCeudiAStulh4uNnwFag6OABOKR+v0eX8mAmJ9mwF3KUMvxT0xOQM5yO1KwP6WSx93J5WCbzcHVMgv03v5sC0pzhCDWHxHLmpYC8guztHt6Watk521XMs1PF7mjc9sP3LYOdRCTSsHkKRbiALsBs5AwKR4ZsGI0clQA2ddvwe4e9jLHeoC8Btb7+sQ6t0D7IpJAM44zmS5ZwHcvT5QIGABOhlipC5UBGBd6hSIoqaCLMAk+K/pZ2AnUdjVvG437QRIkJ6dolAoVF3NsKv1ejWLxobruyGALaUXxOhcI68LALCrQQiGIwjgzn9tr+EHLP5FerzV5+MAAAAASUVORK5CYII=" sizes="32x32">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAIEUlEQVR42u2d32sdRRTH9+9QjK3Rhki0bWhtQ2lIsdU0lWKJ0IgUS30ISqWCShHFJ/FJfNM3X/03V7/BlZsluXdmdnZ35pzPw+cl5O7d2f3cs+fMr21eWXu1BbBCw0UAhAZAaACEBkBoQGgAhAZAaACEBkBoQGgAhAZAaACEBkBoQGgAhAZAaACEBkBoQGgAhIb/uXDp9XZ7b+sU+hvXBqGL5tLl9Xb30bX20Vd32i9+edh+/9dn7U9/P12K/kf/q8/oszoG1xKhZ0PR9vG3H7Qv/ni8Ut5QdCwdU8fmGiP0JCnEg2e3s0q8TG59FykKQo+SUihyji3xeei7SUkQOltEDsmJx0bnQMRG6EE58hSpRUoqQo6N0FGo56E0kfvoHLlXCL0yxfjyt8PiZe7QuZKCIPSZbN3YKCJXTsmtde7cQ4SuXmakRmhzMiM1QpuTGakR+qSYKrFbLke3nudC0a3QmhhkTeYOtQ2hHaERN6syd6iNCO0kb7Yuc4fHfNqd0DUNnOQYeEFow9z9dMeNzB1qM0Ib7dWw1EUX05XnqdejoRB8SoGI0PXhMTovRmmENoQWoXqVuUPXAKEZRGGwBaHLWw/oXeYOD+sSG7rq6MJDaNIN0g6EngdEPg1CV75yG4lPY33FeEP+TB6N0GxHUC3Wtz9oKAgpDBGaqaJMKUVoejjo6UBohEZohEZohEZohEZohEZohGZSP5P9EZp+aPqhERqhEZqFsSyYRWjWErK2EKFZfsUyLIROwOKWuUO22mWCf+XM+cLM0tC1QOjKubl/BZn/Q9cCoRlgYUAFoUk7SDcQmk3O2fwcoRk1ZHTQpdCetzTw9LJ7Vzv4e4zS3t6I5Upoj7m0txcHuXtpkKe9OqzvwYHQa3bfIMsbZZ0K7aVA9FQIuhfa+r533l7lhtCGRxC9jAgitIOuPM8vrUfohSLRwh54aoPHIhChz5H6yY8H1cqsc0dmhDaRU3vPmRHa0MJaLy/TROgMQ+Ql59U6N29D2ghtdF8PTy+iR+iRtkIoIbfWOXh4EyxCGxcbkRF6dLH12B9zgpOOre9AZISevHjMOdKoY1HsIbSZwpGCD6ERGhC61MlNTC4yKPTu9lvt+9c3quDBztvtN8/vtt/9cJAFHUvHrKX9ulcIvYT9G5vt1x9dg4rQPUPoM3h38yKCVIruHUL3OLy9hRyVonuH0D2O728jR6Xo3iF0D8SoG4QmQhOhyaGBHJpeDqCXg35ooB86CxqBQpQ60L1ipDCAN9fXTn75R3vvjMrTe1fal5/smEJtGvu66d7oHjGXoyCubq23Pz+50/75/MAUapPaxuQkR3y8d9mcyH3URoQ2zsU3XmtfHu2al7lDbVWbEdogO1cvtb8ff+hG5g61WW1HaEN8fv+6O5H76BogNIUfBSNCl1P4eUwxQlIQywVjY7Hwe3F4C3lXoGtksWBsrBV+vz67i7CB6FpZKxjNCH10bzvrjc55vNzo3HL+cHU8hC6EzY0L2Qo/HWf/1lb2H8gYQp9M5vr3XHO2XdcSoWdk773NLIWfBiAWH73KLUsuKHVui/mvzj3HgJGOq2uK0DMUfscPbw6+gTrGWVGp5Oi8LE1QW3Jdl1oLxqbGvuUh+aOikGQ47/FaenQ+L0r3xVYbh7RD17jGPuvGS+GnG6Scc1XkSf2OIfKkfnZVMae2qs1DAkBtBWNTS4qRmiPqc12hF1Jgpt54fcccnw0t5PQdQ65hLSlIY7Xw08BBbB9rav6pz+nzqVLm+O6YvvqUgadaCsam5KicMqnovEJvrOis7q4ueqV0oekzXXtTu+BS25vyI9I9KTlaN6UWfjE3tyv0hlzolJur710snFIe6frMYrtTnkaxUbofOGILyJInORUndMykotBCb6zo3M/Nhwrd5bpTRekhBWSpk5yKElr5XagEOfO5lOh8VlTMIXTO8xlSt4S2pbS5IMVF6GUXUjct9wXUo3NI3jx0IcFZE+9T8+ncaYCu9bIf11k/RoRe8fjXoy210Bv6AwrJm4f2YZ/Xz5uST48lWFdA9s+nxLkfRRaFilo5Cr1cKc4iy1KdnEJ3j/7Y442ZAiwWkKUu6WpK7bKbO71JWZeXW+iUNGaqNKDUrju3G83ERueuv3hVMZUz4nfE5tOeVnkjdEJ01iM2JF9MSWFC5NN3x+TTJRZrCF1QdA7tIhxL6JTo7zVKuxQ6ZvZZTPEzptCx+bTaiNAOiBmJC8mb+6RMTIohJp8OnWWI0A6ic2jePLXQMfm0xyjdEJ2H5c1TCx2bT3uL0g3ROe8qjSmEjunz9halG6Jz3i6vmO7Aqb7LU5R2IbRGtUKi87KFpyUKHbqgV233sk+0C6FDH885+m6nFDqmq9DS7kiuhQ6NYrlu+NRCh/5gczx9ELqS6JxzqDhmglLOqBnyQ/IQpRvv0Tl35JpL6DnaitAFRufccx7mEjo0n7YepRvP0XmMmzun0CHfbz1KmxV61UJTbbYy90y+sWbErdpIJueCWoSeYV3ilP2yJQgd0u9uYS9oVxF62eYpY26SUoLQy1azd2s1idCVRup+d9bYm6PEbIsw9u5D/VdA61pYjcyuRgo1l0GRaay8OXWC0hTnojar7V7mc7iZnKS8cqrqviShp2w3QhulJKGZ4A+DCZk7ov/hWiG0mS0SPG81gNAIDQiN0AgNkww9jzn0jtBcBEBoAIQGQGgAhAaEBkBoAIQGQGgAhAaEBkBoAIQGQGgAhAaEBkBoAIQGQGgAhAYP/APpO/7LbI6s3wAAAABJRU5ErkJggg==">
+<style>
+/* Good Ground — is this land I could build on? */
+
+:root {
+  color-scheme: light dark;
+
+  --paper: #f1efe8;
+  --card: #fbfaf6;
+  --sunk: #e7e4da;
+  --line: #dcd8cc;
+  --ink: #1e211c;
+  --muted: #6e7268;
+  --moss: #3f6d3b;
+  --moss-soft: #e0eadb;
+  --soil: #7a5a3c;
+  --rust: #a8482f;
+  --amber: #a97a1e;
+  --sky: #40708a;
+
+  --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', Palatino, serif;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --tap: 44px;
+  --radius: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #141714;
+    --card: #1b1f1b;
+    --sunk: #232823;
+    --line: #2e342e;
+    --ink: #e9ece3;
+    --muted: #969c90;
+    --moss: #8ab473;
+    --moss-soft: #24301f;
+    --soil: #b08a63;
+    --rust: #d3775c;
+    --amber: #d3a55e;
+    --sky: #7fa9c0;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--paper);
+  color: var(--ink);
+  font: 16px/1.55 var(--sans);
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior-y: none;
+}
+
+h1, h2, h3 { font-family: var(--serif); font-weight: 400; line-height: 1.2; margin: 0 0 .35em; }
+h1 { font-size: 1.6rem; letter-spacing: -.01em; }
+h2 { font-size: 1.25rem; }
+h3 { font-size: 1.05rem; }
+p { margin: 0 0 .7em; }
+a { color: var(--moss); }
+strong { font-weight: 600; }
+
+.muted { color: var(--muted); }
+.small { font-size: .86rem; }
+.tiny { font-size: .76rem; }
+.tnum { font-variant-numeric: tabular-nums; }
+.center { text-align: center; }
+.row { display: flex; gap: 10px; align-items: center; }
+.row.wrap { flex-wrap: wrap; }
+.spread { justify-content: space-between; }
+.grow { flex: 1; min-width: 0; }
+.stack { display: flex; flex-direction: column; gap: 10px; }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[hidden] { display: none !important; }
+
+.eyebrow {
+  font-size: .72rem; text-transform: uppercase; letter-spacing: .09em;
+  font-weight: 600; color: var(--muted);
+}
+
+/* ---------- shell ---------- */
+
+.shell { display: flex; flex-direction: column; min-height: 100vh; }
+
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: calc(env(safe-area-inset-top) + 12px) 18px 12px;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+.topbar-title { display: flex; align-items: center; gap: 9px; font-family: var(--serif); font-size: 1.05rem; }
+.topbar-actions { display: flex; gap: 6px; }
+.mark { width: 20px; height: 20px; }
+
+.view {
+  flex: 1;
+  width: 100%; max-width: 720px; margin: 0 auto;
+  padding: 20px 18px calc(104px + env(safe-area-inset-bottom));
+  outline: none;
+}
+
+.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  display: flex; justify-content: center;
+  padding: 7px 4px calc(7px + env(safe-area-inset-bottom));
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+}
+.tab {
+  flex: 1 1 0; max-width: 130px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 5px 2px; min-height: var(--tap);
+  background: none; border: 0; color: var(--muted);
+  font: inherit; font-size: .68rem; cursor: pointer;
+}
+.tab svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.tab.active { color: var(--moss); font-weight: 600; }
+
+.warn {
+  max-width: 720px; margin: 12px auto 0; padding: 10px 14px;
+  border-left: 3px solid var(--rust); background: var(--sunk);
+  font-size: .86rem;
+}
+
+/* ---------- the ground drawing ---------- */
+
+.plot { display: block; width: 100%; height: auto; }
+
+/* ---------- surfaces ---------- */
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.card + .card { margin-top: 12px; }
+.card-tap {
+  display: block; width: 100%; padding: 0; border: 0; background: none;
+  font: inherit; color: inherit; text-align: left; cursor: pointer;
+}
+.card.card-tap { padding: 16px; border: 1px solid var(--line); background: var(--card); }
+.card.card-tap:active { background: var(--sunk); }
+
+.verdict { font-family: var(--serif); font-size: 1.2rem; line-height: 1.35; }
+
+.section {
+  margin: 26px 0 10px;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  padding-bottom: 6px; border-bottom: 1px solid var(--line);
+}
+.section h2 { margin: 0; font-size: 1.05rem; }
+
+/* lists read as rows on paper, not boxes inside boxes */
+.rows { display: flex; flex-direction: column; }
+.rows > * { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.rows > *:last-child { border-bottom: 0; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  min-height: var(--tap); padding: 0 18px;
+  border-radius: 8px; border: 1px solid var(--line);
+  background: var(--card); color: var(--ink);
+  font: inherit; font-weight: 500; cursor: pointer;
+}
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--moss); border-color: var(--moss); color: #fbfdf9; font-weight: 600; }
+.btn.ghost { background: none; }
+.btn.danger { color: var(--rust); border-color: color-mix(in srgb, var(--rust) 40%, var(--line)); }
+.btn.block { width: 100%; }
+.btn.sm { min-height: 36px; padding: 0 12px; font-size: .86rem; }
+
+.icon-btn {
+  min-height: 34px; padding: 0 11px;
+  background: none; border: 1px solid var(--line); border-radius: 8px;
+  color: var(--muted); font: inherit; font-size: .8rem; cursor: pointer;
+}
+.icon-btn:active { background: var(--sunk); }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--sunk); border: 1px solid transparent;
+  font-size: .76rem; color: var(--muted); white-space: nowrap;
+}
+.chip.on { background: var(--moss-soft); border-color: color-mix(in srgb, var(--moss) 45%, transparent); color: var(--moss); font-weight: 600; }
+button.chip { font: inherit; cursor: pointer; font-size: .76rem; }
+
+.tone-good { color: var(--moss); }
+.tone-ok { color: var(--moss); }
+.tone-thin { color: var(--amber); }
+.tone-bad { color: var(--rust); }
+.tone-unknown { color: var(--muted); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex: none; }
+
+.bar { height: 6px; border-radius: 3px; background: var(--sunk); overflow: hidden; }
+.bar > i { display: block; height: 100%; }
+
+.empty {
+  border: 1px dashed var(--line); border-radius: var(--radius);
+  padding: 22px 16px; text-align: center; color: var(--muted);
+}
+
+.areas { display: flex; flex-direction: column; gap: 12px; }
+.area-row { display: block; width: 100%; }
+.area-row .bar { margin-top: 6px; }
+
+.scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+table.grid { border-collapse: collapse; width: 100%; font-size: .85rem; }
+table.grid th, table.grid td { padding: 7px 9px; text-align: right; white-space: nowrap; }
+table.grid thead th { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); border-bottom: 1px solid var(--line); }
+table.grid thead th:first-child, table.grid tbody th { text-align: left; font-weight: 600; color: var(--ink); }
+table.grid tbody th { position: sticky; left: 0; background: var(--card); max-width: 9rem; overflow: hidden; text-overflow: ellipsis; }
+table.grid tbody tr + tr th, table.grid tbody tr + tr td { border-top: 1px solid var(--line); }
+table.grid td.cell-alert { outline: 1px solid var(--rust); outline-offset: -1px; }
+
+/* ---------- forms ---------- */
+
+label.field { display: block; margin-bottom: 16px; }
+label.field > span { display: block; font-size: .8rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+
+input[type=text], input[type=password], input[type=date], select, textarea {
+  width: 100%; padding: 11px 12px; min-height: var(--tap);
+  background: var(--card); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 8px;
+  font: inherit;
+}
+input[type=color] { width: 58px; height: 44px; padding: 4px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; }
+textarea { min-height: 96px; resize: vertical; line-height: 1.5; }
+input:focus, select:focus, textarea:focus { outline: 2px solid var(--moss); outline-offset: 1px; }
+select { appearance: none; }
+
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button {
+  flex: 1 1 auto; min-height: 38px; padding: 0 11px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 8px;
+  color: var(--muted); font: inherit; font-size: .82rem; cursor: pointer;
+}
+.seg button[aria-pressed=true] { background: var(--moss-soft); border-color: var(--moss); color: var(--moss); font-weight: 600; }
+
+.check { display: flex; gap: 12px; align-items: flex-start; }
+.check input[type=checkbox] { width: 22px; height: 22px; margin: 2px 0 0; flex: none; accent-color: var(--moss); }
+
+/* ---------- sheet ---------- */
+
+.sheet { position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: center; }
+.sheet-backdrop { position: absolute; inset: 0; background: rgba(20, 23, 20, .5); }
+.sheet-panel {
+  position: relative; width: 100%; max-width: 620px;
+  max-height: 92vh; display: flex; flex-direction: column;
+  background: var(--paper); border: 1px solid var(--line);
+  border-radius: 14px 14px 0 0;
+  animation: rise .16s ease-out;
+}
+@keyframes rise { from { transform: translateY(12px); opacity: .5; } }
+.sheet-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 14px 16px 12px; border-bottom: 1px solid var(--line);
+}
+.sheet-head h2 { margin: 0; font-size: 1.15rem; }
+.sheet-body { padding: 16px 16px calc(24px + env(safe-area-inset-bottom)); overflow: auto; }
+@media (min-width: 700px) {
+  .sheet { align-items: center; }
+  .sheet-panel { border-radius: 14px; max-height: 86vh; }
+}
+
+/* ---------- lock ---------- */
+
+.lock { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: var(--paper); padding: 22px; }
+.lock-card { width: 100%; max-width: 320px; text-align: center; }
+.lock-mark { width: 58px; height: 58px; }
+.lock form { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
+.lock input { text-align: center; letter-spacing: .3em; }
+
+/* ---------- toast ---------- */
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom));
+  transform: translateX(-50%); z-index: 70;
+  background: var(--ink); color: var(--paper);
+  padding: 10px 16px; border-radius: 999px; font-size: .86rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+
+</style>
+</head>
+<body>
+
+<div id="lock" class="lock" hidden>
+  <div class="lock-card">
+    <svg class="lock-mark" viewBox="0 0 100 100" aria-hidden="true">
+        <path d="M50 56 Q50 70 50 92" stroke="#8a6743" stroke-width="7" fill="none" stroke-linecap="round"/>
+        <path d="M50 56 Q34 70 24 86" stroke="#8a6743" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <path d="M50 56 Q66 70 76 86" stroke="#8a6743" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <rect x="10" y="52" width="80" height="8" rx="4" fill="#7a5a3c"/>
+        <path d="M50 56 V34" stroke="#4a7a45" stroke-width="8" stroke-linecap="round"/>
+        <circle cx="50" cy="26" r="17" fill="#4a7a45"/>
+      </svg>
+    <h1>Good Ground</h1>
+    <p class="muted" id="lock-hint">Enter your PIN to unlock.</p>
+    <form id="lock-form" autocomplete="off">
+      <input id="lock-pin" type="password" inputmode="numeric" placeholder="PIN" aria-label="PIN"
+             autocomplete="current-password">
+      <button class="btn primary" type="submit">Unlock</button>
+    </form>
+    <p class="error" id="lock-error" hidden></p>
+  </div>
+</div>
+
+<div id="shell" class="shell" hidden>
+  <header class="topbar">
+    <div class="topbar-title">
+      <svg class="mark" viewBox="0 0 100 100" aria-hidden="true">
+        <path d="M50 56 Q50 70 50 92" stroke="#8a6743" stroke-width="7" fill="none" stroke-linecap="round"/>
+        <path d="M50 56 Q34 70 24 86" stroke="#8a6743" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <path d="M50 56 Q66 70 76 86" stroke="#8a6743" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <rect x="10" y="52" width="80" height="8" rx="4" fill="#7a5a3c"/>
+        <path d="M50 56 V34" stroke="#4a7a45" stroke-width="8" stroke-linecap="round"/>
+        <circle cx="50" cy="26" r="17" fill="#4a7a45"/>
+      </svg>
+      <span id="view-title">Good Ground</span>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="btn-lock" title="Lock now" hidden>Lock</button>
+      <button class="icon-btn" id="btn-settings" title="Settings">Settings</button>
+    </div>
+  </header>
+
+  <p id="warn" class="warn" hidden></p>
+
+  <main id="view" class="view" tabindex="-1"></main>
+
+  <nav class="tabs" id="tabs" aria-label="Sections"></nav>
+</div>
+
+<div id="sheet" class="sheet" hidden>
+  <div class="sheet-backdrop" data-close></div>
+  <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="sheet-head">
+      <h2 id="sheet-title"></h2>
+      <button class="icon-btn" data-close aria-label="Close">Close</button>
+    </div>
+    <div class="sheet-body" id="sheet-body"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script>
+(() => {
+  var __defProp = Object.defineProperty;
+  var __export = (target, all) => {
+    for (var name in all)
+      __defProp(target, name, { get: all[name], enumerable: true });
+  };
+
+  // js/model.js
+  var DEFAULT_DOMAINS = [
+    {
+      id: "god",
+      label: "Walking with God",
+      short: "God",
+      blurb: "He is the goal, not the means to the rest of it.",
+      color: "#c8963e",
+      primary: true
+    },
+    {
+      id: "marriage",
+      label: "Marriage",
+      short: "Marriage",
+      blurb: "The covenant that comes before any calling.",
+      color: "#b5637a"
+    },
+    {
+      id: "family",
+      label: "Family & home",
+      short: "Family",
+      blurb: "The first congregation I am responsible for.",
+      color: "#4a7a45"
+    },
+    {
+      id: "roots",
+      label: "The ground itself",
+      short: "Ground",
+      blurb: "Community, church, cost, staying power. What makes land worth building on.",
+      color: "#7a5a3c"
+    },
+    {
+      id: "ministry",
+      label: "Theology & ministry",
+      short: "Ministry",
+      blurb: "What I teach, how I disciple, where I go.",
+      color: "#4d7d94"
+    }
+  ];
+  var WEIGHTS = [
+    { id: "core", label: "Must have", weight: 3, help: "I wouldn't build where this is missing." },
+    { id: "conviction", label: "Strongly want", weight: 2, help: "Settled for me. I would contend for it." },
+    { id: "forming", label: "Still forming", weight: 1, help: "I lean here, but I'm honestly still working it out." },
+    { id: "preference", label: "Nice to have", weight: 0.5, help: "I hold it with an open hand." }
+  ];
+  var LEVELS = [
+    { id: "aligned", label: "Yes", score: 1, help: "The ground has it." },
+    { id: "mostly", label: "Mostly", score: 0.72, help: "Close enough to work with." },
+    { id: "tension", label: "Thin", score: 0.3, help: "Real friction. I feel it." },
+    { id: "conflict", label: "No", score: 0, help: "It isn't here and won't be." },
+    { id: "unknown", label: "Unsurveyed", score: null, help: "I haven't looked hard enough to say." }
+  ];
+  var US_LEVELS = [
+    { id: "together", label: "We're agreed", tone: "good" },
+    { id: "leaning", label: "Leaning together", tone: "ok" },
+    { id: "talking", label: "Still talking", tone: "thin" },
+    { id: "unspoken", label: "Haven't really talked", tone: "thin" },
+    { id: "apart", label: "Not in the same place", tone: "bad" },
+    { id: "na", label: "Just me on this one", tone: "unknown" }
+  ];
+  var HORIZONS = [
+    { id: "unknown", label: "No idea yet" },
+    { id: "season", label: "A season (1\u20132 yrs)" },
+    { id: "chapter", label: "A chapter (3\u20137 yrs)" },
+    { id: "long", label: "A long time (10+)" },
+    { id: "life", label: "For good" }
+  ];
+  var STAGES = [
+    { id: "scouting", label: "Scouting", blurb: "Barely looked at it." },
+    { id: "surveying", label: "Surveying", blurb: "Actively digging into it." },
+    { id: "ready", label: "Ready to decide", blurb: "Nothing left unsettled." },
+    { id: "built", label: "Building here", blurb: "Stake in the ground." },
+    { id: "ruled-out", label: "Ruled out", blurb: "Not this one." }
+  ];
+  var KINDS = [
+    { id: "place", label: "Land / town" },
+    { id: "church", label: "Church" },
+    { id: "network", label: "Network" },
+    { id: "role", label: "Role" },
+    { id: "opportunity", label: "Opportunity" }
+  ];
+  var NOTE_KINDS = [
+    { id: "hesitation", label: "Why I hesitated" },
+    { id: "scripture", label: "Scripture" },
+    { id: "conversation", label: "Conversation" },
+    { id: "visit", label: "Visit" },
+    { id: "question", label: "Open question" },
+    { id: "correction", label: "Where I was wrong" },
+    { id: "prayer", label: "Prayer" },
+    { id: "observation", label: "Observation" }
+  ];
+  var PEOPLE_STAGES = [
+    { id: "praying", label: "Praying for" },
+    { id: "conversation", label: "In conversation" },
+    { id: "new", label: "New believer" },
+    { id: "discipled", label: "Being discipled" },
+    { id: "multiplying", label: "Discipling someone else" }
+  ];
+  var byId = (list, id) => list.find((x) => x.id === id);
+  var weightOf = (c) => (byId(WEIGHTS, c.weight) || WEIGHTS[1]).weight;
+  var levelOf = (id) => byId(LEVELS, id) || byId(LEVELS, "unknown");
+  function latestCheck(checks, groundId) {
+    return checks.filter((k) => k.contextId === groundId).sort((a, b) => a.date < b.date ? 1 : -1)[0];
+  }
+  var impliedPlace = (grounds, g) => {
+    if (!g) return null;
+    if (g.kind === "place") return g;
+    return grounds.find((x) => x.id === g.placeId && x.kind === "place") || null;
+  };
+  function tally(check, reqs) {
+    let got = 0;
+    let possible = 0;
+    const unsurveyed = [];
+    const thin = [];
+    for (const c of reqs) {
+      const rating = check?.ratings?.[c.id];
+      const level = levelOf(rating?.level);
+      if (level.score === null) {
+        unsurveyed.push({ req: c, rating });
+        continue;
+      }
+      const w = weightOf(c);
+      got += level.score * w;
+      possible += w;
+      if (level.score < 0.7) thin.push({ req: c, rating, level, weight: w });
+    }
+    thin.sort((a, b) => b.weight * (1 - b.level.score) - a.weight * (1 - a.level.score));
+    return {
+      fit: possible ? got / possible : null,
+      rated: possible > 0,
+      unsurveyed,
+      thin,
+      missingMusts: thin.filter((t) => t.req.weight === "core" && t.level.score <= 0.3)
+    };
+  }
+  function survey(state2, ground) {
+    const check = latestCheck(state2.checks, ground.id);
+    const reqs = state2.convictions;
+    const base = tally(check, reqs);
+    base.byArea = state2.domains.map((domain) => {
+      const own = reqs.filter((c) => c.domainId === domain.id);
+      return own.length ? { domain, count: own.length, ...tally(check, own) } : null;
+    }).filter(Boolean);
+    base.weakest = [...base.byArea].filter((a) => a.rated).sort((a, b) => a.fit - b.fit)[0] || null;
+    const blocks = state2.blocks.filter((b) => b.groundId === ground.id && b.status === "open");
+    const surveyed = reqs.length ? (reqs.length - base.unsurveyed.length) / reqs.length : 0;
+    const penalty = Math.min(0.35, blocks.filter((b) => b.hard).length * 0.12 + blocks.length * 0.03);
+    const depth = Math.max(0, Math.min(1, surveyed * (0.4 + 0.6 * (base.fit ?? 0)) - penalty));
+    const decided = ground.stage === "built" || ground.stage === "ruled-out";
+    const ready = !decided && surveyed >= 0.8 && blocks.length === 0 && (base.fit ?? 0) >= 0.6;
+    return {
+      ...base,
+      check,
+      blocks,
+      surveyed,
+      depth,
+      ready,
+      stage: decided ? ground.stage : ready ? "ready" : surveyed > 0.15 ? "surveying" : "scouting",
+      inTheWay: [
+        ...blocks.map((b) => ({ kind: "block", block: b, label: b.title })),
+        ...base.unsurveyed.map((u) => ({ kind: "unsurveyed", req: u.req, label: u.req.title }))
+      ]
+    };
+  }
+  function verdict(s) {
+    if (s.stage === "built") return "You broke ground here.";
+    if (s.stage === "ruled-out") return "You ruled this one out.";
+    if (!s.check) return "Not surveyed yet. Walk the land.";
+    if (s.missingMusts.length) {
+      return `${s.missingMusts.length} must-have${s.missingMusts.length > 1 ? "s are" : " is"} missing here.`;
+    }
+    const q = s.unsurveyed.length;
+    const b = s.blocks.length;
+    if (!q && !b) return "Nothing is unsettled. This is a decision now, not a discovery.";
+    const parts = [];
+    if (q) parts.push(`${q} question${q > 1 ? "s" : ""} unanswered`);
+    if (b) parts.push(`${b} thing${b > 1 ? "s" : ""} unsettled`);
+    return `${parts.join(" and ")} between you and a yes.`;
+  }
+  function rankGrounds(state2) {
+    return state2.contexts.filter((g) => g.kind === "place").map((ground) => ({ ground, s: survey(state2, ground) })).sort((a, b) => {
+      const rank = (x) => x.ground.stage === "built" ? 3 : x.ground.stage === "ruled-out" ? -1 : x.s.ready ? 2 : 1;
+      return rank(b) - rank(a) || b.s.depth - a.s.depth;
+    });
+  }
+
+  // js/seed.js
+  var conviction = (domainId, title6, weight, summary, scriptures, practice, forming = "") => ({
+    id: uid(),
+    domainId,
+    title: title6,
+    weight,
+    summary,
+    scriptures,
+    practice,
+    forming,
+    seeded: true,
+    createdAt: (/* @__PURE__ */ new Date()).toISOString()
+  });
+  function seedConvictions() {
+    return [
+      /* ---- walking with God ---- */
+      conviction(
+        "god",
+        "Abiding before usefulness",
+        "core",
+        "God himself is the goal \u2014 not the ministry I could build for him. If the work grows and I don't know him better, I've lost the thing I was after.",
+        "John 15:4-5; Psalm 27:4; Philippians 3:8",
+        "I have time with God that isn't sermon prep."
+      ),
+      conviction(
+        "god",
+        "Decisions get prayed before they get pitched",
+        "conviction",
+        "The big calls go through prayer and counsel first, not after I've already made up my mind and want it blessed.",
+        "Luke 6:12-13; James 1:5; Proverbs 15:22",
+        "I can name who I prayed with before I decided."
+      ),
+      /* ---- marriage ---- */
+      conviction(
+        "marriage",
+        "One flesh before one calling",
+        "core",
+        "My wife is not a stakeholder in my ministry \u2014 she is my first ministry. No opportunity is worth taking that we aren't agreed on.",
+        "Genesis 2:24; Ephesians 5:25-33; 1 Peter 3:7",
+        "She could tell you exactly what I'm weighing right now, in my words, and she'd say she had a real say in it."
+      ),
+      conviction(
+        "marriage",
+        "Leading by serving first",
+        "conviction",
+        "Headship that looks like Christ: first to serve, first to repent, last to demand. Her flourishing is the measure of my leadership.",
+        "Ephesians 5:25-30; 1 Peter 3:7; Colossians 3:19",
+        "She is more herself, not less, for being married to me."
+      ),
+      /* ---- family & home ---- */
+      conviction(
+        "family",
+        "Healthy families",
+        "conviction",
+        "The home is the first congregation. Ministry that costs me my family is not ministry I want.",
+        "Deuteronomy 6:4-9; Ephesians 6:4; 1 Timothy 3:4-5",
+        "My family would say they get my best, not my leftovers."
+      ),
+      conviction(
+        "family",
+        "A home with an open table",
+        "conviction",
+        "Hospitality isn't separate from the ministry \u2014 our table is part of it, and the kids get to see it up close.",
+        "Romans 12:13; 1 Peter 4:9; Acts 2:46",
+        "People who aren't like us have eaten at our table this month."
+      ),
+      /* ---- roots & place ---- */
+      conviction(
+        "roots",
+        "Somewhere long enough to be known",
+        "core",
+        "Depth takes years. I want to be in a place long enough that people know my kids' names and can tell when I'm off.",
+        "Jeremiah 29:5-7; Proverbs 27:10",
+        "I can picture us here in ten years without flinching."
+      ),
+      conviction(
+        "roots",
+        "A church we could belong to for a decade",
+        "core",
+        "Not a church I could serve at \u2014 a church we could be members of, be pastored by, and grow old in.",
+        "Hebrews 10:24-25; Acts 2:42-47",
+        "If my role ended tomorrow, we'd still want to be there on Sunday."
+      ),
+      conviction(
+        "roots",
+        "Community my wife and kids actually have",
+        "conviction",
+        "Not my network \u2014 theirs. Friendships that don't depend on my title and don't leave when I do.",
+        "Romans 12:10; Galatians 6:2",
+        "She has two or three people she'd call at 11pm, and they live close."
+      ),
+      conviction(
+        "roots",
+        "We could afford to stay",
+        "conviction",
+        "Housing, work and cost of living that don't quietly force a move in three years. Roots need soil we can pay for.",
+        "Luke 14:28-30; 1 Timothy 5:8",
+        "The math works for ten years, not just for the first one."
+      ),
+      conviction(
+        "roots",
+        "Near enough to family",
+        "forming",
+        "How close do we need to be to parents and siblings? I honestly don't know my own answer yet.",
+        "1 Timothy 5:4; Exodus 20:12",
+        "",
+        "Talk this through and land on an actual number of hours."
+      ),
+      /* ---- theology & ministry ---- */
+      conviction(
+        "ministry",
+        "Disciple making that multiplies",
+        "core",
+        "Not programs and not crowds \u2014 named people I am walking with, who will go and do the same with someone else.",
+        "Matthew 28:18-20; 2 Timothy 2:2",
+        "I can name who I am discipling right now, and who they are discipling."
+      ),
+      conviction(
+        "ministry",
+        "Healthy theology",
+        "core",
+        "Doctrine held carefully and taught plainly. Sound teaching is pastoral care, not an academic hobby.",
+        "Titus 1:9; 1 Timothy 4:16",
+        "I can say what I believe and why, and where the line is between a conviction and a preference."
+      ),
+      conviction(
+        "ministry",
+        "Complementarian conviction",
+        "conviction",
+        "Biblical submission and distinct, God-given roles in the home and in the church.",
+        "Ephesians 5:22-33; 1 Timothy 2:11-13; 1 Peter 3:1-7",
+        "I can state this positively and pastorally, not just as a boundary.",
+        "Sharpen the wording until it is exactly how I would say it out loud to someone who disagrees."
+      ),
+      conviction(
+        "ministry",
+        "Strong preaching",
+        "conviction",
+        "Text-driven preaching that lets the passage set the agenda, aimed at the heart and at the street.",
+        "2 Timothy 4:1-2; Nehemiah 8:8; Acts 20:27",
+        "The point of my message is the point of the passage."
+      ),
+      conviction(
+        "ministry",
+        "Highly missional",
+        "conviction",
+        "Sent, not settled. Oriented toward people and places that do not have it yet.",
+        "Acts 1:8; Romans 15:20; 1 Corinthians 9:19-23",
+        "My week has real contact with people far from Jesus in it."
+      )
+    ];
+  }
+  function seedState() {
+    const convictions = seedConvictions();
+    const e3 = {
+      id: uid(),
+      name: "E3",
+      kind: "network",
+      stage: "scouting",
+      placeId: "",
+      horizon: "unknown",
+      notes: "What I keep circling back to. Run a check whenever I learn something new about how they actually operate.",
+      createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+      seeded: true
+    };
+    const here = {
+      id: uid(),
+      name: "Where we are now",
+      kind: "place",
+      stage: "scouting",
+      horizon: "unknown",
+      notes: "Walk this one first. Without a baseline, every other place is just a feeling.",
+      createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+      seeded: true
+    };
+    const noteId = uid();
+    return {
+      version: 3,
+      createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+      seeded: true,
+      domains: DEFAULT_DOMAINS.map((d) => ({ ...d })),
+      convictions,
+      contexts: [here, e3],
+      checks: [],
+      blocks: [
+        {
+          id: uid(),
+          groundId: "",
+          title: "I don't know what she'd need to feel rooted somewhere",
+          wouldSettle: "Her list, in her words, written down before I react to any of it.",
+          who: "Ask her",
+          due: "",
+          hard: true,
+          status: "open",
+          seeded: true,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString()
+        },
+        {
+          id: uid(),
+          groundId: e3.id,
+          title: "I don't know where E3 would actually put us",
+          wouldSettle: "A straight answer about location, and whether we'd get to choose it.",
+          who: "",
+          due: "",
+          hard: true,
+          status: "open",
+          seeded: true,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString()
+        }
+      ],
+      notes: [{
+        id: noteId,
+        date: today(),
+        title: "What I actually want is ground I can build on",
+        kind: "hesitation",
+        body: `The stress isn't which network to join. It's that I keep not saying "we're building here". I want a place with real community, where my family grows well, where we could still be in ten years. Every offer has to be weighed against that ground, not the other way around.`,
+        convictionIds: [],
+        contextIds: [],
+        source: "",
+        seeded: true,
+        createdAt: (/* @__PURE__ */ new Date()).toISOString()
+      }],
+      people: [],
+      settings: { autoLockMinutes: 15, name: "" }
+    };
+  }
+
+  // js/store.js
+  var mem = /* @__PURE__ */ new Map();
+  var persistent = true;
+  var LS = {
+    get(k) {
+      if (!persistent) return mem.get(k) ?? null;
+      try {
+        return localStorage.getItem(k);
+      } catch {
+        persistent = false;
+        return mem.get(k) ?? null;
+      }
+    },
+    set(k, v) {
+      if (persistent) {
+        try {
+          localStorage.setItem(k, v);
+          return;
+        } catch {
+          persistent = false;
+        }
+      }
+      mem.set(k, v);
+    },
+    remove(k) {
+      if (persistent) {
+        try {
+          localStorage.removeItem(k);
+          return;
+        } catch {
+          persistent = false;
+        }
+      }
+      mem.delete(k);
+    }
+  };
+  var isPersistent = () => persistent;
+  var KEY_PLAIN = "tn.v1.data";
+  var KEY_ENC = "tn.v1.enc";
+  var PBKDF2_ROUNDS = 31e4;
+  var state = null;
+  var cryptoKey = null;
+  var saltB64 = null;
+  var uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+  var today = () => (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
+  var b64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)));
+  var unb64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+  async function deriveKey(pin, salt) {
+    const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(pin), "PBKDF2", false, ["deriveKey"]);
+    return crypto.subtle.deriveKey(
+      { name: "PBKDF2", salt, iterations: PBKDF2_ROUNDS, hash: "SHA-256" },
+      base,
+      { name: "AES-GCM", length: 256 },
+      false,
+      ["encrypt", "decrypt"]
+    );
+  }
+  var isEncrypted = () => LS.get(KEY_ENC) !== null;
+  var isUnlocked = () => state !== null;
+  function open() {
+    if (isEncrypted()) throw new Error("locked");
+    const raw = LS.get(KEY_PLAIN);
+    const parsed = raw ? JSON.parse(raw) : null;
+    state = parsed ? migrate(parsed) : seedState();
+    if (!parsed || parsed.version !== state.version) persist();
+    return state;
+  }
+  async function unlock(pin) {
+    const blob = JSON.parse(LS.get(KEY_ENC));
+    const key = await deriveKey(pin, unb64(blob.salt));
+    try {
+      const plain = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: unb64(blob.iv) },
+        key,
+        unb64(blob.ct)
+      );
+      const parsed = JSON.parse(new TextDecoder().decode(plain));
+      state = migrate(parsed);
+      cryptoKey = key;
+      saltB64 = blob.salt;
+      if (parsed.version !== state.version) await persist();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  function lock() {
+    state = null;
+    cryptoKey = null;
+    saltB64 = null;
+  }
+  async function enableLock(pin) {
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    cryptoKey = await deriveKey(pin, salt);
+    saltB64 = b64(salt);
+    await persist();
+    LS.remove(KEY_PLAIN);
+  }
+  async function disableLock() {
+    cryptoKey = null;
+    saltB64 = null;
+    LS.remove(KEY_ENC);
+    await persist();
+  }
+  function get() {
+    if (!state) throw new Error("locked");
+    return state;
+  }
+  var writeTimer = null;
+  async function persist() {
+    const json = JSON.stringify(state);
+    if (cryptoKey) {
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, cryptoKey, new TextEncoder().encode(json));
+      LS.set(KEY_ENC, JSON.stringify({ v: 1, salt: saltB64, iv: b64(iv), ct: b64(ct) }));
+      LS.remove(KEY_PLAIN);
+    } else {
+      LS.set(KEY_PLAIN, json);
+    }
+  }
+  function update(fn) {
+    fn(state);
+    state.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+    clearTimeout(writeTimer);
+    writeTimer = setTimeout(() => persist().catch((e) => console.error("save failed", e)), 120);
+    listeners.forEach((l) => l(state));
+    return state;
+  }
+  var listeners = /* @__PURE__ */ new Set();
+  function subscribe(fn) {
+    listeners.add(fn);
+    return () => listeners.delete(fn);
+  }
+  function exportJSON() {
+    return JSON.stringify({ ...state, exportedAt: (/* @__PURE__ */ new Date()).toISOString() }, null, 2);
+  }
+  function importJSON(text, { merge }) {
+    const incoming = migrate(JSON.parse(text));
+    if (!merge) {
+      state = incoming;
+    } else {
+      for (const list of ["domains", "convictions", "contexts", "checks", "notes", "actions", "people"]) {
+        const have = new Set(state[list].map((r) => r.id));
+        state[list].push(...(incoming[list] || []).filter((r) => !have.has(r.id)));
+      }
+    }
+    return update(() => {
+    });
+  }
+  function wipe() {
+    LS.remove(KEY_PLAIN);
+    LS.remove(KEY_ENC);
+    lock();
+  }
+  var V1_DOMAINS = {
+    "healthy families": "family",
+    "disciple making that multiplies": "ministry",
+    "healthy theology": "ministry",
+    "complementarian conviction": "ministry",
+    "strong preaching": "ministry",
+    "highly missional": "ministry"
+  };
+  function migrate(data) {
+    const base = {
+      version: 3,
+      createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+      domains: [],
+      convictions: [],
+      contexts: [],
+      checks: [],
+      blocks: [],
+      notes: [],
+      people: [],
+      settings: { autoLockMinutes: 15, name: "" }
+    };
+    const s = { ...base, ...data, settings: { ...base.settings, ...data.settings || {} } };
+    if (!s.domains.length) s.domains = DEFAULT_DOMAINS.map((d) => ({ ...d }));
+    const known = new Set(s.domains.map((d) => d.id));
+    const fallback = known.has("ministry") ? "ministry" : s.domains[s.domains.length - 1].id;
+    s.convictions.forEach((c) => {
+      if (!c.domainId || !known.has(c.domainId)) {
+        c.domainId = V1_DOMAINS[(c.title || "").trim().toLowerCase()] || fallback;
+      }
+    });
+    const starters = seedConvictions();
+    s.domains.forEach((d) => {
+      if (s.convictions.some((c) => c.domainId === d.id)) return;
+      s.convictions.push(...starters.filter((c) => c.domainId === d.id));
+    });
+    s.contexts.forEach((c) => {
+      if (!c.horizon) c.horizon = "unknown";
+      if (!c.stage) c.stage = "scouting";
+    });
+    s.checks.forEach((k) => {
+      if (!k.us) k.us = { level: "na", note: "" };
+    });
+    if (Array.isArray(data.actions) && data.actions.length) {
+      s.blocks = s.blocks.concat(data.actions.map((a) => ({
+        id: a.id,
+        groundId: (a.contextIds || [])[0] || "",
+        title: a.title,
+        wouldSettle: a.detail || "",
+        who: "",
+        due: a.due || "",
+        hard: false,
+        status: a.done ? "settled" : "open",
+        settledAt: a.doneAt || "",
+        seeded: a.seeded || false,
+        createdAt: a.createdAt || (/* @__PURE__ */ new Date()).toISOString()
+      })));
+    }
+    delete s.actions;
+    s.blocks.forEach((b) => {
+      if (!b.status) b.status = "open";
+    });
+    s.version = 3;
+    return s;
+  }
+
+  // js/ui.js
+  var $ = (sel, root = document) => root.querySelector(sel);
+  function h(tag, props = {}, ...kids) {
+    const node = document.createElement(tag);
+    for (const [k, v] of Object.entries(props || {})) {
+      if (v === null || v === void 0 || v === false) continue;
+      if (k === "class") node.className = v;
+      else if (k === "text") node.textContent = v;
+      else if (k === "dataset") Object.assign(node.dataset, v);
+      else if (k.startsWith("on") && typeof v === "function") node.addEventListener(k.slice(2).toLowerCase(), v);
+      else if (k in node && k !== "list" && typeof v !== "boolean") node[k] = v;
+      else node.setAttribute(k, v === true ? "" : v);
+    }
+    for (const kid of kids.flat(3)) {
+      if (kid === null || kid === void 0 || kid === false) continue;
+      node.append(kid.nodeType ? kid : document.createTextNode(String(kid)));
+    }
+    return node;
+  }
+  var frag = (...kids) => {
+    const f = document.createDocumentFragment();
+    kids.flat(3).filter((k) => k !== null && k !== void 0 && k !== false).forEach((k) => f.append(k.nodeType ? k : document.createTextNode(String(k))));
+    return f;
+  };
+  function clear(node) {
+    while (node.firstChild) node.removeChild(node.firstChild);
+    return node;
+  }
+  var toastTimer = null;
+  function toast(message) {
+    const el2 = $("#toast");
+    el2.textContent = message;
+    el2.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      el2.hidden = true;
+    }, 2200);
+  }
+  var stack = [];
+  function openSheet(title6, build, { replace = false } = {}) {
+    if (replace) stack.pop();
+    stack.push({ title: title6, build });
+    renderSheet();
+  }
+  function closeSheet(all = false) {
+    if (all) stack.length = 0;
+    else stack.pop();
+    renderSheet();
+  }
+  function renderSheet() {
+    const sheet = $("#sheet");
+    const top = stack[stack.length - 1];
+    if (!top) {
+      sheet.hidden = true;
+      document.body.style.overflow = "";
+      return;
+    }
+    $("#sheet-title").textContent = typeof top.title === "function" ? top.title() : top.title;
+    const body = clear($("#sheet-body"));
+    body.append(top.build());
+    body.scrollTop = 0;
+    sheet.hidden = false;
+    document.body.style.overflow = "hidden";
+  }
+  function initSheet() {
+    $("#sheet").addEventListener("click", (e) => {
+      if (e.target.closest("[data-close]")) closeSheet();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && stack.length) closeSheet();
+    });
+  }
+  function confirmSheet({ title: title6, message, confirmLabel = "Confirm", danger = false }) {
+    return new Promise((resolve) => {
+      openSheet(title6, () => {
+        const done = (v) => {
+          closeSheet();
+          resolve(v);
+        };
+        return frag(
+          h("p", { class: "muted", text: message }),
+          h(
+            "div",
+            { class: "stack" },
+            h("button", { class: `btn block ${danger ? "danger" : "primary"}`, onClick: () => done(true) }, confirmLabel),
+            h("button", { class: "btn block ghost", onClick: () => done(false) }, "Cancel")
+          )
+        );
+      });
+    });
+  }
+  function field(labelText, control, hint) {
+    return h(
+      "label",
+      { class: "field" },
+      h("span", {}, labelText),
+      control,
+      hint ? h("div", { class: "small muted", style: "margin-top:5px" }, hint) : null
+    );
+  }
+  function input(props = {}) {
+    return h("input", { type: "text", ...props });
+  }
+  function area(props = {}) {
+    return h("textarea", props);
+  }
+  function segmented(options, value, onChange) {
+    const wrap = h("div", { class: "seg" });
+    const paint = (v) => [...wrap.children].forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.id === v)));
+    options.forEach((o) => wrap.append(h("button", {
+      type: "button",
+      dataset: { id: o.id },
+      title: o.help || "",
+      onClick: () => {
+        paint(o.id);
+        onChange(o.id);
+      }
+    }, o.label)));
+    paint(value);
+    return wrap;
+  }
+  function chipPicker(options, selected, onChange) {
+    const chosen = new Set(selected);
+    const wrap = h("div", { class: "row wrap" });
+    options.forEach((o) => {
+      const b = h("button", { type: "button", class: `chip${chosen.has(o.id) ? " on" : ""}` }, o.label);
+      b.addEventListener("click", () => {
+        if (chosen.has(o.id)) chosen.delete(o.id);
+        else chosen.add(o.id);
+        b.className = `chip${chosen.has(o.id) ? " on" : ""}`;
+        onChange([...chosen]);
+      });
+      wrap.append(b);
+    });
+    return options.length ? wrap : h("p", { class: "small muted" }, "Nothing to tag yet.");
+  }
+  function empty(text, actionLabel, onAction) {
+    return h(
+      "div",
+      { class: "empty" },
+      h("p", { style: "margin-bottom:12px" }, text),
+      actionLabel ? h("button", { class: "btn sm", onClick: onAction }, actionLabel) : null
+    );
+  }
+  function section(title6, actionLabel, onAction) {
+    return h(
+      "div",
+      { class: "section" },
+      h("h2", {}, title6),
+      actionLabel ? h("button", { class: "icon-btn", onClick: onAction }, actionLabel) : null
+    );
+  }
+  var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  function fmtDate(iso) {
+    if (!iso) return "";
+    const [y, m, d] = iso.slice(0, 10).split("-").map(Number);
+    return `${MONTHS[m - 1]} ${d}${y === (/* @__PURE__ */ new Date()).getFullYear() ? "" : `, ${y}`}`;
+  }
+  function fmtMonth(iso) {
+    const [y, m] = iso.slice(0, 7).split("-").map(Number);
+    return `${MONTHS[m - 1]}${y === (/* @__PURE__ */ new Date()).getFullYear() ? "" : ` ${y}`}`;
+  }
+  function daysBetween(isoA, isoB) {
+    return Math.round((Date.parse(`${isoB}T00:00:00`) - Date.parse(`${isoA}T00:00:00`)) / 864e5);
+  }
+  function relDate(iso, todayIso) {
+    const d = daysBetween(iso, todayIso);
+    if (d === 0) return "Today";
+    if (d === 1) return "Yesterday";
+    if (d === -1) return "Tomorrow";
+    if (d > 1 && d < 7) return `${d} days ago`;
+    if (d < -1 && d > -7) return `in ${-d} days`;
+    return fmtDate(iso);
+  }
+
+  // js/router.js
+  var ROUTES = ["target", "land", "soil", "unsettled", "journal"];
+  var OLD = { compass: "target", where: "land", plays: "land", convictions: "soil", do: "unsettled", log: "journal", people: "journal" };
+  var handler = null;
+  function currentRoute() {
+    const r = location.hash.replace(/^#\/?/, "");
+    if (OLD[r]) return OLD[r];
+    return ROUTES.includes(r) ? r : "target";
+  }
+  function onRoute(fn) {
+    handler = fn;
+    window.addEventListener("hashchange", () => fn(currentRoute()));
+  }
+  function go(route) {
+    const target = `#/${route}`;
+    if (location.hash === target) handler?.(route);
+    else location.hash = target;
+  }
+
+  // js/editors.js
+  var opts = (list) => list.map((c) => ({ id: c.id, label: c.title || c.name || c.label }));
+  function saveBar(onSave, onDelete) {
+    return h(
+      "div",
+      { class: "stack", style: "margin-top:20px" },
+      h("button", { class: "btn primary block", onClick: onSave }, "Save"),
+      onDelete ? h("button", { class: "btn ghost danger block", onClick: onDelete }, "Delete") : null
+    );
+  }
+  async function confirmDelete(what, run) {
+    const ok = await confirmSheet({
+      title: `Delete ${what}?`,
+      message: "This can't be undone from inside the app.",
+      confirmLabel: "Delete",
+      danger: true
+    });
+    if (!ok) return;
+    update(run);
+    closeSheet(true);
+    toast("Deleted");
+  }
+  function editDomain(existing) {
+    const d = existing || { id: uid(), label: "", short: "", blurb: "", color: "#7a5a3c" };
+    const draft = { ...d };
+    openSheet(existing ? "Edit area" : "New area of life", () => frag(
+      h("p", { class: "small muted" }, "Areas group what the soil has to hold, and each one is measured on its own."),
+      field("Name", input({ value: draft.label, onInput: (e) => {
+        draft.label = e.target.value;
+      } })),
+      field("Short name", input({ value: draft.short || "", placeholder: "For tight spaces", onInput: (e) => {
+        draft.short = e.target.value;
+      } })),
+      field("What it covers", area({ value: draft.blurb || "", onInput: (e) => {
+        draft.blurb = e.target.value;
+      } })),
+      field("Colour", h("input", { type: "color", value: draft.color, onInput: (e) => {
+        draft.color = e.target.value;
+      } })),
+      saveBar(() => {
+        if (!draft.label.trim()) return toast("Give it a name first");
+        update((s) => {
+          const i = s.domains.findIndex((x) => x.id === draft.id);
+          if (i < 0) s.domains.push(draft);
+          else s.domains[i] = { ...s.domains[i], ...draft };
+        });
+        closeSheet();
+        toast("Saved");
+      }, existing && get().domains.length > 1 ? () => confirmDelete("area", (s) => {
+        const home = s.domains.find((x) => x.id !== draft.id);
+        s.convictions.forEach((c) => {
+          if (c.domainId === draft.id) c.domainId = home.id;
+        });
+        s.domains = s.domains.filter((x) => x.id !== draft.id);
+      }) : null)
+    ));
+  }
+  function editRequirement(existing, defaults = {}) {
+    const state2 = get();
+    const c = existing || {
+      id: uid(),
+      domainId: state2.domains[0]?.id,
+      title: "",
+      weight: "conviction",
+      summary: "",
+      scriptures: "",
+      practice: "",
+      forming: "",
+      ...defaults
+    };
+    const draft = { ...c };
+    openSheet(existing ? "Edit requirement" : "What does the soil need?", () => frag(
+      field("Area of life", segmented(state2.domains.map((d) => ({ id: d.id, label: d.short || d.label })), draft.domainId, (v) => {
+        draft.domainId = v;
+      })),
+      field("What does the ground need to have?", input({ value: draft.title, placeholder: "e.g. A church we could belong to for a decade", onInput: (e) => {
+        draft.title = e.target.value;
+      } })),
+      field(
+        "How much does it matter?",
+        segmented(WEIGHTS, draft.weight, (v) => {
+          draft.weight = v;
+        }),
+        "Be honest \u2014 this is the weight it carries when you judge a place."
+      ),
+      field("In my own words", area({ value: draft.summary, placeholder: "Say it the way you would say it out loud.", onInput: (e) => {
+        draft.summary = e.target.value;
+      } })),
+      field("Scripture", input({ value: draft.scriptures, placeholder: "Jeremiah 29:5-7", onInput: (e) => {
+        draft.scriptures = e.target.value;
+      } })),
+      field("How I'd know it's true of a place", area({ value: draft.practice, placeholder: "The test you'd actually apply.", onInput: (e) => {
+        draft.practice = e.target.value;
+      } })),
+      field("Where I'm still working it out", area({ value: draft.forming, placeholder: "Blank is fine.", onInput: (e) => {
+        draft.forming = e.target.value;
+      } })),
+      saveBar(() => {
+        if (!draft.title.trim()) return toast("Give it a name first");
+        update((s) => {
+          const i = s.convictions.findIndex((x) => x.id === draft.id);
+          draft.seeded = false;
+          if (i < 0) s.convictions.push({ ...draft, createdAt: (/* @__PURE__ */ new Date()).toISOString() });
+          else s.convictions[i] = { ...s.convictions[i], ...draft };
+        });
+        closeSheet();
+        toast("Saved");
+      }, existing ? () => confirmDelete("requirement", (s) => {
+        s.convictions = s.convictions.filter((x) => x.id !== draft.id);
+        s.checks.forEach((k) => delete k.ratings[draft.id]);
+      }) : null)
+    ));
+  }
+  function editGround(existing, defaults = {}) {
+    const state2 = get();
+    const g = existing || {
+      id: uid(),
+      name: "",
+      kind: "place",
+      stage: "scouting",
+      horizon: "unknown",
+      placeId: "",
+      notes: "",
+      ...defaults
+    };
+    const draft = { ...g };
+    const places = state2.contexts.filter((p) => p.kind === "place" && p.id !== draft.id);
+    const placeField = h("div", {});
+    const paintPlace = () => {
+      placeField.replaceChildren();
+      if (draft.kind === "place") return;
+      placeField.append(field(
+        "If we said yes, where would we live?",
+        segmented(
+          [...places.map((p) => ({ id: p.id, label: p.name })), { id: "", label: "Don't know yet" }],
+          draft.placeId || "",
+          (v) => {
+            draft.placeId = v;
+          }
+        ),
+        places.length ? "An offer is only as good as the ground it puts you on." : "Add the land first, then link it."
+      ));
+    };
+    paintPlace();
+    openSheet(existing ? "Edit" : "Add ground", () => frag(
+      field("Name", input({ value: draft.name, placeholder: "A town, a church, an offer", onInput: (e) => {
+        draft.name = e.target.value;
+      } })),
+      field("What is it?", segmented(KINDS, draft.kind, (v) => {
+        draft.kind = v;
+        paintPlace();
+      })),
+      placeField,
+      field("Could we still be here in ten years?", segmented(HORIZONS, draft.horizon, (v) => {
+        draft.horizon = v;
+      })),
+      field("Notes", area({ value: draft.notes, placeholder: "What you know, who you've talked to, what you're watching for.", onInput: (e) => {
+        draft.notes = e.target.value;
+      } })),
+      saveBar(() => {
+        if (!draft.name.trim()) return toast("Give it a name first");
+        update((s) => {
+          const i = s.contexts.findIndex((x) => x.id === draft.id);
+          draft.seeded = false;
+          if (i < 0) s.contexts.push({ ...draft, createdAt: (/* @__PURE__ */ new Date()).toISOString() });
+          else s.contexts[i] = { ...s.contexts[i], ...draft };
+        });
+        closeSheet();
+        toast("Saved");
+      }, existing ? () => confirmDelete("ground", (s) => {
+        s.contexts = s.contexts.filter((x) => x.id !== draft.id);
+        s.checks = s.checks.filter((k) => k.contextId !== draft.id);
+        s.blocks = s.blocks.filter((b) => b.groundId !== draft.id);
+      }) : null)
+    ));
+  }
+  function walkTheLand(groundId, existing) {
+    const state2 = get();
+    const ground = state2.contexts.find((c) => c.id === groundId);
+    const check = existing ? { ...existing, ratings: JSON.parse(JSON.stringify(existing.ratings || {})), us: { ...existing.us || {} } } : { id: uid(), contextId: groundId, date: today(), ratings: {}, us: { level: "na", note: "" }, summary: "" };
+    if (!check.us) check.us = { level: "na", note: "" };
+    let only = null;
+    openSheet(`Walking ${ground.name}`, () => {
+      const readout = h("div", { class: "card", style: "margin-bottom:16px" });
+      const paint = () => {
+        const s = survey({ ...state2, checks: [check] }, ground);
+        readout.replaceChildren(
+          h("div", { class: "verdict" }, verdict(s)),
+          h(
+            "div",
+            { class: "row spread small muted", style: "margin-top:8px" },
+            h("span", {}, `${Math.round(s.surveyed * 100)}% surveyed`),
+            h("span", { class: "tnum" }, s.rated ? `${Math.round(s.fit * 100)}% fit` : "")
+          )
+        );
+      };
+      const rows = h("div", { class: "stack" });
+      const paintRows = () => {
+        rows.replaceChildren();
+        state2.domains.forEach((domain) => {
+          if (only && only !== domain.id) return;
+          const own = state2.convictions.filter((c) => c.domainId === domain.id);
+          if (!own.length) return;
+          const head = h("div", { class: "section" }, h("h2", {}, domain.label));
+          head.style.borderBottomColor = domain.color;
+          rows.append(head);
+          own.forEach((c) => {
+            const rating = check.ratings[c.id] || (check.ratings[c.id] = { level: "unknown", note: "" });
+            rows.append(h(
+              "div",
+              { class: "card" },
+              h(
+                "div",
+                { class: "row spread", style: "margin-bottom:4px" },
+                h("strong", { class: "grow" }, c.title),
+                h("span", { class: "eyebrow" }, byId(WEIGHTS, c.weight)?.label || "")
+              ),
+              c.practice ? h("p", { class: "tiny muted" }, c.practice) : null,
+              segmented(LEVELS, rating.level, (v) => {
+                rating.level = v;
+                paint();
+              }),
+              h("input", {
+                type: "text",
+                value: rating.note || "",
+                placeholder: "What did you actually see?",
+                style: "margin-top:8px",
+                onInput: (e) => {
+                  rating.note = e.target.value;
+                }
+              })
+            ));
+          });
+        });
+      };
+      const filter = h("div", { class: "row wrap", style: "margin-bottom:14px" });
+      const paintFilter = () => {
+        filter.replaceChildren();
+        filter.append(h("button", { class: `chip${only ? "" : " on"}`, onClick: () => {
+          only = null;
+          paintFilter();
+          paintRows();
+        } }, "All"));
+        state2.domains.forEach((d) => filter.append(h("button", {
+          class: `chip${only === d.id ? " on" : ""}`,
+          onClick: () => {
+            only = d.id;
+            paintFilter();
+            paintRows();
+          }
+        }, d.short || d.label)));
+      };
+      paint();
+      paintFilter();
+      paintRows();
+      return frag(
+        readout,
+        field("Date walked", h("input", { type: "date", value: check.date, onInput: (e) => {
+          check.date = e.target.value || today();
+        } })),
+        filter,
+        rows,
+        h(
+          "div",
+          { class: "card", style: "margin-top:18px" },
+          h("strong", {}, "Where the two of us land"),
+          h("p", { class: "small muted" }, "Never scored. Just asked, every time."),
+          segmented(US_LEVELS, check.us.level, (v) => {
+            check.us.level = v;
+          }),
+          h("input", {
+            type: "text",
+            value: check.us.note || "",
+            placeholder: "What she said, in her words",
+            style: "margin-top:8px",
+            onInput: (e) => {
+              check.us.note = e.target.value;
+            }
+          })
+        ),
+        h(
+          "div",
+          { style: "margin-top:16px" },
+          field("What I'd say about this place today", area({
+            value: check.summary,
+            placeholder: "One honest paragraph.",
+            onInput: (e) => {
+              check.summary = e.target.value;
+            }
+          }))
+        ),
+        saveBar(() => {
+          update((s) => {
+            const i = s.checks.findIndex((x) => x.id === check.id);
+            if (i < 0) s.checks.push({ ...check, createdAt: (/* @__PURE__ */ new Date()).toISOString() });
+            else s.checks[i] = check;
+          });
+          closeSheet();
+          toast("Survey saved");
+        }, existing ? () => confirmDelete("survey", (s) => {
+          s.checks = s.checks.filter((x) => x.id !== check.id);
+        }) : null)
+      );
+    });
+  }
+  function editBlock(existing, defaults = {}) {
+    const state2 = get();
+    const b = existing || {
+      id: uid(),
+      groundId: "",
+      title: "",
+      wouldSettle: "",
+      who: "",
+      due: "",
+      hard: false,
+      status: "open",
+      ...defaults
+    };
+    const draft = { ...b };
+    const grounds = state2.contexts;
+    openSheet(existing ? "Edit" : "What's in the way?", () => frag(
+      field("What's unsettled?", input({ value: draft.title, placeholder: "Say it plainly", onInput: (e) => {
+        draft.title = e.target.value;
+      } })),
+      field("What would settle it?", area({
+        value: draft.wouldSettle,
+        placeholder: "The specific thing that would let you say yes or no.",
+        onInput: (e) => {
+          draft.wouldSettle = e.target.value;
+        }
+      }), "If you can't name this, the block is really a feeling \u2014 and that's worth writing down too."),
+      field("Who could answer it?", input({ value: draft.who, placeholder: "A person, not a category", onInput: (e) => {
+        draft.who = e.target.value;
+      } })),
+      field("By when", h("input", { type: "date", value: draft.due, onInput: (e) => {
+        draft.due = e.target.value;
+      } })),
+      field("Which ground?", segmented(
+        [...grounds.map((g) => ({ id: g.id, label: g.name })), { id: "", label: "All of them" }],
+        draft.groundId || "",
+        (v) => {
+          draft.groundId = v;
+        }
+      )),
+      field("How heavy is it?", segmented(
+        [{ id: "no", label: "Would like to know" }, { id: "yes", label: "Can't decide without it" }],
+        draft.hard ? "yes" : "no",
+        (v) => {
+          draft.hard = v === "yes";
+        }
+      )),
+      saveBar(() => {
+        if (!draft.title.trim()) return toast("Name it first");
+        update((s) => {
+          const i = s.blocks.findIndex((x) => x.id === draft.id);
+          draft.seeded = false;
+          if (i < 0) s.blocks.push({ ...draft, createdAt: (/* @__PURE__ */ new Date()).toISOString() });
+          else s.blocks[i] = { ...s.blocks[i], ...draft };
+        });
+        closeSheet();
+        toast("Saved");
+      }, existing ? () => confirmDelete("block", (s) => {
+        s.blocks = s.blocks.filter((x) => x.id !== draft.id);
+      }) : null)
+    ));
+  }
+  function captureHesitation(ground) {
+    let text = "";
+    let makeBlock = true;
+    openSheet("Why not yet?", () => frag(
+      h(
+        "p",
+        { class: "small muted" },
+        `You've looked at ${ground.name} and haven't said yes. Name the actual reason \u2014 even if it's "I don't know, it just doesn't feel right."`
+      ),
+      field("What's stopping you?", area({ style: "min-height:120px", onInput: (e) => {
+        text = e.target.value;
+      } })),
+      h(
+        "label",
+        { class: "check", style: "margin-bottom:16px" },
+        h("input", { type: "checkbox", checked: true, onChange: (e) => {
+          makeBlock = e.target.checked;
+        } }),
+        h("span", { class: "small" }, "Add it to what's in the way, so it has to get settled")
+      ),
+      h("button", {
+        class: "btn primary block",
+        onClick: () => {
+          if (!text.trim()) return toast("Write it down first");
+          update((s) => {
+            s.notes.push({
+              id: uid(),
+              date: today(),
+              kind: "hesitation",
+              title: `Hesitated on ${ground.name}`,
+              body: text,
+              convictionIds: [],
+              contextIds: [ground.id],
+              source: "",
+              createdAt: (/* @__PURE__ */ new Date()).toISOString()
+            });
+            if (makeBlock) {
+              s.blocks.push({
+                id: uid(),
+                groundId: ground.id,
+                title: text.split("\n")[0].slice(0, 80),
+                wouldSettle: "",
+                who: "",
+                due: "",
+                hard: false,
+                status: "open",
+                createdAt: (/* @__PURE__ */ new Date()).toISOString()
+              });
+            }
+          });
+          closeSheet();
+          toast("Written down");
+        }
+      }, "Write it down")
+    ));
+  }
+  function breakGround(ground) {
+    const state2 = get();
+    const s = survey(state2, ground);
+    let note = "";
+    let date = today();
+    openSheet(`Build on ${ground.name}?`, () => frag(
+      s.inTheWay.length ? h(
+        "div",
+        { class: "card", style: "margin-bottom:16px" },
+        h("strong", { class: "tone-thin" }, `${s.inTheWay.length} thing${s.inTheWay.length > 1 ? "s are" : " is"} still unsettled`),
+        h(
+          "div",
+          { class: "rows", style: "margin-top:6px" },
+          s.inTheWay.slice(0, 5).map((x) => h("div", { class: "small" }, x.label))
+        ),
+        h(
+          "p",
+          { class: "small muted", style: "margin:10px 0 0" },
+          "You can still say yes. Saying yes with your eyes open is different from drifting into it."
+        )
+      ) : h("p", { class: "verdict", style: "margin-bottom:16px" }, "Nothing is unsettled. This is a decision, not a discovery."),
+      field("What are you saying yes to?", area({
+        placeholder: "In one sentence, so you can read it back in five years.",
+        onInput: (e) => {
+          note = e.target.value;
+        }
+      })),
+      field("Date", h("input", { type: "date", value: date, onInput: (e) => {
+        date = e.target.value || today();
+      } })),
+      h("button", {
+        class: "btn primary block",
+        onClick: () => {
+          update((st) => {
+            const g = st.contexts.find((x) => x.id === ground.id);
+            g.stage = "built";
+            g.stakedAt = date;
+            g.stakeNote = note;
+            st.notes.push({
+              id: uid(),
+              date,
+              kind: "observation",
+              title: `Broke ground in ${ground.name}`,
+              body: note,
+              convictionIds: [],
+              contextIds: [ground.id],
+              source: "",
+              createdAt: (/* @__PURE__ */ new Date()).toISOString()
+            });
+          });
+          closeSheet(true);
+          toast("Stake in the ground");
+        }
+      }, "Break ground here"),
+      h("button", {
+        class: "btn ghost block",
+        style: "margin-top:10px",
+        onClick: () => {
+          update((st) => {
+            st.contexts.find((x) => x.id === ground.id).stage = "ruled-out";
+          });
+          closeSheet(true);
+          toast("Ruled out");
+        }
+      }, "Rule it out instead")
+    ));
+  }
+  function editNote(existing, defaults = {}) {
+    const state2 = get();
+    const n = existing || {
+      id: uid(),
+      date: today(),
+      title: "",
+      kind: "observation",
+      body: "",
+      source: "",
+      convictionIds: [],
+      contextIds: [],
+      ...defaults
+    };
+    const draft = { ...n, convictionIds: [...n.convictionIds || []], contextIds: [...n.contextIds || []] };
+    openSheet(existing ? "Edit entry" : "New entry", () => frag(
+      field("Date", h("input", { type: "date", value: draft.date, onInput: (e) => {
+        draft.date = e.target.value || today();
+      } })),
+      field("What kind?", segmented(NOTE_KINDS, draft.kind, (v) => {
+        draft.kind = v;
+      })),
+      field("Headline", input({ value: draft.title, placeholder: "The line you want to remember", onInput: (e) => {
+        draft.title = e.target.value;
+      } })),
+      field("The entry", area({ value: draft.body, style: "min-height:150px", onInput: (e) => {
+        draft.body = e.target.value;
+      } })),
+      field("Source", input({ value: draft.source, placeholder: "Passage, book, who said it", onInput: (e) => {
+        draft.source = e.target.value;
+      } })),
+      field("Requirements it touches", chipPicker(opts(state2.convictions), draft.convictionIds, (v) => {
+        draft.convictionIds = v;
+      })),
+      field("Ground", chipPicker(opts(state2.contexts), draft.contextIds, (v) => {
+        draft.contextIds = v;
+      })),
+      saveBar(() => {
+        if (!draft.title.trim() && !draft.body.trim()) return toast("Write something first");
+        update((s) => {
+          const i = s.notes.findIndex((x) => x.id === draft.id);
+          draft.seeded = false;
+          if (i < 0) s.notes.push({ ...draft, createdAt: (/* @__PURE__ */ new Date()).toISOString() });
+          else s.notes[i] = { ...s.notes[i], ...draft };
+        });
+        closeSheet();
+        toast("Logged");
+      }, existing ? () => confirmDelete("entry", (s) => {
+        s.notes = s.notes.filter((x) => x.id !== draft.id);
+      }) : null)
+    ));
+  }
+  function editPerson(existing) {
+    const p = existing || { id: uid(), name: "", stage: "conversation", nextStep: "", nextDue: "", lastMet: "", notes: "" };
+    const draft = { ...p };
+    openSheet(existing ? "Edit person" : "Someone I'm walking with", () => frag(
+      field("Name", input({ value: draft.name, onInput: (e) => {
+        draft.name = e.target.value;
+      } })),
+      field("Where they are", segmented(PEOPLE_STAGES, draft.stage, (v) => {
+        draft.stage = v;
+      })),
+      field("Next step", input({ value: draft.nextStep, onInput: (e) => {
+        draft.nextStep = e.target.value;
+      } })),
+      field("By when", h("input", { type: "date", value: draft.nextDue, onInput: (e) => {
+        draft.nextDue = e.target.value;
+      } })),
+      field("Last time we met", h("input", { type: "date", value: draft.lastMet, onInput: (e) => {
+        draft.lastMet = e.target.value;
+      } })),
+      field("Notes", area({ value: draft.notes, onInput: (e) => {
+        draft.notes = e.target.value;
+      } })),
+      saveBar(() => {
+        if (!draft.name.trim()) return toast("Name first");
+        update((s) => {
+          const i = s.people.findIndex((x) => x.id === draft.id);
+          if (i < 0) s.people.push({ ...draft, createdAt: (/* @__PURE__ */ new Date()).toISOString() });
+          else s.people[i] = { ...s.people[i], ...draft };
+        });
+        closeSheet();
+        toast("Saved");
+      }, existing ? () => confirmDelete("person", (s) => {
+        s.people = s.people.filter((x) => x.id !== draft.id);
+      }) : null)
+    ));
+  }
+
+  // js/views/settings.js
+  function download(name, text) {
+    const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
+    const a = h("a", { href: url, download: name });
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1e3);
+  }
+  function setPin() {
+    let pin = "";
+    let again = "";
+    openSheet("Set a PIN", () => frag(
+      h(
+        "p",
+        { class: "muted small" },
+        "Your entries get encrypted on this device with this PIN. Nothing is sent anywhere \u2014 which also means nobody can recover it for you. Export a backup before you turn this on."
+      ),
+      field("PIN", h("input", { type: "password", inputmode: "numeric", autocomplete: "new-password", onInput: (e) => {
+        pin = e.target.value;
+      } })),
+      field("Again", h("input", { type: "password", inputmode: "numeric", autocomplete: "new-password", onInput: (e) => {
+        again = e.target.value;
+      } })),
+      h("button", {
+        class: "btn primary block",
+        onClick: async () => {
+          if (pin.length < 4) return toast("At least 4 characters");
+          if (pin !== again) return toast("Those don't match");
+          await enableLock(pin);
+          closeSheet(true);
+          toast("Lock is on");
+        }
+      }, "Turn on the lock")
+    ));
+  }
+  function exportSheet() {
+    const json = exportJSON();
+    openSheet("Backup", () => frag(
+      h("p", { class: "muted small" }, "A plain-text copy of everything. Keep it somewhere you trust \u2014 it is not encrypted."),
+      h("button", {
+        class: "btn primary block",
+        onClick: () => download(`good-ground-${(/* @__PURE__ */ new Date()).toISOString().slice(0, 10)}.json`, json)
+      }, "Download file"),
+      h("button", {
+        class: "btn block",
+        style: "margin-top:10px",
+        onClick: async () => {
+          try {
+            await navigator.clipboard.writeText(json);
+            toast("Copied");
+          } catch {
+            toast("Copy failed \u2014 use the text below");
+          }
+        }
+      }, "Copy to clipboard"),
+      h("div", { style: "margin-top:14px" }, area({ value: json, readonly: true, style: "min-height:160px; font-size:.75rem" }))
+    ));
+  }
+  function importSheet() {
+    let text = "";
+    const load = (t) => {
+      text = t;
+      toast("Loaded \u2014 now pick how to apply it");
+    };
+    openSheet("Restore", () => frag(
+      h("p", { class: "muted small" }, `Bring a backup back in. "Merge" keeps what's here and adds anything missing.`),
+      h("input", {
+        type: "file",
+        accept: "application/json,.json",
+        onChange: (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = () => load(String(reader.result));
+          reader.readAsText(file);
+        }
+      }),
+      h(
+        "div",
+        { style: "margin-top:12px" },
+        field("\u2026or paste it", area({ placeholder: '{ "version": 1, \u2026 }', onInput: (e) => {
+          text = e.target.value;
+        } }))
+      ),
+      h(
+        "div",
+        { class: "stack" },
+        h("button", {
+          class: "btn primary block",
+          onClick: () => apply(true)
+        }, "Merge into what I have"),
+        h("button", { class: "btn danger block", onClick: () => apply(false) }, "Replace everything")
+      )
+    ));
+    async function apply(merge) {
+      if (!text.trim()) return toast("Nothing to restore");
+      if (!merge) {
+        const ok = await confirmSheet({
+          title: "Replace everything?",
+          message: "Your current entries on this device will be gone.",
+          confirmLabel: "Replace",
+          danger: true
+        });
+        if (!ok) return;
+      }
+      try {
+        importJSON(text, { merge });
+        closeSheet(true);
+        toast(merge ? "Merged" : "Restored");
+      } catch {
+        toast("That file didn't parse");
+      }
+    }
+  }
+  function openSettings() {
+    const build = () => {
+      const state2 = get();
+      const locked = isEncrypted();
+      return frag(
+        field("What should this call you?", input({
+          value: state2.settings.name || "",
+          placeholder: "Optional",
+          onInput: (e) => update((s) => {
+            s.settings.name = e.target.value;
+          })
+        })),
+        section("Privacy"),
+        h(
+          "div",
+          { class: "card" },
+          h(
+            "p",
+            { class: "small muted", style: "margin-bottom:12px" },
+            locked ? "Your data is encrypted on this device and unlocks with your PIN." : "Right now anyone holding this device can open it."
+          ),
+          locked ? frag(
+            field("Lock again after", h("select", {
+              onChange: (e) => update((s) => {
+                s.settings.autoLockMinutes = Number(e.target.value);
+              })
+            }, [0, 1, 5, 15, 60].map((m) => h("option", {
+              value: m,
+              selected: Number(state2.settings.autoLockMinutes) === m
+            }, m === 0 ? "Never" : `${m} minute${m === 1 ? "" : "s"} idle`)))),
+            h("button", {
+              class: "btn ghost danger block",
+              onClick: async () => {
+                const ok = await confirmSheet({
+                  title: "Turn the lock off?",
+                  message: "Your entries go back to plain storage on this device.",
+                  confirmLabel: "Turn it off",
+                  danger: true
+                });
+                if (!ok) return;
+                await disableLock();
+                closeSheet(true);
+                toast("Lock is off");
+              }
+            }, "Turn off the PIN lock")
+          ) : h("button", { class: "btn primary block", onClick: setPin }, "Set a PIN")
+        ),
+        section("Areas of life"),
+        h(
+          "div",
+          { class: "card" },
+          h(
+            "p",
+            { class: "small muted", style: "margin-bottom:12px" },
+            "Each area is measured on its own, so strong ground in one place can't hide thin soil somewhere else."
+          ),
+          h(
+            "div",
+            { class: "stack" },
+            state2.domains.map((d) => {
+              const row = h(
+                "button",
+                { class: "card-tap row spread", onClick: () => editDomain(d) },
+                h("span", { class: "row", style: "gap:8px" }, h("span", { class: "dot" }), h("span", {}, d.label)),
+                h(
+                  "span",
+                  { class: "small muted" },
+                  `${state2.convictions.filter((c) => c.domainId === d.id).length}`
+                )
+              );
+              row.querySelector(".dot").style.color = d.color;
+              return row;
+            }),
+            h("button", { class: "btn sm", onClick: () => editDomain() }, "Add an area")
+          )
+        ),
+        section("Your data"),
+        h(
+          "div",
+          { class: "card stack" },
+          h("button", { class: "btn block", onClick: exportSheet }, "Back up"),
+          h("button", { class: "btn block", onClick: importSheet }, "Restore from a backup"),
+          state2.seeded ? h("button", {
+            class: "btn ghost block",
+            onClick: async () => {
+              const ok = await confirmSheet({
+                title: "Clear the starter content?",
+                message: "Removes only the examples that came pre-filled. Anything you edited or wrote yourself stays.",
+                confirmLabel: "Clear it"
+              });
+              if (!ok) return;
+              update((s) => {
+                for (const list of ["convictions", "contexts", "notes", "blocks"]) {
+                  s[list] = s[list].filter((r) => !r.seeded);
+                }
+                s.checks = s.checks.filter((k) => s.contexts.some((c) => c.id === k.contextId));
+                s.seeded = false;
+              });
+              closeSheet(true);
+              toast("Starter content cleared");
+            }
+          }, "Clear the starter content") : null,
+          h("button", {
+            class: "btn danger block",
+            onClick: async () => {
+              const ok = await confirmSheet({
+                title: "Erase everything?",
+                message: "Every conviction, check, entry and follow-up on this device. There is no undo.",
+                confirmLabel: "Erase it all",
+                danger: true
+              });
+              if (!ok) return;
+              wipe();
+              location.reload();
+            }
+          }, "Erase everything")
+        ),
+        section("About"),
+        h(
+          "p",
+          { class: "small muted" },
+          "Good Ground keeps everything in this browser's local storage on this device. There is no account, no sync and no server \u2014 the app never makes a network request. That also means a backup is the only copy that survives clearing your browser data."
+        ),
+        h(
+          "p",
+          { class: "small muted" },
+          "To install: open this page in Safari or Chrome, then Share \u2192 Add to Home Screen (iOS), or the install icon in the address bar (desktop / Android)."
+        )
+      );
+    };
+    openSheet("Settings", build);
+  }
+
+  // js/views/target.js
+  var target_exports = {};
+  __export(target_exports, {
+    render: () => render2,
+    title: () => title2
+  });
+
+  // js/views/parts.js
+  var NS = "http://www.w3.org/2000/svg";
+  var el = (tag, attrs) => {
+    const n = document.createElementNS(NS, tag);
+    Object.entries(attrs).forEach(([k, v]) => n.setAttribute(k, v));
+    return n;
+  };
+  var GROUND_Y = 58;
+  var MAX_DEPTH = 104;
+  var ENOUGH = 0.8;
+  function plot(depth, { staked = false, label = "" } = {}) {
+    const svg = el("svg", {
+      class: "plot",
+      viewBox: "0 0 320 176",
+      role: "img",
+      "aria-label": `${Math.round(depth * 100)} per cent rooted${staked ? ", built on" : ""}`
+    });
+    svg.append(el("rect", { x: 0, y: GROUND_Y, width: 320, height: 118, fill: "var(--sunk)", rx: 6 }));
+    for (let i = 0; i < 7; i++) {
+      svg.append(el("line", {
+        x1: 14 + i * 46,
+        y1: GROUND_Y + 16 + i % 3 * 22,
+        x2: 44 + i * 46,
+        y2: GROUND_Y + 16 + i % 3 * 22,
+        stroke: "var(--line)",
+        "stroke-width": 2,
+        "stroke-linecap": "round"
+      }));
+    }
+    const enoughY = GROUND_Y + MAX_DEPTH * ENOUGH;
+    svg.append(el("line", {
+      x1: 8,
+      y1: enoughY,
+      x2: 312,
+      y2: enoughY,
+      stroke: "var(--muted)",
+      "stroke-width": 1,
+      "stroke-dasharray": "3 5",
+      opacity: 0.55
+    }));
+    const cap = el("text", {
+      x: 312,
+      y: enoughY - 6,
+      "text-anchor": "end",
+      fill: "var(--muted)",
+      "font-size": 10,
+      "letter-spacing": 0.5
+    });
+    cap.textContent = "deep enough to stay";
+    svg.append(cap);
+    svg.append(el("rect", { x: 6, y: GROUND_Y - 4, width: 308, height: 8, rx: 4, fill: "var(--soil)" }));
+    const d = Math.max(0.04, Math.min(1, depth));
+    const strands = [
+      { x: 160, len: 1, w: 7 },
+      { x: 96, len: 0.78, w: 4.5 },
+      { x: 224, len: 0.78, w: 4.5 },
+      { x: 54, len: 0.5, w: 2.6 },
+      { x: 266, len: 0.5, w: 2.6 }
+    ];
+    strands.forEach((s) => {
+      const end = GROUND_Y + MAX_DEPTH * d * s.len;
+      const midY = (GROUND_Y + end) / 2;
+      const bend = (s.x - 160) * 0.25;
+      svg.append(el("path", {
+        d: `M160 ${GROUND_Y} Q ${160 + bend} ${midY} ${s.x} ${end}`,
+        fill: "none",
+        stroke: "var(--soil)",
+        "stroke-width": s.w,
+        "stroke-linecap": "round",
+        opacity: 0.92
+      }));
+    });
+    if (staked) {
+      svg.append(el("path", { d: "M160 8 L196 34 L196 58 L124 58 L124 34 Z", fill: "var(--moss)" }));
+      svg.append(el("rect", { x: 152, y: 40, width: 16, height: 18, fill: "var(--paper)" }));
+    } else {
+      const grow = 0.4 + d * 0.6;
+      const trunkTop = GROUND_Y - 22 - 20 * grow;
+      svg.append(el("path", {
+        d: `M160 ${GROUND_Y} L160 ${trunkTop}`,
+        stroke: "var(--moss)",
+        "stroke-width": 6,
+        "stroke-linecap": "round",
+        fill: "none"
+      }));
+      [-1, 1].forEach((side) => {
+        svg.append(el("path", {
+          d: `M160 ${trunkTop + 16} q ${side * 12} -4 ${side * 20} -14`,
+          stroke: "var(--moss)",
+          "stroke-width": 4,
+          "stroke-linecap": "round",
+          fill: "none"
+        }));
+        svg.append(el("circle", { cx: 160 + side * (20 + 4 * grow), cy: trunkTop + 2 - 2 * grow, r: 8 + 4 * grow, fill: "var(--moss)" }));
+      });
+      svg.append(el("circle", { cx: 160, cy: trunkTop - 4, r: 11 + 7 * grow, fill: "var(--moss)" }));
+    }
+    if (!label) return svg;
+    return h("figure", { style: "margin:0" }, svg, h("figcaption", { class: "tiny muted center", style: "margin-top:6px" }, label));
+  }
+  function areaBars(s) {
+    const wrap = h("div", { class: "areas" });
+    s.byArea.forEach((a) => {
+      const pct = a.rated ? Math.round(a.fit * 100) : null;
+      const row = h(
+        "div",
+        { class: "area-row" },
+        h(
+          "div",
+          { class: "row spread" },
+          h(
+            "span",
+            { class: "row", style: "gap:7px" },
+            h("span", { class: "dot" }),
+            h("span", { class: "small" }, a.domain.label)
+          ),
+          h("span", { class: "tiny muted tnum" }, pct === null ? "unsurveyed" : `${pct}%`)
+        ),
+        h("div", { class: "bar" }, h("i", { style: `width:${pct ?? 0}%` }))
+      );
+      row.querySelector(".dot").style.color = a.domain.color;
+      const fill = row.querySelector(".bar > i");
+      fill.style.background = a.domain.color;
+      if (!a.rated) fill.style.opacity = ".2";
+      wrap.append(row);
+    });
+    return wrap;
+  }
+  function usLine(check) {
+    const level = byId(US_LEVELS, check?.us?.level) || byId(US_LEVELS, "na");
+    return h(
+      "div",
+      { class: "row spread" },
+      h("span", { class: "small muted" }, "Where the two of us land"),
+      h("span", { class: `small tone-${level.tone}` }, level.label)
+    );
+  }
+
+  // js/views/land.js
+  var land_exports = {};
+  __export(land_exports, {
+    openGround: () => openGround,
+    render: () => render,
+    title: () => title
+  });
+  function compareTable(state2, rows) {
+    const table = h("table", { class: "grid" });
+    const head = h("tr", {}, h("th", {}, "Ground"));
+    state2.domains.forEach((d) => {
+      const th = h("th", { class: "tnum" }, d.short || d.label);
+      th.style.color = d.color;
+      head.append(th);
+    });
+    head.append(h("th", { class: "tnum" }, "Rooted"));
+    table.append(h("thead", {}, head));
+    const body = h("tbody", {});
+    rows.forEach(({ ground, s }) => {
+      const tr = h("tr", {}, h("th", { scope: "row" }, ground.name));
+      state2.domains.forEach((d) => {
+        const cell = s.byArea.find((x) => x.domain.id === d.id);
+        const td = h("td", { class: "tnum" }, cell?.rated ? `${Math.round(cell.fit * 100)}` : "\u2013");
+        if (cell?.rated) {
+          td.style.background = `color-mix(in srgb, ${d.color} ${Math.round(cell.fit * 42)}%, transparent)`;
+          if (cell.missingMusts.length) td.classList.add("cell-alert");
+        }
+        tr.append(td);
+      });
+      tr.append(h("td", { class: "tnum strong" }, `${Math.round(s.depth * 100)}`));
+      body.append(tr);
+    });
+    table.append(body);
+    return h("div", { class: "scroll-x" }, table);
+  }
+  function openGround(id) {
+    const build = () => {
+      const state2 = get();
+      const ground = state2.contexts.find((c) => c.id === id);
+      if (!ground) return h("p", { class: "muted" }, "Gone.");
+      const s = survey(state2, ground);
+      const checks = state2.checks.filter((k) => k.contextId === id).sort((a, b) => a.date < b.date ? 1 : -1);
+      const place = impliedPlace(state2.contexts, ground);
+      const brings = state2.contexts.filter((c) => c.placeId === id);
+      const notes = state2.notes.filter((n) => (n.contextIds || []).includes(id)).sort((a, b) => a.date < b.date ? 1 : -1);
+      return frag(
+        h(
+          "div",
+          { class: "row wrap", style: "margin-bottom:12px" },
+          h("span", { class: "chip" }, byId(KINDS, ground.kind)?.label || ""),
+          h("span", { class: "chip" }, byId(STAGES, s.stage)?.label || ""),
+          h("button", { class: "chip", onClick: () => editGround(ground) }, "Edit")
+        ),
+        ground.kind === "place" ? plot(s.depth, { staked: ground.stage === "built" }) : null,
+        h("p", { class: "verdict" }, verdict(s)),
+        ground.notes ? h("p", { class: "small muted" }, ground.notes) : null,
+        ground.kind !== "place" ? h(
+          "div",
+          { class: "card" },
+          h("div", { class: "eyebrow" }, "If we said yes, we'd live in"),
+          place ? h(
+            "div",
+            { class: "row spread", style: "margin-top:4px" },
+            h("strong", {}, place.name),
+            h("button", { class: "icon-btn", onClick: () => openGround(place.id) }, "Open")
+          ) : frag(
+            h("strong", { class: "tone-thin" }, "Not answered yet"),
+            h("p", { class: "small muted", style: "margin:6px 0 10px" }, "Until you know where it puts you, you can't weigh it."),
+            h("button", { class: "btn sm", onClick: () => editGround(ground) }, "Answer it")
+          )
+        ) : null,
+        h(
+          "div",
+          { class: "stack", style: "margin:16px 0" },
+          h(
+            "button",
+            { class: "btn primary block", onClick: () => walkTheLand(id, s.check) },
+            s.check ? "Walk it again" : "Walk the land"
+          ),
+          ground.stage !== "built" && ground.kind === "place" ? h("button", { class: "btn block", onClick: () => breakGround(ground) }, "Decide on this ground") : null
+        ),
+        s.check ? frag(
+          section("The soil"),
+          areaBars(s),
+          h(
+            "div",
+            { class: "card", style: "margin-top:14px" },
+            h(
+              "div",
+              { class: "row spread" },
+              h("span", { class: "small muted" }, "Could we still be here in ten years?"),
+              h("span", { class: "small" }, (byId(HORIZONS, ground.horizon) || HORIZONS[0]).label)
+            ),
+            h("div", { style: "margin-top:8px" }, usLine(s.check))
+          ),
+          s.check.summary ? h("p", { class: "small muted", style: "font-style:italic; margin-top:12px" }, `"${s.check.summary}"`) : null
+        ) : null,
+        s.thin.length ? frag(
+          section("Thin soil"),
+          h("div", { class: "rows" }, s.thin.map((t) => h(
+            "div",
+            {},
+            h(
+              "div",
+              { class: "row spread" },
+              h("strong", {}, t.req.title),
+              h("span", { class: `small tone-${t.level.score === 0 ? "bad" : "thin"}` }, t.level.label)
+            ),
+            t.rating?.note ? h("div", { class: "tiny muted" }, t.rating.note) : null,
+            h("button", {
+              class: "icon-btn",
+              style: "margin-top:8px",
+              onClick: () => editBlock(null, { groundId: id, title: `${t.req.title} \u2014 ${ground.name}` })
+            }, "Put it in the way")
+          )))
+        ) : null,
+        s.blocks.length ? frag(
+          section("In the way"),
+          h("div", { class: "rows" }, s.blocks.map((b) => h(
+            "button",
+            { class: "card-tap", onClick: () => editBlock(b) },
+            h("div", {}, b.title),
+            h("div", { class: "tiny muted" }, [b.who, b.due ? relDate(b.due, today()) : null].filter(Boolean).join(" \xB7 "))
+          )))
+        ) : null,
+        brings.length ? frag(
+          section("What would put us here"),
+          h("div", { class: "rows" }, brings.map((b) => h(
+            "button",
+            { class: "card-tap", onClick: () => openGround(b.id) },
+            h(
+              "div",
+              { class: "row spread" },
+              h("strong", {}, b.name),
+              h("span", { class: "tiny muted" }, byId(KINDS, b.kind)?.label || "")
+            )
+          )))
+        ) : null,
+        checks.length > 1 ? frag(
+          section("Every time I walked it"),
+          h("div", { class: "rows" }, checks.map((k) => h(
+            "button",
+            { class: "card-tap", onClick: () => walkTheLand(id, k) },
+            h(
+              "div",
+              { class: "row spread" },
+              h("strong", {}, fmtDate(k.date)),
+              h("span", { class: "tiny muted" }, k.summary ? "" : "no note")
+            ),
+            k.summary ? h("div", { class: "tiny muted truncate" }, k.summary) : null
+          )))
+        ) : null,
+        frag(
+          section("Journal", "Add", () => editNote(null, { contextIds: [id] })),
+          notes.length ? h("div", { class: "rows" }, notes.slice(0, 8).map((n) => h(
+            "div",
+            {},
+            h("div", { class: "tiny muted" }, relDate(n.date, today())),
+            h("div", { class: "small" }, n.title || n.body.slice(0, 80))
+          ))) : h("p", { class: "small muted" }, "Nothing written about this one yet.")
+        )
+      );
+    };
+    openSheet(() => get().contexts.find((c) => c.id === id)?.name || "Ground", build);
+  }
+  function groundRow(state2, ground, s) {
+    const hz = byId(HORIZONS, ground.horizon) || HORIZONS[0];
+    const brings = state2.contexts.filter((c) => c.placeId === ground.id);
+    return h(
+      "button",
+      { class: "card card-tap", onClick: () => openGround(ground.id) },
+      h(
+        "div",
+        { class: "row spread" },
+        h(
+          "div",
+          { class: "grow" },
+          h("strong", {}, ground.name),
+          h(
+            "div",
+            { class: "tiny muted" },
+            [byId(STAGES, s.stage)?.label, hz.label].filter(Boolean).join(" \xB7 ")
+          )
+        ),
+        h(
+          "div",
+          { style: "text-align:right" },
+          h("div", { class: "tnum", style: "font-weight:600" }, `${Math.round(s.depth * 100)}%`),
+          h("div", { class: "tiny muted" }, "rooted")
+        )
+      ),
+      h(
+        "div",
+        { class: "bar", style: "margin-top:10px" },
+        h("i", { style: `width:${Math.round(s.depth * 100)}%; background: var(--soil)` })
+      ),
+      h("div", { class: "small muted", style: "margin-top:10px" }, verdict(s)),
+      brings.length ? h("div", { class: "tiny muted", style: "margin-top:6px" }, `Would put us here: ${brings.map((b) => b.name).join(", ")}`) : null
+    );
+  }
+  function render(state2) {
+    const view2 = h("div", {});
+    view2.append(
+      h("h1", {}, "The land"),
+      h("p", { class: "muted small" }, "Every piece of ground you're weighing, and how deep you could root in each.")
+    );
+    const ranked = rankGrounds(state2);
+    view2.append(section("Places", "Add", () => editGround(null, { kind: "place" })));
+    if (!ranked.length) {
+      view2.append(empty("No land yet. Start with where you are.", "Add a place", () => editGround(null, { kind: "place" })));
+    } else {
+      ranked.forEach(({ ground, s }) => view2.append(groundRow(state2, ground, s)));
+    }
+    const surveyed = ranked.filter((r) => r.s.check);
+    if (surveyed.length > 1) {
+      view2.append(section("Side by side"));
+      view2.append(h(
+        "div",
+        { class: "card" },
+        compareTable(state2, surveyed),
+        h("p", { class: "tiny muted", style: "margin:10px 0 0" }, "Per cent of each area the ground actually holds. Last column is how deep you could root.")
+      ));
+    }
+    const others = state2.contexts.filter((c) => c.kind !== "place");
+    if (others.length) {
+      view2.append(section("Offers, churches, roles", "Add", () => editGround(null, { kind: "opportunity" })));
+      const rows = h("div", { class: "rows" });
+      others.forEach((c) => {
+        const place = impliedPlace(state2.contexts, c);
+        rows.append(h(
+          "button",
+          { class: "card-tap", onClick: () => openGround(c.id) },
+          h(
+            "div",
+            { class: "row spread" },
+            h("strong", {}, c.name),
+            h("span", { class: "tiny muted" }, byId(KINDS, c.kind)?.label || "")
+          ),
+          h(
+            "div",
+            { class: `tiny ${place ? "muted" : "tone-thin"}` },
+            place ? `Would put us in ${place.name}` : "No ground attached yet"
+          )
+        ));
+      });
+      view2.append(rows);
+    } else {
+      view2.append(section("Offers, churches, roles", "Add", () => editGround(null, { kind: "opportunity" })));
+      view2.append(h("p", { class: "small muted" }, "Anything that would move you goes here, tied to the ground it would put you on."));
+    }
+    return view2;
+  }
+  var title = "The land";
+
+  // js/views/target.js
+  var focusId = null;
+  function pick(state2) {
+    const ranked = rankGrounds(state2);
+    if (focusId) {
+      const found = ranked.find((r) => r.ground.id === focusId);
+      if (found) return found;
+    }
+    return ranked.find((r) => r.ground.stage === "built") || ranked[0] || null;
+  }
+  function render2(state2) {
+    const view2 = h("div", {});
+    const target = pick(state2);
+    if (!target) {
+      view2.append(
+        h("h1", {}, "Where is the land?"),
+        h(
+          "p",
+          { class: "muted" },
+          "Put down the first place you'd actually consider building on \u2014 where you are now counts."
+        ),
+        empty("No ground yet.", "Add a place", () => editGround(null, { kind: "place" }))
+      );
+      return view2;
+    }
+    const { ground, s } = target;
+    const staked = ground.stage === "built";
+    view2.append(h(
+      "div",
+      { class: "row spread", style: "align-items:flex-end" },
+      h(
+        "div",
+        {},
+        h("div", { class: "eyebrow" }, staked ? "Building here" : "The ground in front of me"),
+        h("h1", { style: "margin:2px 0 0" }, ground.name)
+      ),
+      h("button", { class: "icon-btn", onClick: () => openGround(ground.id) }, "Open")
+    ));
+    view2.append(h(
+      "div",
+      { style: "margin:14px 0 10px" },
+      plot(s.depth, { staked, label: staked ? `Stake in the ground ${relDate(ground.stakedAt || today(), today()).toLowerCase()}` : `${Math.round(s.depth * 100)}% rooted \xB7 ${Math.round(s.surveyed * 100)}% of the land walked` })
+    ));
+    view2.append(h("p", { class: "verdict" }, verdict(s)));
+    if (staked && ground.stakeNote) {
+      view2.append(h("p", { class: "small muted", style: "font-style:italic" }, `"${ground.stakeNote}"`));
+    }
+    if (!staked && ground.stage !== "ruled-out") {
+      view2.append(h(
+        "div",
+        { class: "stack", style: "margin:16px 0 4px" },
+        s.check ? h(
+          "button",
+          { class: "btn primary block", onClick: () => breakGround(ground) },
+          s.inTheWay.length ? "I'm ready to build here" : "Break ground here"
+        ) : h("button", { class: "btn primary block", onClick: () => walkTheLand(ground.id) }, "Walk the land"),
+        h("button", { class: "btn ghost block", onClick: () => captureHesitation(ground) }, "Not yet \u2014 here's why")
+      ));
+    }
+    if (!staked) {
+      view2.append(section("Between me and yes", s.inTheWay.length ? "All" : "Add", () => s.inTheWay.length ? go("unsettled") : editBlock(null, { groundId: ground.id })));
+      if (!s.inTheWay.length) {
+        view2.append(h(
+          "p",
+          { class: "muted small" },
+          s.check ? "Nothing. You have your answer \u2014 the rest is nerve." : "Walk the land first and this list fills itself in."
+        ));
+      } else {
+        const rows = h("div", { class: "rows" });
+        s.inTheWay.slice(0, 6).forEach((item) => {
+          if (item.kind === "block") {
+            const b = item.block;
+            rows.append(h(
+              "div",
+              { class: "check" },
+              h("input", {
+                type: "checkbox",
+                onChange: () => {
+                  update((st) => {
+                    const t = st.blocks.find((x) => x.id === b.id);
+                    t.status = "settled";
+                    t.settledAt = today();
+                  });
+                  toast("Settled");
+                }
+              }),
+              h(
+                "button",
+                { class: "card-tap grow", onClick: () => editBlock(b) },
+                h("div", {}, b.title),
+                h(
+                  "div",
+                  { class: "tiny muted" },
+                  [b.hard ? "Can't decide without it" : null, b.who, b.due ? relDate(b.due, today()) : null].filter(Boolean).join(" \xB7 ") || "No plan to settle it yet"
+                )
+              )
+            ));
+          } else {
+            rows.append(h(
+              "button",
+              { class: "card-tap", onClick: () => walkTheLand(ground.id, s.check) },
+              h(
+                "div",
+                { class: "row spread" },
+                h("span", { class: "grow" }, item.label),
+                h("span", { class: "tiny muted" }, "unsurveyed")
+              )
+            ));
+          }
+        });
+        view2.append(rows);
+      }
+    }
+    view2.append(section("The soil", s.check ? "Walk it again" : "Walk the land", () => walkTheLand(ground.id, s.check)));
+    if (!s.check) {
+      view2.append(h("p", { class: "muted small" }, "Nothing surveyed yet. An hour with this list is worth a month of wondering."));
+    } else {
+      view2.append(areaBars(s));
+      view2.append(h("div", { class: "card", style: "margin-top:14px" }, usLine(s.check)));
+      if (s.missingMusts.length) {
+        view2.append(h(
+          "div",
+          { class: "card", style: "margin-top:12px" },
+          h("strong", { class: "tone-bad" }, "Missing must-haves"),
+          h("div", { class: "rows" }, s.missingMusts.map((m) => h(
+            "div",
+            {},
+            h("div", {}, m.req.title),
+            m.rating?.note ? h("div", { class: "tiny muted" }, m.rating.note) : null
+          )))
+        ));
+      }
+    }
+    const others = rankGrounds(state2).filter((r) => r.ground.id !== ground.id);
+    if (others.length) {
+      view2.append(section("Other ground", "Compare", () => go("land")));
+      const rows = h("div", { class: "rows" });
+      others.forEach(({ ground: g, s: gs }) => {
+        const hz = byId(HORIZONS, g.horizon) || HORIZONS[0];
+        rows.append(h(
+          "button",
+          {
+            class: "card-tap",
+            onClick: () => {
+              focusId = g.id;
+              go("target");
+            }
+          },
+          h(
+            "div",
+            { class: "row spread" },
+            h("strong", {}, g.name),
+            h("span", { class: "tiny muted tnum" }, `${Math.round(gs.depth * 100)}% rooted`)
+          ),
+          h("div", { class: "tiny muted" }, [hz.label, gs.inTheWay.length ? `${gs.inTheWay.length} in the way` : "nothing in the way"].join(" \xB7 "))
+        ));
+      });
+      view2.append(rows);
+    }
+    const hesitations = state2.notes.filter((n) => n.kind === "hesitation").sort((a, b) => a.date < b.date ? 1 : -1);
+    if (hesitations.length) {
+      view2.append(section("Why I keep not deciding", "All", () => go("journal")));
+      const rows = h("div", { class: "rows" });
+      hesitations.slice(0, 3).forEach((n) => rows.append(h(
+        "button",
+        { class: "card-tap", onClick: () => editNote(n) },
+        h("div", { class: "tiny muted" }, relDate(n.date, today())),
+        h("div", { class: "small" }, n.body.slice(0, 120))
+      )));
+      view2.append(rows);
+      if (hesitations.length > 2) {
+        view2.append(h(
+          "p",
+          { class: "tiny muted", style: "margin-top:10px" },
+          `You've written this down ${hesitations.length} times. If it's the same reason each time, that's not hesitation \u2014 that's an answer.`
+        ));
+      }
+    }
+    return view2;
+  }
+  var title2 = "Good Ground";
+
+  // js/views/soil.js
+  var soil_exports = {};
+  __export(soil_exports, {
+    openRequirement: () => openRequirement,
+    render: () => render3,
+    title: () => title3
+  });
+  function openRequirement(id) {
+    const build = () => {
+      const state2 = get();
+      const c = state2.convictions.find((x) => x.id === id);
+      if (!c) return h("p", { class: "muted" }, "Gone.");
+      const domain = state2.domains.find((d) => d.id === c.domainId);
+      const across = state2.contexts.map((g) => {
+        const check = latestCheck(state2.checks, g.id);
+        const rating = check?.ratings?.[id];
+        return rating && rating.level !== "unknown" ? { g, level: levelOf(rating.level), note: rating.note } : null;
+      }).filter(Boolean);
+      const notes = state2.notes.filter((n) => (n.convictionIds || []).includes(id)).sort((a, b) => a.date < b.date ? 1 : -1);
+      const chip = h("span", { class: "chip" }, domain?.label || "");
+      if (domain) chip.style.color = domain.color;
+      return frag(
+        h(
+          "div",
+          { class: "row wrap", style: "margin-bottom:12px" },
+          chip,
+          h("span", { class: "chip on" }, byId(WEIGHTS, c.weight)?.label || ""),
+          h("button", { class: "chip", onClick: () => editRequirement(c) }, "Edit"),
+          h("button", { class: "chip", onClick: () => editNote(null, { convictionIds: [id] }) }, "Write about it")
+        ),
+        c.summary ? h("p", {}, c.summary) : null,
+        c.scriptures ? h("p", { class: "small", style: "color:var(--moss)" }, c.scriptures) : null,
+        c.practice ? h("div", { class: "card" }, h("div", { class: "eyebrow" }, "How I'd know"), h("div", {}, c.practice)) : null,
+        c.forming ? h("div", { class: "card" }, h("div", { class: "eyebrow" }, "Still working out"), h("div", {}, c.forming)) : null,
+        across.length ? frag(
+          section("Where it holds"),
+          h("div", { class: "rows" }, across.map((a) => h(
+            "div",
+            {},
+            h(
+              "div",
+              { class: "row spread" },
+              h("strong", {}, a.g.name),
+              h("span", { class: `small tone-${a.level.score === null ? "unknown" : a.level.score >= 0.7 ? "good" : a.level.score > 0 ? "thin" : "bad"}` }, a.level.label)
+            ),
+            a.note ? h("div", { class: "tiny muted" }, a.note) : null
+          )))
+        ) : null,
+        notes.length ? frag(
+          section("Journal"),
+          h("div", { class: "rows" }, notes.slice(0, 8).map((n) => h(
+            "div",
+            {},
+            h("div", { class: "tiny muted" }, relDate(n.date, today())),
+            h("div", { class: "small" }, n.title || n.body.slice(0, 80))
+          )))
+        ) : null
+      );
+    };
+    openSheet(() => get().convictions.find((x) => x.id === id)?.title || "Requirement", build);
+  }
+  var ORDER = WEIGHTS.map((w) => w.id);
+  function render3(state2) {
+    const view2 = h("div", {});
+    view2.append(
+      h("h1", {}, "What the soil needs"),
+      h("p", { class: "muted small" }, "The things that have to be true of a place before you'd build on it. Weight them honestly \u2014 this is what every survey is scored against.")
+    );
+    if (!state2.convictions.length) {
+      view2.append(empty("Nothing yet. Start with the one thing you wouldn't build without.", "Add a requirement", () => editRequirement()));
+      return view2;
+    }
+    state2.domains.forEach((domain) => {
+      const group = state2.convictions.filter((c) => c.domainId === domain.id).sort((a, b) => ORDER.indexOf(a.weight) - ORDER.indexOf(b.weight));
+      const head = h(
+        "div",
+        { class: "section" },
+        h("h2", {}, domain.label),
+        h("button", { class: "icon-btn", onClick: () => editRequirement(null, { domainId: domain.id }) }, "Add")
+      );
+      head.style.borderBottomColor = domain.color;
+      view2.append(head);
+      if (domain.blurb) view2.append(h("p", { class: "tiny muted" }, domain.blurb));
+      if (!group.length) {
+        view2.append(h("p", { class: "small muted" }, "Nothing here yet."));
+        return;
+      }
+      const rows = h("div", { class: "rows" });
+      group.forEach((c) => rows.append(h(
+        "button",
+        { class: "card-tap", onClick: () => openRequirement(c.id) },
+        h(
+          "div",
+          { class: "row spread" },
+          h("strong", { class: "grow" }, c.title),
+          h("span", { class: "eyebrow" }, byId(WEIGHTS, c.weight)?.label || "")
+        ),
+        c.summary ? h("div", { class: "small muted" }, c.summary) : null,
+        c.forming ? h("div", { class: "tiny muted", style: "margin-top:4px" }, "still working this one out") : null
+      )));
+      view2.append(rows);
+    });
+    view2.append(h(
+      "div",
+      { class: "stack", style: "margin-top:24px" },
+      h("button", { class: "btn block", onClick: () => editRequirement() }, "Add a requirement"),
+      h("button", { class: "btn ghost block", onClick: () => editDomain() }, "Add an area of life")
+    ));
+    return view2;
+  }
+  var title3 = "The soil";
+
+  // js/views/unsettled.js
+  var unsettled_exports = {};
+  __export(unsettled_exports, {
+    render: () => render4,
+    title: () => title4
+  });
+  function blockRow(state2, b) {
+    const ground = state2.contexts.find((g) => g.id === b.groundId);
+    const overdue = b.due && b.status === "open" && b.due <= today();
+    return h(
+      "div",
+      { class: "check" },
+      h("input", {
+        type: "checkbox",
+        checked: b.status === "settled",
+        onChange: (e) => {
+          const settled = e.target.checked;
+          update((s) => {
+            const t = s.blocks.find((x) => x.id === b.id);
+            t.status = settled ? "settled" : "open";
+            t.settledAt = settled ? today() : "";
+          });
+          toast(settled ? "Settled" : "Back in the way");
+        }
+      }),
+      h(
+        "button",
+        { class: "card-tap grow", onClick: () => editBlock(b) },
+        h(
+          "div",
+          { style: b.status === "settled" ? "opacity:.55" : "" },
+          b.hard ? h("span", { class: "tone-bad" }, "\u25CF ") : null,
+          b.title
+        ),
+        h(
+          "div",
+          { class: `tiny ${overdue ? "tone-thin" : "muted"}` },
+          [ground ? ground.name : "Everywhere", b.who, b.due ? relDate(b.due, today()) : null].filter(Boolean).join(" \xB7 ")
+        ),
+        b.wouldSettle ? h("div", { class: "tiny muted" }, `Settled by: ${b.wouldSettle}`) : null
+      )
+    );
+  }
+  function render4(state2) {
+    const view2 = h("div", {});
+    const open2 = state2.blocks.filter((b) => b.status === "open");
+    const settled = state2.blocks.filter((b) => b.status === "settled").sort((a, b) => (a.settledAt || "") < (b.settledAt || "") ? 1 : -1);
+    view2.append(
+      h("h1", {}, "In the way"),
+      h(
+        "p",
+        { class: "muted small" },
+        open2.length ? "Name it, say what would settle it, and it stops being a feeling." : "Nothing named. Either the road is clear, or you haven't said the quiet part yet."
+      )
+    );
+    const hard = open2.filter((b) => b.hard);
+    const soft = open2.filter((b) => !b.hard);
+    if (hard.length) {
+      view2.append(section("Can't decide without these"));
+      view2.append(h("div", { class: "rows" }, hard.map((b) => blockRow(state2, b))));
+    }
+    if (soft.length) {
+      view2.append(section("Would like to know"));
+      view2.append(h("div", { class: "rows" }, soft.map((b) => blockRow(state2, b))));
+    }
+    const gaps = state2.contexts.filter((g) => g.kind === "place" && g.stage !== "ruled-out").map((g) => ({ g, s: survey(state2, g) })).filter((x) => x.s.check && x.s.unsurveyed.length);
+    if (gaps.length) {
+      view2.append(section("Still unsurveyed"));
+      const rows = h("div", { class: "rows" });
+      gaps.forEach(({ g, s }) => rows.append(h(
+        "button",
+        { class: "card-tap", onClick: () => walkTheLand(g.id, s.check) },
+        h(
+          "div",
+          { class: "row spread" },
+          h("strong", {}, g.name),
+          h("span", { class: "tiny muted tnum" }, `${s.unsurveyed.length} unanswered`)
+        ),
+        h("div", { class: "tiny muted truncate" }, s.unsurveyed.slice(0, 3).map((u) => u.req.title).join(", "))
+      )));
+      view2.append(rows);
+    }
+    if (!open2.length && !gaps.length) {
+      view2.append(empty("Nothing in the way. That means the next move is a decision, not more research.", "Add something anyway", () => editBlock()));
+    }
+    if (settled.length) {
+      view2.append(section(`Settled (${settled.length})`));
+      view2.append(h("div", { class: "rows" }, settled.slice(0, 10).map((b) => blockRow(state2, b))));
+    }
+    view2.append(h("button", { class: "btn primary block", style: "margin-top:20px", onClick: () => editBlock() }, "Add something in the way"));
+    return view2;
+  }
+  var title4 = "In the way";
+
+  // js/views/journal.js
+  var journal_exports = {};
+  __export(journal_exports, {
+    openNote: () => openNote,
+    render: () => render5,
+    title: () => title5
+  });
+  var view = { tab: "entries", kind: null, q: "" };
+  function openNote(id) {
+    const build = () => {
+      const state2 = get();
+      const n = state2.notes.find((x) => x.id === id);
+      if (!n) return h("p", { class: "muted" }, "Gone.");
+      const names = (ids, list, key) => (ids || []).map((i) => list.find((x) => x.id === i)?.[key]).filter(Boolean);
+      return frag(
+        h(
+          "div",
+          { class: "row wrap", style: "margin-bottom:12px" },
+          h("span", { class: "chip" }, byId(NOTE_KINDS, n.kind)?.label || "Note"),
+          h("span", { class: "chip" }, fmtDate(n.date)),
+          h("button", { class: "chip", onClick: () => editNote(n) }, "Edit")
+        ),
+        n.body ? h("p", { style: "white-space:pre-wrap" }, n.body) : null,
+        n.source ? h("p", { class: "small", style: "color:var(--moss)" }, n.source) : null,
+        h(
+          "div",
+          { class: "row wrap" },
+          names(n.convictionIds, state2.convictions, "title").map((t) => h("span", { class: "chip" }, t)),
+          names(n.contextIds, state2.contexts, "name").map((t) => h("span", { class: "chip" }, t))
+        ),
+        h("button", {
+          class: "btn block",
+          style: "margin-top:20px",
+          onClick: () => {
+            closeSheet();
+            editBlock(null, { title: n.title || n.body.slice(0, 60), groundId: (n.contextIds || [])[0] || "" });
+          }
+        }, "Put this in the way")
+      );
+    };
+    openSheet(() => get().notes.find((x) => x.id === id)?.title || "Entry", build);
+  }
+  function entries(state2, root) {
+    const list = h("div", {});
+    const search = h("input", {
+      type: "text",
+      value: view.q,
+      placeholder: "Search the journal",
+      onInput: (e) => {
+        view.q = e.target.value;
+        paint();
+      }
+    });
+    const chips = h("div", { class: "row wrap", style: "margin:12px 0 4px" });
+    const setKind = (k) => {
+      view.kind = k;
+      paintChips();
+      paint();
+    };
+    const paintChips = () => {
+      chips.replaceChildren();
+      chips.append(h("button", { class: `chip${view.kind ? "" : " on"}`, onClick: () => setKind(null) }, "All"));
+      NOTE_KINDS.forEach((k) => {
+        if (!state2.notes.some((n) => n.kind === k.id)) return;
+        chips.append(h("button", { class: `chip${view.kind === k.id ? " on" : ""}`, onClick: () => setKind(k.id) }, k.label));
+      });
+    };
+    paintChips();
+    function paint() {
+      const q = view.q.trim().toLowerCase();
+      const rows = state2.notes.filter((n) => !view.kind || n.kind === view.kind).filter((n) => !q || `${n.title} ${n.body} ${n.source}`.toLowerCase().includes(q)).sort((a, b) => a.date < b.date ? 1 : -1);
+      list.replaceChildren();
+      if (!rows.length) {
+        list.append(empty(state2.notes.length ? "Nothing matches." : "Empty. Write the first honest thing.", "New entry", () => editNote()));
+        return;
+      }
+      let month = null;
+      let bucket = null;
+      rows.forEach((n) => {
+        const m = n.date.slice(0, 7);
+        if (m !== month) {
+          month = m;
+          list.append(h("div", { class: "section" }, h("h2", {}, fmtMonth(m))));
+          bucket = h("div", { class: "rows" });
+          list.append(bucket);
+        }
+        bucket.append(h(
+          "button",
+          { class: "card-tap", onClick: () => openNote(n.id) },
+          h(
+            "div",
+            { class: "row spread" },
+            h("strong", { class: "grow truncate" }, n.title || "(untitled)"),
+            h("span", { class: "tiny muted" }, relDate(n.date, today()))
+          ),
+          h(
+            "div",
+            { class: "tiny muted truncate" },
+            [byId(NOTE_KINDS, n.kind)?.label, n.source, n.body].filter(Boolean).join(" \xB7 ")
+          )
+        ));
+      });
+    }
+    paint();
+    root.append(
+      search,
+      chips,
+      list,
+      h("button", { class: "btn primary block", style: "margin-top:20px", onClick: () => editNote() }, "New entry")
+    );
+  }
+  function people(state2, root) {
+    if (!state2.people.length) {
+      root.append(empty("No names yet. Start with the one person you'd say you're discipling.", "Add someone", () => editPerson()));
+      return;
+    }
+    PEOPLE_STAGES.forEach((stage) => {
+      const group = state2.people.filter((p) => p.stage === stage.id);
+      if (!group.length) return;
+      root.append(section(stage.label));
+      const rows = h("div", { class: "rows" });
+      group.forEach((p) => {
+        const cold = p.lastMet ? daysBetween(p.lastMet, today()) : null;
+        rows.append(h(
+          "div",
+          {},
+          h(
+            "button",
+            { class: "card-tap", onClick: () => editPerson(p) },
+            h(
+              "div",
+              { class: "row spread" },
+              h("strong", {}, p.name),
+              cold !== null ? h("span", { class: `tiny ${cold > 30 ? "tone-thin" : "muted"}` }, `${cold}d`) : null
+            ),
+            p.nextStep ? h("div", { class: "tiny muted" }, `Next: ${p.nextStep}`) : null
+          ),
+          h("button", {
+            class: "icon-btn",
+            style: "margin-top:8px",
+            onClick: () => {
+              update((s) => {
+                s.people.find((x) => x.id === p.id).lastMet = today();
+              });
+              toast("Marked as met today");
+            }
+          }, "Met today")
+        ));
+      });
+      root.append(rows);
+    });
+    root.append(h("button", { class: "btn block", style: "margin-top:20px", onClick: () => editPerson() }, "Add someone"));
+  }
+  function render5(state2) {
+    const root = h("div", {});
+    const tabs = h("div", { class: "row", style: "margin-bottom:16px" });
+    [["entries", "Entries"], ["people", "People"]].forEach(([id, label]) => {
+      tabs.append(h("button", {
+        class: `chip${view.tab === id ? " on" : ""}`,
+        onClick: () => {
+          view.tab = id;
+          go("journal");
+        }
+      }, label));
+    });
+    root.append(tabs);
+    if (view.tab === "entries") entries(state2, root);
+    else people(state2, root);
+    return root;
+  }
+  var title5 = "Journal";
+
+  // js/app.js
+  var VIEWS = { target: target_exports, land: land_exports, soil: soil_exports, unsettled: unsettled_exports, journal: journal_exports };
+  var ICONS = {
+    target: '<path d="M3.5 13h17"/><path d="M12 13v-5"/><circle cx="12" cy="5.5" r="2.8"/><path d="M12 13c0 4-3 5-4.5 7M12 13c0 4 3 5 4.5 7M12 13v7.5"/>',
+    land: '<path d="M2.5 17.5 9 6l6.5 11.5z"/><path d="M13 17.5 17 10l4.5 7.5z"/><path d="M2 20.5h20"/>',
+    soil: '<path d="M3.5 9h17"/><path d="M7 9v11M12 9v11M17 9v11"/><path d="M4 5.5c2.5-2 5-2 8 0s5.5 2 8 0"/>',
+    unsettled: '<path d="M12 3.5 21 19H3z"/><path d="M12 10v4"/><circle cx="12" cy="16.6" r=".6" fill="currentColor"/>',
+    journal: '<path d="M6 3h12v18H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M8.5 3v18"/>'
+  };
+  var LABELS = { target: "Ground", land: "Land", soil: "Soil", unsettled: "In the way", journal: "Journal" };
+  function renderTabs(active) {
+    const nav = clear($("#tabs"));
+    ROUTES.forEach((r) => {
+      const btn = h("button", { class: `tab${r === active ? " active" : ""}`, onClick: () => go(r) });
+      btn.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[r]}</svg><span>${LABELS[r]}</span>`;
+      if (r === active) btn.setAttribute("aria-current", "page");
+      nav.append(btn);
+    });
+  }
+  var rendering = false;
+  function render6() {
+    if (!isUnlocked() || rendering) return;
+    rendering = true;
+    const route = currentRoute();
+    const state2 = get();
+    const view2 = clear($("#view"));
+    view2.append(VIEWS[route].render(state2));
+    $("#view-title").textContent = VIEWS[route].title;
+    renderTabs(route);
+    rendering = false;
+  }
+  var lastTouch = Date.now();
+  var touch = () => {
+    lastTouch = Date.now();
+  };
+  function lockNow() {
+    lock();
+    closeSheet(true);
+    $("#shell").hidden = true;
+    clear($("#view"));
+    showLock();
+  }
+  function watchIdle() {
+    ["pointerdown", "keydown", "visibilitychange"].forEach((e) => document.addEventListener(e, touch, { passive: true }));
+    setInterval(() => {
+      if (!isUnlocked() || !isEncrypted()) return;
+      const minutes = Number(get().settings.autoLockMinutes || 0);
+      if (minutes > 0 && Date.now() - lastTouch > minutes * 6e4) lockNow();
+    }, 15e3);
+  }
+  function showLock() {
+    const lock2 = $("#lock");
+    lock2.hidden = false;
+    $("#lock-error").hidden = true;
+    const pin = $("#lock-pin");
+    pin.value = "";
+    setTimeout(() => pin.focus(), 60);
+  }
+  function wireLock() {
+    $("#lock-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const pin = $("#lock-pin").value;
+      const btn = e.target.querySelector("button");
+      btn.disabled = true;
+      btn.textContent = "Checking\u2026";
+      const ok = await unlock(pin);
+      btn.disabled = false;
+      btn.textContent = "Unlock";
+      if (!ok) {
+        const err = $("#lock-error");
+        err.textContent = "That PIN didn't work.";
+        err.hidden = false;
+        $("#lock-pin").value = "";
+        return;
+      }
+      $("#lock").hidden = true;
+      start();
+    });
+  }
+  function start() {
+    $("#shell").hidden = false;
+    $("#btn-lock").hidden = !isEncrypted();
+    touch();
+    render6();
+    if (!isPersistent()) {
+      const warn = $("#warn");
+      warn.textContent = "This browser is blocking local storage here, so anything you write will be gone on reload. Open the page in its own tab (or install it) and it will save normally.";
+      warn.hidden = false;
+    }
+  }
+  function boot() {
+    initSheet();
+    wireLock();
+    watchIdle();
+    onRoute(render6);
+    subscribe(() => {
+      render6();
+      $("#btn-lock").hidden = !isEncrypted();
+    });
+    $("#btn-settings").addEventListener("click", openSettings);
+    $("#btn-lock").addEventListener("click", lockNow);
+    if (isEncrypted()) {
+      showLock();
+    } else {
+      open();
+      if (!location.hash) location.hash = "#/compass";
+      start();
+    }
+    if ("serviceWorker" in navigator && document.querySelector("link[rel=manifest]")) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js").catch(() => {
+        });
+      });
+    }
+  }
+  boot();
+})();
+
+</script>
+</body>
+</html>

@@ -4,12 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; form-action 'none'; base-uri 'none'">
-<title>True North</title>
-<meta name="description" content="A private compass for theological conviction and ministry alignment.">
-<meta name="theme-color" content="#0e111b">
+<title>Good Ground</title>
+<meta name="description" content="Private notebook for one question: is this ground I could build on?">
+<meta name="theme-color" content="#f1efe8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141714" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="True North">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Good Ground">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -20,10 +21,14 @@
 <div id="lock" class="lock" hidden>
   <div class="lock-card">
     <svg class="lock-mark" viewBox="0 0 100 100" aria-hidden="true">
-      <path d="M50 12 L74 84 L50 70 Z" fill="#d6a854"/>
-      <path d="M50 12 L26 84 L50 70 Z" fill="#927036"/>
-    </svg>
-    <h1>True North</h1>
+        <path d="M50 56 Q50 70 50 92" stroke="#8a6743" stroke-width="7" fill="none" stroke-linecap="round"/>
+        <path d="M50 56 Q34 70 24 86" stroke="#8a6743" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <path d="M50 56 Q66 70 76 86" stroke="#8a6743" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <rect x="10" y="52" width="80" height="8" rx="4" fill="#7a5a3c"/>
+        <path d="M50 56 V34" stroke="#4a7a45" stroke-width="8" stroke-linecap="round"/>
+        <circle cx="50" cy="26" r="17" fill="#4a7a45"/>
+      </svg>
+    <h1>Good Ground</h1>
     <p class="muted" id="lock-hint">Enter your PIN to unlock.</p>
     <form id="lock-form" autocomplete="off">
       <input id="lock-pin" type="password" inputmode="numeric" placeholder="PIN" aria-label="PIN"
@@ -38,10 +43,14 @@
   <header class="topbar">
     <div class="topbar-title">
       <svg class="mark" viewBox="0 0 100 100" aria-hidden="true">
-        <path d="M50 12 L74 84 L50 70 Z" fill="#d6a854"/>
-        <path d="M50 12 L26 84 L50 70 Z" fill="#927036"/>
+        <path d="M50 56 Q50 70 50 92" stroke="#8a6743" stroke-width="7" fill="none" stroke-linecap="round"/>
+        <path d="M50 56 Q34 70 24 86" stroke="#8a6743" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <path d="M50 56 Q66 70 76 86" stroke="#8a6743" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <rect x="10" y="52" width="80" height="8" rx="4" fill="#7a5a3c"/>
+        <path d="M50 56 V34" stroke="#4a7a45" stroke-width="8" stroke-linecap="round"/>
+        <circle cx="50" cy="26" r="17" fill="#4a7a45"/>
       </svg>
-      <span id="view-title">Compass</span>
+      <span id="view-title">Good Ground</span>
     </div>
     <div class="topbar-actions">
       <button class="icon-btn" id="btn-lock" title="Lock now" hidden>Lock</button>

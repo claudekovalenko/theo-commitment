@@ -4,25 +4,23 @@ import * as store from './store.js';
 import { $, h, clear, initSheet, closeSheet } from './ui.js';
 import { ROUTES, currentRoute, onRoute, go } from './router.js';
 import { openSettings } from './views/settings.js';
-import * as compass from './views/compass.js';
-import * as convictions from './views/convictions.js';
-import * as where from './views/where.js';
-import * as log from './views/log.js';
-import * as people from './views/people.js';
-import * as followups from './views/followups.js';
+import * as target from './views/target.js';
+import * as land from './views/land.js';
+import * as soil from './views/soil.js';
+import * as unsettled from './views/unsettled.js';
+import * as journal from './views/journal.js';
 
-const VIEWS = { compass, convictions, where, log, people, do: followups };
+const VIEWS = { target, land, soil, unsettled, journal };
 
 const ICONS = {
-  compass: '<circle cx="12" cy="12" r="9"/><path d="M15.6 8.4 10.2 10.2 8.4 15.6l5.4-1.8z"/>',
-  convictions: '<path d="M6 3h12v18H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M8.5 3v18"/>',
-  where: '<path d="M12 21.5s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z"/><circle cx="12" cy="10.5" r="2.6"/>',
-  log: '<path d="M5 3.5h14v17H5z"/><path d="M8.5 8.5h7M8.5 12h7M8.5 15.5h4"/>',
-  people: '<circle cx="9.5" cy="8" r="3.2"/><path d="M3.5 20a6 6 0 0 1 12 0"/><path d="M16 5.2a3.2 3.2 0 0 1 0 6.4"/><path d="M17.5 14.6A6 6 0 0 1 21 20"/>',
-  do: '<path d="M4 4.5h16v15H4z"/><path d="M8 12.2l3 3 5.2-6"/>',
+  target: '<path d="M3.5 13h17"/><path d="M12 13v-5"/><circle cx="12" cy="5.5" r="2.8"/><path d="M12 13c0 4-3 5-4.5 7M12 13c0 4 3 5 4.5 7M12 13v7.5"/>',
+  land: '<path d="M2.5 17.5 9 6l6.5 11.5z"/><path d="M13 17.5 17 10l4.5 7.5z"/><path d="M2 20.5h20"/>',
+  soil: '<path d="M3.5 9h17"/><path d="M7 9v11M12 9v11M17 9v11"/><path d="M4 5.5c2.5-2 5-2 8 0s5.5 2 8 0"/>',
+  unsettled: '<path d="M12 3.5 21 19H3z"/><path d="M12 10v4"/><circle cx="12" cy="16.6" r=".6" fill="currentColor"/>',
+  journal: '<path d="M6 3h12v18H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M8.5 3v18"/>',
 };
 
-const LABELS = { compass: 'Compass', convictions: 'Convictions', where: 'Where', log: 'Log', people: 'People', do: 'Do' };
+const LABELS = { target: 'Ground', land: 'Land', soil: 'Soil', unsettled: 'In the way', journal: 'Journal' };
 
 /* ---------- render ---------- */
 

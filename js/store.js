@@ -190,9 +190,9 @@ const V1_DOMAINS = {
 
 function migrate(data) {
   const base = {
-    version: 2,
+    version: 3,
     createdAt: new Date().toISOString(),
-    domains: [], convictions: [], contexts: [], checks: [], notes: [], actions: [], people: [],
+    domains: [], convictions: [], contexts: [], checks: [], blocks: [], notes: [], people: [],
     settings: { autoLockMinutes: 15, name: '' },
   };
   const s = { ...base, ...data, settings: { ...base.settings, ...(data.settings || {}) } };
@@ -216,9 +216,33 @@ function migrate(data) {
     s.convictions.push(...starters.filter((c) => c.domainId === d.id));
   });
 
-  s.contexts.forEach((c) => { if (!c.horizon) c.horizon = 'unknown'; });
+  s.contexts.forEach((c) => {
+    if (!c.horizon) c.horizon = 'unknown';
+    if (!c.stage) c.stage = 'scouting';
+  });
   s.checks.forEach((k) => { if (!k.us) k.us = { level: 'na', note: '' }; });
 
-  s.version = 2;
+  // v2 kept follow-ups in `actions`. In v3 anything outstanding is a thing
+  // standing between you and a decision, so they become blocks.
+  if (Array.isArray(data.actions) && data.actions.length) {
+    s.blocks = s.blocks.concat(data.actions.map((a) => ({
+      id: a.id,
+      groundId: (a.contextIds || [])[0] || '',
+      title: a.title,
+      wouldSettle: a.detail || '',
+      who: '',
+      due: a.due || '',
+      hard: false,
+      status: a.done ? 'settled' : 'open',
+      settledAt: a.doneAt || '',
+      seeded: a.seeded || false,
+      createdAt: a.createdAt || new Date().toISOString(),
+    })));
+  }
+  delete s.actions;
+
+  s.blocks.forEach((b) => { if (!b.status) b.status = 'open'; });
+
+  s.version = 3;
   return s;
 }

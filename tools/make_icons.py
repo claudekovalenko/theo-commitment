@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Render the app's arrow mark to PNG icons.
+"""Render the app's mark — a sapling rooted in ground — to PNG icons.
 
-No third-party dependencies: polygons are scanline-filled at 4x and
-downsampled, then written out as RGBA PNGs by hand.
+No third-party dependencies: shapes are scanline-filled at 4x and downsampled,
+then written out as RGBA PNGs by hand.
 
     python3 tools/make_icons.py
 """
@@ -14,30 +14,27 @@ import zlib
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ICONS = os.path.join(ROOT, "icons")
 
-INK = (14, 17, 27)  # background
-GOLD = (214, 168, 84)  # lit face of the needle
-GOLD_DIM = (146, 112, 54)  # shaded face
-SS = 4  # supersampling factor
+STONE = (26, 30, 27)     # background
+SOIL = (109, 76, 52)     # the ground line
+ROOTS = (150, 108, 74)   # roots below the line
+LEAF = (124, 166, 96)    # what grows above it
+SS = 4
 
 
-def needle(scale, cx, cy):
-    """Compass needle as two half-polygons, in a unit box scaled/offset."""
-
-    def p(x, y):
-        return (cx + x * scale, cy + y * scale)
-
-    tip = p(0.0, -0.46)
-    notch = p(0.0, 0.20)
-    right = p(0.30, 0.40)
-    left = p(-0.30, 0.40)
+def taper(x0, y0, x1, y1, w0, w1):
+    """A tapered strand from (x0,y0) to (x1,y1), as a quad."""
+    dx, dy = x1 - x0, y1 - y0
+    length = max((dx * dx + dy * dy) ** 0.5, 0.001)
+    nx, ny = -dy / length, dx / length
     return [
-        ([tip, right, notch], GOLD),
-        ([tip, notch, left], GOLD_DIM),
+        (x0 + nx * w0, y0 + ny * w0),
+        (x1 + nx * w1, y1 + ny * w1),
+        (x1 - nx * w1, y1 - ny * w1),
+        (x0 - nx * w0, y0 - ny * w0),
     ]
 
 
 def fill(buf, size, poly, color):
-    """Scanline-fill a polygon (list of (x, y) floats) into an RGB buffer."""
     n = len(poly)
     ys = [pt[1] for pt in poly]
     y0 = max(0, int(min(ys)))
@@ -53,8 +50,7 @@ def fill(buf, size, poly, color):
         xs.sort()
         for i in range(0, len(xs) - 1, 2):
             for x in range(max(0, int(xs[i])), min(size - 1, int(xs[i + 1])) + 1):
-                if xs[i] - 0.5 <= x <= xs[i + 1] + 0.5:
-                    buf[y * size + x] = color
+                buf[y * size + x] = color
 
 
 def circle(buf, size, cx, cy, r, color):
@@ -108,34 +104,55 @@ def write_png(path, pixels, size):
         fh.write(png)
 
 
-def render(size, needle_scale, corner, transparent_bg=False):
+def render(size, inset, corner):
+    """A canopy over a ground line, roots beneath it."""
     big = size * SS
-    bg = (0, 0, 0) if transparent_bg else INK
-    buf = [bg] * (big * big)
-    if not transparent_bg:
-        if corner is None:
-            buf = [INK] * (big * big)
-        else:
-            buf = [(0, 0, 0)] * (big * big)
-            rounded_rect(buf, big, 0, 0, big - 1, big - 1, corner * SS, INK)
-    c = big / 2
-    circle(buf, big, c, c, needle_scale * SS * 0.60, (26, 31, 46))
-    for poly, color in needle(needle_scale * SS, c, c):
-        fill(buf, big, poly, color)
+    buf = [(0, 0, 0)] * (big * big)
+    if corner is None:
+        buf = [STONE] * (big * big)
+    else:
+        rounded_rect(buf, big, 0, 0, big - 1, big - 1, corner * SS, STONE)
+
+    u = (big - 2 * inset * SS) / 100.0
+    ox = inset * SS
+    oy = inset * SS
+
+    def P(x, y):
+        return (ox + x * u, oy + y * u)
+
+    ground_y = 58
+
+    # roots first, so the ground band sits over where they meet it
+    for (x1, y1, w1) in [(50, 100, 3.2), (26, 94, 2.2), (74, 94, 2.2), (12, 78, 1.6), (88, 78, 1.6)]:
+        a = P(50, ground_y - 2)
+        b = P(x1, y1)
+        fill(buf, big, taper(a[0], a[1], b[0], b[1], 6.0 * u, w1 * u), ROOTS)
+
+    # canopy and trunk
+    a, b = P(50, ground_y), P(50, 34)
+    fill(buf, big, taper(a[0], a[1], b[0], b[1], 7.0 * u, 6.0 * u), LEAF)
+    c = P(50, 27)
+    circle(buf, big, c[0], c[1], 25 * u, LEAF)
+
+    # the ground itself, drawn last: the line you build on
+    g0 = P(10, ground_y - 4)
+    g1 = P(90, ground_y + 4)
+    rounded_rect(buf, big, g0[0], g0[1], g1[0], g1[1], 4.5 * u, SOIL)
+
     return downsample(buf, big, size)
 
 
 def main():
     os.makedirs(ICONS, exist_ok=True)
     jobs = [
-        ("icon-192.png", 192, 130, 34),
-        ("icon-512.png", 512, 350, 92),
-        ("apple-touch-icon.png", 180, 122, None),
-        ("icon-maskable-512.png", 512, 270, None),
-        ("favicon-32.png", 32, 24, 6),
+        ("icon-192.png", 192, 22, 34),
+        ("icon-512.png", 512, 58, 92),
+        ("apple-touch-icon.png", 180, 20, None),
+        ("icon-maskable-512.png", 512, 118, None),
+        ("favicon-32.png", 32, 3, 6),
     ]
-    for name, size, scale, corner in jobs:
-        write_png(os.path.join(ICONS, name), render(size, scale, corner), size)
+    for name, size, inset, corner in jobs:
+        write_png(os.path.join(ICONS, name), render(size, inset, corner), size)
         print("wrote icons/%s" % name)
 
 

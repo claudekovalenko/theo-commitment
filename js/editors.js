@@ -1,10 +1,10 @@
-// Add/edit forms. Each opens in the bottom sheet and writes straight to the store.
+// Every add/edit form. Each opens in the sheet and writes straight to the store.
 
 import * as store from './store.js';
 import { uid, today } from './store.js';
 import {
-  WEIGHTS, LEVELS, NOTE_KINDS, CONTEXT_KINDS, CONTEXT_STATUS, PEOPLE_STAGES,
-  US_LEVELS, HORIZONS, byId, scoreCheck, readingWord,
+  WEIGHTS, LEVELS, NOTE_KINDS, KINDS, STAGES, PEOPLE_STAGES, US_LEVELS, HORIZONS,
+  byId, survey, verdict,
 } from './model.js';
 import {
   h, frag, field, input, area, segmented, chipPicker, openSheet, closeSheet,
@@ -14,7 +14,7 @@ import {
 const opts = (list) => list.map((c) => ({ id: c.id, label: c.title || c.name || c.label }));
 
 function saveBar(onSave, onDelete) {
-  return h('div', { class: 'stack', style: 'margin-top:18px' },
+  return h('div', { class: 'stack', style: 'margin-top:20px' },
     h('button', { class: 'btn primary block', onClick: onSave }, 'Save'),
     onDelete ? h('button', { class: 'btn ghost danger block', onClick: onDelete }, 'Delete') : null);
 }
@@ -30,15 +30,14 @@ async function confirmDelete(what, run) {
   toast('Deleted');
 }
 
-/* ---------- domain ---------- */
+/* ---------- area of life ---------- */
 
 export function editDomain(existing) {
-  const d = existing || { id: uid(), label: '', short: '', blurb: '', color: '#8ea2c8' };
+  const d = existing || { id: uid(), label: '', short: '', blurb: '', color: '#7a5a3c' };
   const draft = { ...d };
 
   openSheet(existing ? 'Edit area' : 'New area of life', () => frag(
-    h('p', { class: 'small muted' },
-      'Areas are the big buckets the compass reads separately — walking with God, marriage, family, roots, ministry.'),
+    h('p', { class: 'small muted' }, 'Areas group what the soil has to hold, and each one is measured on its own.'),
     field('Name', input({ value: draft.label, onInput: (e) => { draft.label = e.target.value; } })),
     field('Short name', input({ value: draft.short || '', placeholder: 'For tight spaces', onInput: (e) => { draft.short = e.target.value; } })),
     field('What it covers', area({ value: draft.blurb || '', onInput: (e) => { draft.blurb = e.target.value; } })),
@@ -59,9 +58,9 @@ export function editDomain(existing) {
   ));
 }
 
-/* ---------- conviction ---------- */
+/* ---------- a requirement: what the soil has to hold ---------- */
 
-export function editConviction(existing, defaults = {}) {
+export function editRequirement(existing, defaults = {}) {
   const state = store.get();
   const c = existing || {
     id: uid(), domainId: state.domains[0]?.id, title: '', weight: 'conviction',
@@ -69,15 +68,15 @@ export function editConviction(existing, defaults = {}) {
   };
   const draft = { ...c };
 
-  openSheet(existing ? 'Edit conviction' : 'New conviction', () => frag(
-    field('Which area of life?', segmented(state.domains.map((d) => ({ id: d.id, label: d.short || d.label })), draft.domainId, (v) => { draft.domainId = v; })),
-    field('What is it?', input({ value: draft.title, placeholder: 'e.g. Somewhere long enough to be known', onInput: (e) => { draft.title = e.target.value; } })),
-    field('How firmly do I hold it?', segmented(WEIGHTS, draft.weight, (v) => { draft.weight = v; }),
-      'Be honest here — this is the weight the compass gives it.'),
+  openSheet(existing ? 'Edit requirement' : 'What does the soil need?', () => frag(
+    field('Area of life', segmented(state.domains.map((d) => ({ id: d.id, label: d.short || d.label })), draft.domainId, (v) => { draft.domainId = v; })),
+    field('What does the ground need to have?', input({ value: draft.title, placeholder: 'e.g. A church we could belong to for a decade', onInput: (e) => { draft.title = e.target.value; } })),
+    field('How much does it matter?', segmented(WEIGHTS, draft.weight, (v) => { draft.weight = v; }),
+      'Be honest — this is the weight it carries when you judge a place.'),
     field('In my own words', area({ value: draft.summary, placeholder: 'Say it the way you would say it out loud.', onInput: (e) => { draft.summary = e.target.value; } })),
-    field('Scripture', input({ value: draft.scriptures, placeholder: 'Jeremiah 29:5-7; Proverbs 27:10', onInput: (e) => { draft.scriptures = e.target.value; } })),
-    field('What it looks like when it\'s true of me', area({ value: draft.practice, placeholder: 'The test you\'d actually apply to yourself.', onInput: (e) => { draft.practice = e.target.value; } })),
-    field('Where I\'m still working it out', area({ value: draft.forming, placeholder: 'The honest edge of it. Blank is fine.', onInput: (e) => { draft.forming = e.target.value; } })),
+    field('Scripture', input({ value: draft.scriptures, placeholder: 'Jeremiah 29:5-7', onInput: (e) => { draft.scriptures = e.target.value; } })),
+    field('How I\'d know it\'s true of a place', area({ value: draft.practice, placeholder: 'The test you\'d actually apply.', onInput: (e) => { draft.practice = e.target.value; } })),
+    field('Where I\'m still working it out', area({ value: draft.forming, placeholder: 'Blank is fine.', onInput: (e) => { draft.forming = e.target.value; } })),
     saveBar(() => {
       if (!draft.title.trim()) return toast('Give it a name first');
       store.update((s) => {
@@ -88,22 +87,22 @@ export function editConviction(existing, defaults = {}) {
       });
       closeSheet();
       toast('Saved');
-    }, existing ? () => confirmDelete('conviction', (s) => {
+    }, existing ? () => confirmDelete('requirement', (s) => {
       s.convictions = s.convictions.filter((x) => x.id !== draft.id);
       s.checks.forEach((k) => delete k.ratings[draft.id]);
     }) : null),
   ));
 }
 
-/* ---------- context (a place, church, network, role) ---------- */
+/* ---------- a piece of ground ---------- */
 
-export function editContext(existing, defaults = {}) {
+export function editGround(existing, defaults = {}) {
   const state = store.get();
-  const c = existing || {
-    id: uid(), name: '', kind: 'place', status: 'considering', horizon: 'unknown',
+  const g = existing || {
+    id: uid(), name: '', kind: 'place', stage: 'scouting', horizon: 'unknown',
     placeId: '', notes: '', ...defaults,
   };
-  const draft = { ...c };
+  const draft = { ...g };
   const places = state.contexts.filter((p) => p.kind === 'place' && p.id !== draft.id);
 
   const placeField = h('div', {});
@@ -117,21 +116,17 @@ export function editContext(existing, defaults = {}) {
         draft.placeId || '',
         (v) => { draft.placeId = v; },
       ),
-      places.length
-        ? 'The question under the question. An opportunity is only as good as the place it lands you in.'
-        : 'Add the town first, then come back and link it.',
+      places.length ? 'An offer is only as good as the ground it puts you on.' : 'Add the land first, then link it.',
     ));
   };
   paintPlace();
 
-  openSheet(existing ? 'Edit' : 'What are you weighing?', () => frag(
-    field('Name', input({ value: draft.name, placeholder: 'A town, a church, a network', onInput: (e) => { draft.name = e.target.value; } })),
-    field('What kind?', segmented(CONTEXT_KINDS, draft.kind, (v) => { draft.kind = v; paintPlace(); })),
+  openSheet(existing ? 'Edit' : 'Add ground', () => frag(
+    field('Name', input({ value: draft.name, placeholder: 'A town, a church, an offer', onInput: (e) => { draft.name = e.target.value; } })),
+    field('What is it?', segmented(KINDS, draft.kind, (v) => { draft.kind = v; paintPlace(); })),
     placeField,
-    field('Where I stand with it', segmented(CONTEXT_STATUS, draft.status, (v) => { draft.status = v; })),
-    field('Could we still be here in ten years?', segmented(HORIZONS, draft.horizon, (v) => { draft.horizon = v; }),
-      'The roots question. Guessing is allowed — you can change it every time you learn something.'),
-    field('Notes', area({ value: draft.notes, placeholder: 'What I know, who I\'ve talked to, what I\'m watching for.', onInput: (e) => { draft.notes = e.target.value; } })),
+    field('Could we still be here in ten years?', segmented(HORIZONS, draft.horizon, (v) => { draft.horizon = v; })),
+    field('Notes', area({ value: draft.notes, placeholder: 'What you know, who you\'ve talked to, what you\'re watching for.', onInput: (e) => { draft.notes = e.target.value; } })),
     saveBar(() => {
       if (!draft.name.trim()) return toast('Give it a name first');
       store.update((s) => {
@@ -142,39 +137,35 @@ export function editContext(existing, defaults = {}) {
       });
       closeSheet();
       toast('Saved');
-    }, existing ? () => confirmDelete('context', (s) => {
+    }, existing ? () => confirmDelete('ground', (s) => {
       s.contexts = s.contexts.filter((x) => x.id !== draft.id);
       s.checks = s.checks.filter((k) => k.contextId !== draft.id);
+      s.blocks = s.blocks.filter((b) => b.groundId !== draft.id);
     }) : null),
   ));
 }
 
-/* ---------- alignment check ---------- */
+/* ---------- walking the land: rate a ground against every requirement ---------- */
 
-export function runCheck(contextId, existing) {
+export function walkTheLand(groundId, existing) {
   const state = store.get();
-  const ctx = state.contexts.find((c) => c.id === contextId);
+  const ground = state.contexts.find((c) => c.id === groundId);
   const check = existing
     ? { ...existing, ratings: JSON.parse(JSON.stringify(existing.ratings || {})), us: { ...(existing.us || {}) } }
-    : { id: uid(), contextId, date: today(), ratings: {}, us: { level: 'na', note: '' }, summary: '' };
+    : { id: uid(), contextId: groundId, date: today(), ratings: {}, us: { level: 'na', note: '' }, summary: '' };
   if (!check.us) check.us = { level: 'na', note: '' };
 
-  let only = null; // domain filter, so a 16-row check can be done in pieces
+  let only = null;
 
-  openSheet(`${ctx.name} — check`, () => {
-    const readout = h('div', { class: 'card', style: 'margin-bottom:14px' });
+  openSheet(`Walking ${ground.name}`, () => {
+    const readout = h('div', { class: 'card', style: 'margin-bottom:16px' });
     const paint = () => {
-      const r = scoreCheck(check, state.convictions, state.domains);
+      const s = survey({ ...state, checks: [check] }, ground);
       readout.replaceChildren(
-        h('div', { class: 'row spread' },
-          h('strong', {}, r.rated ? readingWord(r.pct) : 'Not rated yet'),
-          h('span', { class: 'muted small tnum' }, r.rated ? `${r.degrees}° off` : `${state.convictions.length} to go`)),
-        h('div', { class: 'meter', style: 'margin-top:8px' }, h('i', { style: `width:${Math.round((r.pct || 0) * 100)}%` })),
-        r.dealbreakers.length
-          ? h('p', { class: 'small lv-conflict', style: 'margin:10px 0 0' },
-            `${r.dealbreakers.length} non-negotiable${r.dealbreakers.length > 1 ? 's' : ''} in the red.`)
-          : null,
-      );
+        h('div', { class: 'verdict' }, verdict(s)),
+        h('div', { class: 'row spread small muted', style: 'margin-top:8px' },
+          h('span', {}, `${Math.round(s.surveyed * 100)}% surveyed`),
+          h('span', { class: 'tnum' }, s.rated ? `${Math.round(s.fit * 100)}% fit` : '')));
     };
 
     const rows = h('div', { class: 'stack' });
@@ -185,27 +176,27 @@ export function runCheck(contextId, existing) {
         const own = state.convictions.filter((c) => c.domainId === domain.id);
         if (!own.length) return;
 
-        const head = h('div', { class: 'section-head' }, h('h2', {}, domain.label));
-        head.style.borderLeft = `3px solid ${domain.color}`;
-        head.style.paddingLeft = '10px';
+        const head = h('div', { class: 'section' }, h('h2', {}, domain.label));
+        head.style.borderBottomColor = domain.color;
         rows.append(head);
 
         own.forEach((c) => {
           const rating = check.ratings[c.id] || (check.ratings[c.id] = { level: 'unknown', note: '' });
           rows.append(h('div', { class: 'card' },
-            h('div', { class: 'row spread', style: 'margin-bottom:8px' },
+            h('div', { class: 'row spread', style: 'margin-bottom:4px' },
               h('strong', { class: 'grow' }, c.title),
-              h('span', { class: 'pill muted' }, byId(WEIGHTS, c.weight)?.label || '')),
+              h('span', { class: 'eyebrow' }, byId(WEIGHTS, c.weight)?.label || '')),
+            c.practice ? h('p', { class: 'tiny muted' }, c.practice) : null,
             segmented(LEVELS, rating.level, (v) => { rating.level = v; paint(); }),
             h('input', {
-              type: 'text', value: rating.note || '', placeholder: 'What did I actually see? (optional)',
+              type: 'text', value: rating.note || '', placeholder: 'What did you actually see?',
               style: 'margin-top:8px', onInput: (e) => { rating.note = e.target.value; },
             })));
         });
       });
     };
 
-    const filter = h('div', { class: 'row wrap', style: 'margin-bottom:12px' });
+    const filter = h('div', { class: 'row wrap', style: 'margin-bottom:14px' });
     const paintFilter = () => {
       filter.replaceChildren();
       filter.append(h('button', { class: `chip${only ? '' : ' on'}`, onClick: () => { only = null; paintFilter(); paintRows(); } }, 'All'));
@@ -221,20 +212,20 @@ export function runCheck(contextId, existing) {
 
     return frag(
       readout,
-      field('Date', h('input', { type: 'date', value: check.date, onInput: (e) => { check.date = e.target.value || today(); } })),
+      field('Date walked', h('input', { type: 'date', value: check.date, onInput: (e) => { check.date = e.target.value || today(); } })),
       filter,
       rows,
-      h('div', { class: 'card', style: 'margin-top:16px' },
+      h('div', { class: 'card', style: 'margin-top:18px' },
         h('strong', {}, 'Where the two of us land'),
-        h('p', { class: 'small muted' }, 'Not scored. Just asked, every single time.'),
+        h('p', { class: 'small muted' }, 'Never scored. Just asked, every time.'),
         segmented(US_LEVELS, check.us.level, (v) => { check.us.level = v; }),
         h('input', {
           type: 'text', value: check.us.note || '', placeholder: 'What she said, in her words',
           style: 'margin-top:8px', onInput: (e) => { check.us.note = e.target.value; },
         })),
-      h('div', { style: 'margin-top:14px' },
-        field('Where I land today', area({
-          value: check.summary, placeholder: 'One honest paragraph. What would I say if someone asked me right now?',
+      h('div', { style: 'margin-top:16px' },
+        field('What I\'d say about this place today', area({
+          value: check.summary, placeholder: 'One honest paragraph.',
           onInput: (e) => { check.summary = e.target.value; },
         }))),
       saveBar(() => {
@@ -244,13 +235,143 @@ export function runCheck(contextId, existing) {
           else s.checks[i] = check;
         });
         closeSheet();
-        toast('Check saved');
-      }, existing ? () => confirmDelete('check', (s) => { s.checks = s.checks.filter((x) => x.id !== check.id); }) : null),
+        toast('Survey saved');
+      }, existing ? () => confirmDelete('survey', (s) => { s.checks = s.checks.filter((x) => x.id !== check.id); }) : null),
     );
   });
 }
 
-/* ---------- log entry ---------- */
+/* ---------- what's in the way ---------- */
+
+export function editBlock(existing, defaults = {}) {
+  const state = store.get();
+  const b = existing || {
+    id: uid(), groundId: '', title: '', wouldSettle: '', who: '', due: '',
+    hard: false, status: 'open', ...defaults,
+  };
+  const draft = { ...b };
+  const grounds = state.contexts;
+
+  openSheet(existing ? 'Edit' : 'What\'s in the way?', () => frag(
+    field('What\'s unsettled?', input({ value: draft.title, placeholder: 'Say it plainly', onInput: (e) => { draft.title = e.target.value; } })),
+    field('What would settle it?', area({
+      value: draft.wouldSettle, placeholder: 'The specific thing that would let you say yes or no.',
+      onInput: (e) => { draft.wouldSettle = e.target.value; },
+    }), 'If you can\'t name this, the block is really a feeling — and that\'s worth writing down too.'),
+    field('Who could answer it?', input({ value: draft.who, placeholder: 'A person, not a category', onInput: (e) => { draft.who = e.target.value; } })),
+    field('By when', h('input', { type: 'date', value: draft.due, onInput: (e) => { draft.due = e.target.value; } })),
+    field('Which ground?', segmented(
+      [...grounds.map((g) => ({ id: g.id, label: g.name })), { id: '', label: 'All of them' }],
+      draft.groundId || '', (v) => { draft.groundId = v; },
+    )),
+    field('How heavy is it?', segmented(
+      [{ id: 'no', label: 'Would like to know' }, { id: 'yes', label: 'Can\'t decide without it' }],
+      draft.hard ? 'yes' : 'no', (v) => { draft.hard = v === 'yes'; },
+    )),
+    saveBar(() => {
+      if (!draft.title.trim()) return toast('Name it first');
+      store.update((s) => {
+        const i = s.blocks.findIndex((x) => x.id === draft.id);
+        draft.seeded = false;
+        if (i < 0) s.blocks.push({ ...draft, createdAt: new Date().toISOString() });
+        else s.blocks[i] = { ...s.blocks[i], ...draft };
+      });
+      closeSheet();
+      toast('Saved');
+    }, existing ? () => confirmDelete('block', (s) => { s.blocks = s.blocks.filter((x) => x.id !== draft.id); }) : null),
+  ));
+}
+
+/** The honest button: you looked at it and still didn't say yes. Why? */
+export function captureHesitation(ground) {
+  let text = '';
+  let makeBlock = true;
+  openSheet('Why not yet?', () => frag(
+    h('p', { class: 'small muted' },
+      `You've looked at ${ground.name} and haven't said yes. Name the actual reason — even if it's "I don't know, it just doesn't feel right."`),
+    field('What\'s stopping you?', area({ style: 'min-height:120px', onInput: (e) => { text = e.target.value; } })),
+    h('label', { class: 'check', style: 'margin-bottom:16px' },
+      h('input', { type: 'checkbox', checked: true, onChange: (e) => { makeBlock = e.target.checked; } }),
+      h('span', { class: 'small' }, 'Add it to what\'s in the way, so it has to get settled')),
+    h('button', {
+      class: 'btn primary block',
+      onClick: () => {
+        if (!text.trim()) return toast('Write it down first');
+        store.update((s) => {
+          s.notes.push({
+            id: uid(), date: today(), kind: 'hesitation',
+            title: `Hesitated on ${ground.name}`, body: text,
+            convictionIds: [], contextIds: [ground.id], source: '',
+            createdAt: new Date().toISOString(),
+          });
+          if (makeBlock) {
+            s.blocks.push({
+              id: uid(), groundId: ground.id, title: text.split('\n')[0].slice(0, 80),
+              wouldSettle: '', who: '', due: '', hard: false, status: 'open',
+              createdAt: new Date().toISOString(),
+            });
+          }
+        });
+        closeSheet();
+        toast('Written down');
+      },
+    }, 'Write it down'),
+  ));
+}
+
+/** The commitment. This is the thing the app exists to make possible. */
+export function breakGround(ground) {
+  const state = store.get();
+  const s = survey(state, ground);
+  let note = '';
+  let date = today();
+
+  openSheet(`Build on ${ground.name}?`, () => frag(
+    s.inTheWay.length
+      ? h('div', { class: 'card', style: 'margin-bottom:16px' },
+        h('strong', { class: 'tone-thin' }, `${s.inTheWay.length} thing${s.inTheWay.length > 1 ? 's are' : ' is'} still unsettled`),
+        h('div', { class: 'rows', style: 'margin-top:6px' },
+          s.inTheWay.slice(0, 5).map((x) => h('div', { class: 'small' }, x.label))),
+        h('p', { class: 'small muted', style: 'margin:10px 0 0' },
+          'You can still say yes. Saying yes with your eyes open is different from drifting into it.'))
+      : h('p', { class: 'verdict', style: 'margin-bottom:16px' }, 'Nothing is unsettled. This is a decision, not a discovery.'),
+
+    field('What are you saying yes to?', area({
+      placeholder: 'In one sentence, so you can read it back in five years.',
+      onInput: (e) => { note = e.target.value; },
+    })),
+    field('Date', h('input', { type: 'date', value: date, onInput: (e) => { date = e.target.value || today(); } })),
+    h('button', {
+      class: 'btn primary block',
+      onClick: () => {
+        store.update((st) => {
+          const g = st.contexts.find((x) => x.id === ground.id);
+          g.stage = 'built';
+          g.stakedAt = date;
+          g.stakeNote = note;
+          st.notes.push({
+            id: uid(), date, kind: 'observation',
+            title: `Broke ground in ${ground.name}`, body: note,
+            convictionIds: [], contextIds: [ground.id], source: '',
+            createdAt: new Date().toISOString(),
+          });
+        });
+        closeSheet(true);
+        toast('Stake in the ground');
+      },
+    }, 'Break ground here'),
+    h('button', {
+      class: 'btn ghost block', style: 'margin-top:10px',
+      onClick: () => {
+        store.update((st) => { st.contexts.find((x) => x.id === ground.id).stage = 'ruled-out'; });
+        closeSheet(true);
+        toast('Ruled out');
+      },
+    }, 'Rule it out instead'),
+  ));
+}
+
+/* ---------- journal ---------- */
 
 export function editNote(existing, defaults = {}) {
   const state = store.get();
@@ -260,14 +381,14 @@ export function editNote(existing, defaults = {}) {
   };
   const draft = { ...n, convictionIds: [...(n.convictionIds || [])], contextIds: [...(n.contextIds || [])] };
 
-  openSheet(existing ? 'Edit entry' : 'New log entry', () => frag(
+  openSheet(existing ? 'Edit entry' : 'New entry', () => frag(
     field('Date', h('input', { type: 'date', value: draft.date, onInput: (e) => { draft.date = e.target.value || today(); } })),
     field('What kind?', segmented(NOTE_KINDS, draft.kind, (v) => { draft.kind = v; })),
-    field('Headline', input({ value: draft.title, placeholder: 'The one line I want to remember', onInput: (e) => { draft.title = e.target.value; } })),
-    field('The learning', area({ value: draft.body, style: 'min-height:150px', placeholder: 'What happened, what it taught me, what it changes.', onInput: (e) => { draft.body = e.target.value; } })),
+    field('Headline', input({ value: draft.title, placeholder: 'The line you want to remember', onInput: (e) => { draft.title = e.target.value; } })),
+    field('The entry', area({ value: draft.body, style: 'min-height:150px', onInput: (e) => { draft.body = e.target.value; } })),
     field('Source', input({ value: draft.source, placeholder: 'Passage, book, who said it', onInput: (e) => { draft.source = e.target.value; } })),
-    field('Convictions this touches', chipPicker(opts(state.convictions), draft.convictionIds, (v) => { draft.convictionIds = v; })),
-    field('Contexts', chipPicker(opts(state.contexts), draft.contextIds, (v) => { draft.contextIds = v; })),
+    field('Requirements it touches', chipPicker(opts(state.convictions), draft.convictionIds, (v) => { draft.convictionIds = v; })),
+    field('Ground', chipPicker(opts(state.contexts), draft.contextIds, (v) => { draft.contextIds = v; })),
     saveBar(() => {
       if (!draft.title.trim() && !draft.body.trim()) return toast('Write something first');
       store.update((s) => {
@@ -282,36 +403,6 @@ export function editNote(existing, defaults = {}) {
   ));
 }
 
-/* ---------- follow-through ---------- */
-
-export function editAction(existing, defaults = {}) {
-  const state = store.get();
-  const a = existing || {
-    id: uid(), title: '', detail: '', due: '', done: false,
-    convictionIds: [], contextIds: [], ...defaults,
-  };
-  const draft = { ...a, convictionIds: [...(a.convictionIds || [])], contextIds: [...(a.contextIds || [])] };
-
-  openSheet(existing ? 'Edit follow-up' : 'New follow-up', () => frag(
-    field('What am I going to do?', input({ value: draft.title, placeholder: 'Small enough to actually finish', onInput: (e) => { draft.title = e.target.value; } })),
-    field('Detail', area({ value: draft.detail, onInput: (e) => { draft.detail = e.target.value; } })),
-    field('By when', h('input', { type: 'date', value: draft.due, onInput: (e) => { draft.due = e.target.value; } })),
-    field('Convictions', chipPicker(opts(state.convictions), draft.convictionIds, (v) => { draft.convictionIds = v; })),
-    field('Contexts', chipPicker(opts(state.contexts), draft.contextIds, (v) => { draft.contextIds = v; })),
-    saveBar(() => {
-      if (!draft.title.trim()) return toast('Name it first');
-      store.update((s) => {
-        const i = s.actions.findIndex((x) => x.id === draft.id);
-        draft.seeded = false;
-        if (i < 0) s.actions.push({ ...draft, createdAt: new Date().toISOString() });
-        else s.actions[i] = { ...s.actions[i], ...draft };
-      });
-      closeSheet();
-      toast('Saved');
-    }, existing ? () => confirmDelete('follow-up', (s) => { s.actions = s.actions.filter((x) => x.id !== draft.id); }) : null),
-  ));
-}
-
 /* ---------- people ---------- */
 
 export function editPerson(existing) {
@@ -321,10 +412,10 @@ export function editPerson(existing) {
   openSheet(existing ? 'Edit person' : 'Someone I\'m walking with', () => frag(
     field('Name', input({ value: draft.name, onInput: (e) => { draft.name = e.target.value; } })),
     field('Where they are', segmented(PEOPLE_STAGES, draft.stage, (v) => { draft.stage = v; })),
-    field('Next step', input({ value: draft.nextStep, placeholder: 'The next real thing', onInput: (e) => { draft.nextStep = e.target.value; } })),
+    field('Next step', input({ value: draft.nextStep, onInput: (e) => { draft.nextStep = e.target.value; } })),
     field('By when', h('input', { type: 'date', value: draft.nextDue, onInput: (e) => { draft.nextDue = e.target.value; } })),
     field('Last time we met', h('input', { type: 'date', value: draft.lastMet, onInput: (e) => { draft.lastMet = e.target.value; } })),
-    field('Notes', area({ value: draft.notes, placeholder: 'What we\'re working through. Pray-fors.', onInput: (e) => { draft.notes = e.target.value; } })),
+    field('Notes', area({ value: draft.notes, onInput: (e) => { draft.notes = e.target.value; } })),
     saveBar(() => {
       if (!draft.name.trim()) return toast('Name first');
       store.update((s) => {
@@ -337,3 +428,5 @@ export function editPerson(existing) {
     }, existing ? () => confirmDelete('person', (s) => { s.people = s.people.filter((x) => x.id !== draft.id); }) : null),
   ));
 }
+
+export { STAGES };
