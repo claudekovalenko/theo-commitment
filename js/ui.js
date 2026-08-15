@@ -100,11 +100,24 @@ export function confirmSheet({ title, message, confirmLabel = 'Confirm', danger 
 
 /* ---------- form controls ---------- */
 
+const LABELABLE = new Set(['INPUT', 'TEXTAREA', 'SELECT']);
+
+/**
+ * A labelled form row. Only wraps in a <label> when the control is a single
+ * labelable element — a <label> around a group of buttons hands every button
+ * the label's text as its accessible name, which ruins them for screen readers.
+ */
 export function field(labelText, control, hint) {
-  return h('label', { class: 'field' },
+  const wrap = LABELABLE.has(control?.tagName) ? 'label' : 'div';
+  const node = h(wrap, { class: 'field' },
     h('span', {}, labelText),
     control,
     hint ? h('div', { class: 'small muted', style: 'margin-top:5px' }, hint) : null);
+  if (wrap === 'div') {
+    node.setAttribute('role', 'group');
+    node.setAttribute('aria-label', labelText);
+  }
+  return node;
 }
 
 export function input(props = {}) {

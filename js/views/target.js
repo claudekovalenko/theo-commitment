@@ -12,6 +12,7 @@ import {
   walkTheLand, editGround, editBlock, breakGround, captureHesitation, editNote, editPerson, editCalling,
 } from './../editors.js';
 import { plot, areaBars, usLine } from './parts.js';
+import { CHURCH_MODELS, MODEL_STANCES } from './../models.js';
 import { openGround } from './land.js';
 import { go } from './../router.js';
 
@@ -104,6 +105,17 @@ export function render(state) {
     })));
 
   view.append(h('p', { class: 'verdict' }, verdict(s)));
+
+  // The model it runs on, and where you already said you stand with that model.
+  const model = CHURCH_MODELS.find((m) => m.id === ground.modelId);
+  if (model) {
+    const stance = byId(MODEL_STANCES, state.modelStances?.[model.id]?.stance || 'unknown');
+    view.append(h('button', { class: 'card card-tap', style: 'margin-top:12px', onClick: () => go('soil') },
+      h('div', { class: 'row spread' },
+        h('span', { class: 'small' }, model.name),
+        h('span', { class: `small tone-${stance.tone}` }, stance.label)),
+      h('div', { class: 'tiny muted', style: 'margin-top:4px' }, model.asks)));
+  }
 
   if (s.check) {
     const home = byId(HOME_LEVELS, s.home?.id || 'unknown');

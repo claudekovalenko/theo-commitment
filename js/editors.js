@@ -7,6 +7,7 @@ import {
   KID_LEVELS, FORMATION_LEVELS, HOME_LEVELS, SETTLE_LEVELS, PLACE_MODES,
   byId, survey, verdict,
 } from './model.js';
+import { CHURCH_MODELS, MODEL_STANCES } from './models.js';
 import {
   h, frag, field, input, area, segmented, chipPicker, openSheet, closeSheet,
   confirmSheet, toast,
@@ -150,7 +151,7 @@ export function editGround(existing, defaults = {}) {
   const state = store.get();
   const g = existing || {
     id: uid(), name: '', kind: state.calling?.placeId ? 'community' : 'place',
-    stage: 'scouting', horizon: 'unknown', placeMode: 'unknown',
+    stage: 'scouting', horizon: 'unknown', placeMode: 'unknown', modelId: '',
     placeId: state.calling?.placeId || '', notes: '', ...defaults,
   };
   const draft = { ...g };
@@ -190,6 +191,25 @@ export function editGround(existing, defaults = {}) {
   };
   paintPlace();
 
+  // Which model of church is this? Your stance on the model travels with it.
+  const modelField = h('div', {});
+  const paintModel = () => {
+    modelField.replaceChildren();
+    if (draft.kind === 'place' || draft.kind === 'role') return;
+    const stance = byId(MODEL_STANCES, state.modelStances?.[draft.modelId]?.stance || 'unknown');
+    modelField.append(field(
+      'What model of church is this?',
+      segmented(
+        [...CHURCH_MODELS.map((m) => ({ id: m.id, label: m.name })), { id: '', label: 'Not sure' }],
+        draft.modelId || '', (v) => { draft.modelId = v; paintModel(); },
+      ),
+      draft.modelId
+        ? `You've marked that model: ${stance.label.toLowerCase()}. Change it in Soil → Models.`
+        : 'The shape of the thing, before the name on the sign.',
+    ));
+  };
+  paintModel();
+
   const stageField = h('div', {});
   const paintStage = () => {
     stageField.replaceChildren();
@@ -203,8 +223,9 @@ export function editGround(existing, defaults = {}) {
 
   openSheet(existing ? 'Edit' : 'Add ground', () => frag(
     field('Name', input({ value: draft.name, placeholder: 'A town, a church, an offer', onInput: (e) => { draft.name = e.target.value; } })),
-    field('What is it?', segmented(KINDS, draft.kind, (v) => { draft.kind = v; paintPlace(); paintStage(); })),
+    field('What is it?', segmented(KINDS, draft.kind, (v) => { draft.kind = v; paintPlace(); paintModel(); paintStage(); })),
     placeField,
+    modelField,
     stageField,
     field('Could we still be here in ten years?', segmented(HORIZONS, draft.horizon, (v) => { draft.horizon = v; })),
     field('Notes', area({ value: draft.notes, placeholder: 'What you know, who you\'ve talked to, what you\'re watching for.', onInput: (e) => { draft.notes = e.target.value; } })),

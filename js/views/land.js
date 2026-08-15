@@ -10,6 +10,7 @@ import {
 import { h, frag, empty, section, openSheet, relDate, fmtDate } from './../ui.js';
 import { editGround, walkTheLand, editBlock, editNote, breakGround, editCalling } from './../editors.js';
 import { plot, areaBars, usLine } from './parts.js';
+import { CHURCH_MODELS, MODEL_STANCES } from './../models.js';
 
 function compareTable(state, rows) {
   const table = h('table', { class: 'grid' });
@@ -62,6 +63,18 @@ export function openGround(id) {
       ground.kind === 'place' ? plot(s.depth, { staked: ground.stage === 'built' }) : null,
       h('p', { class: 'verdict' }, verdict(s)),
       ground.notes ? h('p', { class: 'small muted' }, ground.notes) : null,
+
+      (() => {
+        const model = CHURCH_MODELS.find((m) => m.id === ground.modelId);
+        if (!model) return null;
+        const stance = byId(MODEL_STANCES, state.modelStances?.[model.id]?.stance || 'unknown');
+        return h('div', { class: 'card' },
+          h('div', { class: 'eyebrow' }, 'Runs on this model'),
+          h('div', { class: 'row spread', style: 'margin-top:4px' },
+            h('strong', {}, model.name),
+            h('span', { class: `small tone-${stance.tone}` }, stance.label)),
+          h('p', { class: 'tiny muted', style: 'margin:8px 0 0' }, model.asks));
+      })(),
 
       ground.kind !== 'place'
         ? h('div', { class: 'card' },

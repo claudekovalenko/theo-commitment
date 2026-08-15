@@ -239,8 +239,8 @@ table.grid td.cell-alert { outline: 1px solid var(--rust); outline-offset: -1px;
 
 /* ---------- forms ---------- */
 
-label.field { display: block; margin-bottom: 16px; }
-label.field > span { display: block; font-size: .8rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+.field { display: block; margin-bottom: 16px; }
+.field > span { display: block; font-size: .8rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
 
 input[type=text], input[type=password], input[type=date], select, textarea {
   width: 100%; padding: 11px 12px; min-height: var(--tap);
@@ -882,6 +882,7 @@ select { appearance: none; }
       people: [],
       verses: [],
       discernments: [],
+      modelStances: {},
       calling: { placeId: "", place: "", why: "", by: "" },
       settings: {
         autoLockMinutes: 15,
@@ -1088,6 +1089,7 @@ select { appearance: none; }
       people: [],
       verses: [],
       discernments: [],
+      modelStances: {},
       calling: { placeId: "", place: "", why: "", by: "" },
       settings: {
         autoLockMinutes: 15,
@@ -1101,6 +1103,7 @@ select { appearance: none; }
     const s = {
       ...base,
       ...data,
+      modelStances: { ...base.modelStances, ...data.modelStances || {} },
       calling: { ...base.calling, ...data.calling || {} },
       settings: {
         ...base.settings,
@@ -1250,14 +1253,21 @@ select { appearance: none; }
       });
     });
   }
+  var LABELABLE = /* @__PURE__ */ new Set(["INPUT", "TEXTAREA", "SELECT"]);
   function field(labelText, control, hint) {
-    return h(
-      "label",
+    const wrap = LABELABLE.has(control?.tagName) ? "label" : "div";
+    const node = h(
+      wrap,
       { class: "field" },
       h("span", {}, labelText),
       control,
       hint ? h("div", { class: "small muted", style: "margin-top:5px" }, hint) : null
     );
+    if (wrap === "div") {
+      node.setAttribute("role", "group");
+      node.setAttribute("aria-label", labelText);
+    }
+    return node;
   }
   function input(props = {}) {
     return h("input", { type: "text", ...props });
@@ -1352,6 +1362,89 @@ select { appearance: none; }
     if (location.hash === target) handler?.(route);
     else location.hash = target;
   }
+
+  // js/models.js
+  var CHURCH_MODELS = [
+    {
+      id: "established",
+      name: "Established congregation",
+      blurb: "An existing local church with history, formal membership and settled governance.",
+      marks: ["Sunday gathering at its centre", "Elders or elders and deacons", "Inherited building and budget", "Members who were here before you"],
+      strengths: ["Continuity and accountability", "Preaching has a real pulpit", "Older saints your kids can know", "Hard to run it on personality alone"],
+      costs: ["Change is slow and costly", "Culture already set before you arrive", "Programmes can absorb the disciple-making"],
+      asks: "Could you submit to a table you didn't build \u2014 and stay long enough to be trusted at it?"
+    },
+    {
+      id: "plant",
+      name: "Church plant",
+      blurb: "A new work started from a small sending core.",
+      marks: ["Small, high-ownership core team", "Everything decided for the first time", "Bivocational or externally funded early", "Identity still forming"],
+      strengths: ["You set the DNA", "Disciple-making is the only option", "Fast to mobilise", "Everyone carries weight"],
+      costs: ["Fragile \u2014 a few families leaving is a crisis", "Founder-dependence is the standing temptation", "Hard on a wife and small children", "Few older saints in the room"],
+      asks: "Is your family in a season that can carry the first three years of one?"
+    },
+    {
+      id: "house",
+      name: "House church / simple church",
+      blurb: "Church in homes, lay-led, multiplying by division rather than addition.",
+      marks: ["Homes, not buildings", "Meal and table at the centre", "Lay-led, low overhead", "Multiplies when it outgrows a room"],
+      strengths: ["Intertwined by design \u2014 hard to hide", "Kids see adult faith up close", "Cheap to plant, easy to multiply", "Every member has to carry something"],
+      costs: ["Teaching depth depends entirely on who's in the room", "Thin on qualified eldership and correction", "Can drift or splinter without outside accountability", "Little room for a preaching ministry as such"],
+      asks: "Where does sound teaching and real oversight come from when the room is small?"
+    },
+    {
+      id: "missional",
+      name: "Missional communities",
+      blurb: "Mid-size communities (20\u201350) on mission together, gathering centrally less often.",
+      marks: ["Mid-size community is the primary unit", "Each one aimed at a place or people", "Central gathering supports, doesn't replace", "Leaders raised from within"],
+      strengths: ["Mission and family life run together", "Big enough for real teaching, small enough to be known", "Natural place for kids to be around adults on mission"],
+      costs: ["Leader-hungry \u2014 quality varies community to community", "Can burn people out in the name of mission", "Central teaching can thin out"],
+      asks: "Could you hand your household to whoever leads the community you're placed in?"
+    },
+    {
+      id: "cell",
+      name: "Cell church",
+      blurb: "Small groups as the church's basic unit, with a larger celebration gathering.",
+      marks: ["Cells meet weekly, celebration regularly", "Clear multiplication targets", "Coaching structure over the cells", "Membership runs through the cell"],
+      strengths: ["Everyone is in a small group by default", "Clear pathway from new believer to leader", "Pastoral care distributed"],
+      costs: ["Can become mechanical \u2014 the system over the people", "Multiplication targets can strain friendships", "Depends on the quality of coaching"],
+      asks: "Does the structure serve the relationships, or the other way around?"
+    },
+    {
+      id: "multisite",
+      name: "Multi-site / attractional",
+      blurb: "One church in several locations, usually with central teaching and strong programming.",
+      marks: ["Central preaching, often on video", "Campus pastors on the ground", "Strong systems, kids and student programmes", "Reach measured in attendance"],
+      strengths: ["Excellent teaching resources", "Real reach into a city", "Age-specific ministry is well-run", "Easy for an outsider to walk into"],
+      costs: ["Easy to attend for years and be unknown", "Kids formed by a programme more than by households", "Distance between the pulpit and your kitchen table"],
+      asks: "Could your family be genuinely known here, or only well served?"
+    },
+    {
+      id: "family",
+      name: "Family-integrated",
+      blurb: "Households worship together; little or no age segregation.",
+      marks: ["Kids in the service, not in a separate programme", "Fathers held responsible for household discipleship", "Multi-generational by design"],
+      strengths: ["Formation runs through the home", "Your kids see you worship", "Strong on household catechesis"],
+      costs: ["Can shade into an ideology about family", "Harder for those without intact households", "Outreach can narrow"],
+      asks: "Does it disciple households, or does it make family the point?"
+    },
+    {
+      id: "network",
+      name: "Sending network / parachurch team",
+      blurb: "Not a congregation \u2014 a team or network you run with, alongside a local church.",
+      marks: ["Mission-focused rather than gathered", "Training, sending, shared method", "Membership is in a church elsewhere", "Often crosses cities and countries"],
+      strengths: ["Sharpens method and urgency", "Peers doing the same work", "Portable \u2014 travels with you"],
+      costs: ["Not a church, and can't pastor your family like one", "Loyalty can quietly outrun your local church", "Accountability is thinner than it looks"],
+      asks: "Where does your family actually belong on Sunday, and does this strengthen that or compete with it?"
+    }
+  ];
+  var MODEL_STANCES = [
+    { id: "home", label: "At home here", tone: "good", weight: 1 },
+    { id: "workable", label: "Could work", tone: "ok", weight: 0.7 },
+    { id: "friction", label: "Real friction", tone: "thin", weight: 0.35 },
+    { id: "no", label: "Not for us", tone: "bad", weight: 0 },
+    { id: "unknown", label: "Haven't decided", tone: "unknown", weight: null }
+  ];
 
   // js/editors.js
   var opts = (list) => list.map((c) => ({ id: c.id, label: c.title || c.name || c.label }));
@@ -1537,6 +1630,7 @@ select { appearance: none; }
       stage: "scouting",
       horizon: "unknown",
       placeMode: "unknown",
+      modelId: "",
       placeId: state2.calling?.placeId || "",
       notes: "",
       ...defaults
@@ -1573,6 +1667,25 @@ select { appearance: none; }
       ));
     };
     paintPlace();
+    const modelField = h("div", {});
+    const paintModel = () => {
+      modelField.replaceChildren();
+      if (draft.kind === "place" || draft.kind === "role") return;
+      const stance = byId(MODEL_STANCES, state2.modelStances?.[draft.modelId]?.stance || "unknown");
+      modelField.append(field(
+        "What model of church is this?",
+        segmented(
+          [...CHURCH_MODELS.map((m) => ({ id: m.id, label: m.name })), { id: "", label: "Not sure" }],
+          draft.modelId || "",
+          (v) => {
+            draft.modelId = v;
+            paintModel();
+          }
+        ),
+        draft.modelId ? `You've marked that model: ${stance.label.toLowerCase()}. Change it in Soil \u2192 Models.` : "The shape of the thing, before the name on the sign."
+      ));
+    };
+    paintModel();
     const stageField = h("div", {});
     const paintStage = () => {
       stageField.replaceChildren();
@@ -1592,9 +1705,11 @@ select { appearance: none; }
       field("What is it?", segmented(KINDS, draft.kind, (v) => {
         draft.kind = v;
         paintPlace();
+        paintModel();
         paintStage();
       })),
       placeField,
+      modelField,
       stageField,
       field("Could we still be here in ten years?", segmented(HORIZONS, draft.horizon, (v) => {
         draft.horizon = v;
@@ -2625,6 +2740,23 @@ select { appearance: none; }
         ground.kind === "place" ? plot(s.depth, { staked: ground.stage === "built" }) : null,
         h("p", { class: "verdict" }, verdict(s)),
         ground.notes ? h("p", { class: "small muted" }, ground.notes) : null,
+        (() => {
+          const model = CHURCH_MODELS.find((m) => m.id === ground.modelId);
+          if (!model) return null;
+          const stance = byId(MODEL_STANCES, state2.modelStances?.[model.id]?.stance || "unknown");
+          return h(
+            "div",
+            { class: "card" },
+            h("div", { class: "eyebrow" }, "Runs on this model"),
+            h(
+              "div",
+              { class: "row spread", style: "margin-top:4px" },
+              h("strong", {}, model.name),
+              h("span", { class: `small tone-${stance.tone}` }, stance.label)
+            ),
+            h("p", { class: "tiny muted", style: "margin:8px 0 0" }, model.asks)
+          );
+        })(),
         ground.kind !== "place" ? h(
           "div",
           { class: "card" },
@@ -3017,6 +3149,21 @@ select { appearance: none; }
       })
     ));
     view3.append(h("p", { class: "verdict" }, verdict(s)));
+    const model = CHURCH_MODELS.find((m) => m.id === ground.modelId);
+    if (model) {
+      const stance = byId(MODEL_STANCES, state2.modelStances?.[model.id]?.stance || "unknown");
+      view3.append(h(
+        "button",
+        { class: "card card-tap", style: "margin-top:12px", onClick: () => go("soil") },
+        h(
+          "div",
+          { class: "row spread" },
+          h("span", { class: "small" }, model.name),
+          h("span", { class: `small tone-${stance.tone}` }, stance.label)
+        ),
+        h("div", { class: "tiny muted", style: "margin-top:4px" }, model.asks)
+      ));
+    }
     if (s.check) {
       const home = byId(HOME_LEVELS, s.home?.id || "unknown");
       view3.append(h(
@@ -3276,10 +3423,105 @@ select { appearance: none; }
   // js/views/soil.js
   var soil_exports = {};
   __export(soil_exports, {
+    openModel: () => openModel,
     openRequirement: () => openRequirement,
     render: () => render3,
     title: () => title3
   });
+  var tab = { at: "requirements" };
+  function openModel(id) {
+    const build = () => {
+      const state2 = get();
+      const m = CHURCH_MODELS.find((x) => x.id === id);
+      const held = state2.modelStances?.[id] || { stance: "unknown", note: "" };
+      const draft = { ...held };
+      const running = state2.contexts.filter((c) => c.modelId === id);
+      const list = (label, items) => h(
+        "div",
+        { class: "card" },
+        h("div", { class: "eyebrow" }, label),
+        h("ul", { style: "margin:8px 0 0; padding-left:18px" }, items.map((x) => h("li", { class: "small" }, x)))
+      );
+      return frag(
+        h("p", { class: "muted" }, m.blurb),
+        list("What it looks like", m.marks),
+        list("What it tends to do well", m.strengths),
+        list("What it tends to cost", m.costs),
+        h(
+          "div",
+          { class: "card" },
+          h("div", { class: "eyebrow" }, "The question it puts to you"),
+          h("p", { class: "verdict", style: "margin:6px 0 0" }, m.asks)
+        ),
+        h(
+          "div",
+          { style: "margin-top:18px" },
+          field(
+            "Where do I stand with this model?",
+            segmented(MODEL_STANCES, draft.stance, (v) => {
+              draft.stance = v;
+            })
+          )
+        ),
+        field("Why", area({
+          value: draft.note,
+          placeholder: "What draws you to it, and what you'd have to make peace with.",
+          onInput: (e) => {
+            draft.note = e.target.value;
+          }
+        })),
+        running.length ? h("p", { class: "small muted" }, `You're weighing ${running.map((c) => c.name).join(", ")} on this model.`) : null,
+        h("button", {
+          class: "btn primary block",
+          style: "margin-top:12px",
+          onClick: () => {
+            update((st) => {
+              if (!st.modelStances) st.modelStances = {};
+              st.modelStances[id] = draft;
+            });
+            closeSheet();
+            toast("Saved");
+          }
+        }, "Save where I stand")
+      );
+    };
+    openSheet(() => CHURCH_MODELS.find((x) => x.id === id).name, build);
+  }
+  function models(state2, view3) {
+    view3.append(
+      h("h1", {}, "What model could I work in?"),
+      h(
+        "p",
+        { class: "muted small" },
+        "The shape of the thing, before the name on the sign. Mark where you stand and it travels with every community you weigh that runs on it."
+      )
+    );
+    const stanceOf = (id) => byId(MODEL_STANCES, state2.modelStances?.[id]?.stance || "unknown");
+    const order = ["home", "workable", "unknown", "friction", "no"];
+    const sorted = [...CHURCH_MODELS].sort((a, b) => order.indexOf(stanceOf(a.id).id) - order.indexOf(stanceOf(b.id).id));
+    const decided = CHURCH_MODELS.filter((m) => stanceOf(m.id).id !== "unknown").length;
+    view3.append(h("p", { class: "tiny muted" }, `${decided} of ${CHURCH_MODELS.length} marked.`));
+    const rows = h("div", { class: "rows" });
+    sorted.forEach((m) => {
+      const st = stanceOf(m.id);
+      const note = state2.modelStances?.[m.id]?.note;
+      const on = state2.contexts.filter((c) => c.modelId === m.id);
+      rows.append(h(
+        "button",
+        { class: "card-tap", onClick: () => openModel(m.id) },
+        h(
+          "div",
+          { class: "row spread" },
+          h("strong", {}, m.name),
+          h("span", { class: `small tone-${st.tone}` }, st.label)
+        ),
+        h("div", { class: "tiny muted" }, m.blurb),
+        note ? h("div", { class: "tiny muted", style: "margin-top:4px" }, note) : null,
+        on.length ? h("div", { class: "tiny", style: "margin-top:4px" }, `\u2192 ${on.map((c) => c.name).join(", ")}`) : null
+      ));
+    });
+    view3.append(rows);
+  }
   function openRequirement(id) {
     const build = () => {
       const state2 = get();
@@ -3337,6 +3579,21 @@ select { appearance: none; }
   var ORDER = WEIGHTS.map((w) => w.id);
   function render3(state2) {
     const view3 = h("div", {});
+    const tabs = h("div", { class: "row wrap", style: "margin-bottom:16px" });
+    [["requirements", "Requirements"], ["models", "Church models"]].forEach(([id, label]) => {
+      tabs.append(h("button", {
+        class: `chip${tab.at === id ? " on" : ""}`,
+        onClick: () => {
+          tab.at = id;
+          go("soil");
+        }
+      }, label));
+    });
+    view3.append(tabs);
+    if (tab.at === "models") {
+      models(state2, view3);
+      return view3;
+    }
     view3.append(
       h("h1", {}, "What the soil needs"),
       h("p", { class: "muted small" }, "The things that have to be true of a place before you'd build on it. Weight them honestly \u2014 this is what every survey is scored against.")

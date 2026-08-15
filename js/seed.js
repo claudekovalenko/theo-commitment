@@ -214,6 +214,7 @@ export function seedState() {
     people: [],
     verses: [],
     discernments: [],
+    modelStances: {},
     calling: { placeId: '', place: '', why: '', by: '' },
     settings: {
       autoLockMinutes: 15,

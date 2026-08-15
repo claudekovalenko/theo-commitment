@@ -216,7 +216,7 @@ function migrate(data) {
     version: 3,
     createdAt: new Date().toISOString(),
     domains: [], convictions: [], contexts: [], checks: [], blocks: [], notes: [], people: [],
-    verses: [], discernments: [],
+    verses: [], discernments: [], modelStances: {},
     calling: { placeId: '', place: '', why: '', by: '' },
     settings: {
       autoLockMinutes: 15,
@@ -229,6 +229,7 @@ function migrate(data) {
   };
   const s = {
     ...base, ...data,
+    modelStances: { ...base.modelStances, ...(data.modelStances || {}) },
     calling: { ...base.calling, ...(data.calling || {}) },
     settings: {
       ...base.settings,

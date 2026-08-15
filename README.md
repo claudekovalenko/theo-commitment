@@ -50,6 +50,20 @@ under **The other options**, each showing how deep you could root, what the kid
 test came back as, and how many things are in the way — with a tap to compare
 them area by area.
 
+## Models of church
+
+Before the name on the sign there's the shape of the thing. **Soil → Church
+models** holds eight — established congregation, church plant, house church,
+missional communities, cell church, multi-site, family-integrated, and sending
+network — each with what it looks like, what it tends to do well, what it tends
+to cost, and the question it puts to you. House church: *where does sound
+teaching and real oversight come from when the room is small?* Multi-site:
+*could your family be genuinely known here, or only well served?*
+
+You mark where you stand on each — at home / could work / real friction / not
+for us — and that stance travels: every community or ministry names the model it
+runs on, and your stance shows up beside it wherever you weigh it.
+
 ## The gate
 
 Two questions decide a piece of ground, and they sit above everything else:
