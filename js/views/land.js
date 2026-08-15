@@ -94,6 +94,24 @@ export function openGround(id) {
             : null);
       })(),
 
+      (() => {
+        if (!s.myPart) return null;
+        const workModel = CHURCH_MODELS.find((m) => m.id === s.myPart.modelId);
+        const workStance = s.myPart.stanceId ? byId(MODEL_STANCES, s.myPart.stanceId) : null;
+        return h('div', { class: 'card' },
+          h('div', { class: 'eyebrow' }, 'My part in it'),
+          h('p', { style: 'margin:6px 0 0' }, s.myPart.text),
+          workModel
+            ? h('div', { class: 'row spread', style: 'margin-top:8px' },
+              h('span', { class: 'small muted' }, `That work is ${workModel.name.toLowerCase()}`),
+              workStance ? h('span', { class: `small tone-${workStance.tone}` }, workStance.label) : null)
+            : null,
+          s.workTension
+            ? h('p', { class: 'tiny tone-bad', style: 'margin:8px 0 0' },
+              'You\'d be the one starting them. That settles differently than weighing them.')
+            : null);
+      })(),
+
       ground.kind !== 'place'
         ? h('div', { class: 'card' },
           byId(KINDS, ground.kind)?.rootless

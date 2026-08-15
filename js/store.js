@@ -383,6 +383,52 @@ function applyLateSeeds(s) {
     }
   }
 
+  // If the job is starting house churches, the model stops being something you
+  // weigh from outside. Put the option on the board and make the house-church
+  // question a conviction to settle, not a preference to hold loosely.
+  if (!done.has('npl-house-churches')) {
+    if (!s.contexts.some((c) => /\bnpl\b/i.test(c.name || ''))) {
+      s.contexts.push({
+        id: uid(),
+        name: 'NPL',
+        kind: 'network',
+        stage: 'scouting',
+        placeId: '',
+        placeMode: 'unknown',
+        modelId: 'house',
+        horizon: 'unknown',
+        output: '',
+        outputModelId: '',
+        myPart: 'Start house churches.',
+        myPartModelId: 'house',
+        notes: 'Rename this if the name came through wrong. The point is the part: '
+          + 'if you\'re in it, your week is spent starting house churches — the one model '
+          + 'you\'ve marked yourself as leaning against.',
+        seeded: true,
+        createdAt: new Date().toISOString(),
+      });
+    }
+    if (!s.convictions.some((c) => /house church/i.test(c.title || ''))) {
+      s.convictions.push({
+        id: uid(),
+        domainId: s.domains.some((d) => d.id === 'ministry') ? 'ministry' : s.domains[0]?.id,
+        title: 'Where I actually stand on house churches',
+        weight: 'forming',
+        summary: 'Not a preference any more. Both live options in LA either produce house '
+          + 'churches or would have me starting them, so this is the conviction the decision '
+          + 'is waiting on.',
+        scriptures: 'Acts 2:46; Acts 20:20; 1 Timothy 3:1-7; Titus 1:5; Hebrews 13:17',
+        practice: 'I could say where I stand out loud to someone who plants them, and name '
+          + 'the specific thing that would change my mind.',
+        forming: 'I lean against the model — thin on teaching depth and real oversight. But my '
+          + 'part in LA would be starting them. I can\'t hold both for another four years.',
+        seeded: true,
+        createdAt: new Date().toISOString(),
+      });
+    }
+    mark('npl-house-churches');
+  }
+
   s.appliedSeeds = [...done];
   return done.size !== before;
 }

@@ -82,6 +82,22 @@ and look at: sit in the house churches they've actually started, on ordinary
 weeks; find out where oversight comes from when the room is small; and decide
 whether you're against the model or against the ones you've seen.
 
+### And your own part in it
+
+One question sits under the fruit and outweighs it: **what would I actually be
+doing there?** Not the title — the work your week would be spent on, tagged with
+the model *that* runs on.
+
+Because weighing a model from outside is one thing, and being the one who starts
+them is another. **NPL** is on the board with the part filled in — *start house
+churches* — and the app doesn't wait for a survey to say what that means:
+
+> **Your own part here is the model you haven't settled on. You can hold a model
+> at arm's length; you can't start them for a living at arm's length.**
+
+That verdict fires before *"not surveyed yet"*, because no amount of walking the
+land answers it.
+
 ## Settling
 
 Four years open is partly four years of convictions left at *still working it
@@ -97,6 +113,12 @@ it in the way** — which is also an answer, just a written one.
 
 The home screen carries the count: *4 still open in me.* Some of the waiting
 isn't about them.
+
+The one at the top of that list is **where I actually stand on house churches** —
+because both live options in Los Angeles either produce them or would have you
+starting them. It's held as *still forming*, in those terms: *I lean against the
+model — thin on teaching depth and real oversight. But my part in LA would be
+starting them. I can't hold both for another four years.*
 
 ## How long this has been open
 

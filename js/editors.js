@@ -260,7 +260,7 @@ export function editGround(existing, defaults = {}) {
   const g = existing || {
     id: uid(), name: '', kind: state.calling?.placeId ? 'community' : 'place',
     stage: 'scouting', horizon: 'unknown', placeMode: 'unknown', modelId: '',
-    output: '', outputModelId: '',
+    output: '', outputModelId: '', myPart: '', myPartModelId: '',
     placeId: state.calling?.placeId || '', notes: '', ...defaults,
   };
   const draft = { ...g };
@@ -345,6 +345,14 @@ export function editGround(existing, defaults = {}) {
       [...CHURCH_MODELS.map((m) => ({ id: m.id, label: m.name })), { id: '', label: 'Not one of these' }],
       draft.outputModelId || '', (v) => { draft.outputModelId = v; },
     ), 'If what they produce is a model you\'re against, that\'s worth seeing plainly.'),
+    field('And what would I actually be doing there?', area({
+      value: draft.myPart || '', placeholder: 'Your part, in one line. Not the title — the work.',
+      onInput: (e) => { draft.myPart = e.target.value; },
+    }), 'What your week would be spent on if you said yes.'),
+    field('And my work is which model?', segmented(
+      [...CHURCH_MODELS.map((m) => ({ id: m.id, label: m.name })), { id: '', label: 'Not one of these' }],
+      draft.myPartModelId || '', (v) => { draft.myPartModelId = v; },
+    ), 'Weighing a model is one thing. Building it with your own hands is another.'),
     field('Notes', area({ value: draft.notes, placeholder: 'What you know, who you\'ve talked to, what you\'re watching for.', onInput: (e) => { draft.notes = e.target.value; } })),
     saveBar(() => {
       if (!draft.name.trim()) return toast('Give it a name first');

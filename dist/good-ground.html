@@ -603,6 +603,12 @@ select { appearance: none; }
       stanceId: ground.outputModelId ? state2.modelStances?.[ground.outputModelId]?.stance || "unknown" : ""
     } : null;
     base.fruitTension = base.fruit && ["against", "no", "friction"].includes(base.fruit.stanceId) ? base.fruit.stanceId : "";
+    base.myPart = ground.myPart ? {
+      text: ground.myPart,
+      modelId: ground.myPartModelId || "",
+      stanceId: ground.myPartModelId ? state2.modelStances?.[ground.myPartModelId]?.stance || "unknown" : ""
+    } : null;
+    base.workTension = base.myPart && ["against", "no", "friction"].includes(base.myPart.stanceId) ? base.myPart.stanceId : "";
     const decided = ground.stage === "built" || ground.stage === "ruled-out";
     base.running = ground.stage === "running";
     base.kind = ground.kind;
@@ -621,7 +627,7 @@ select { appearance: none; }
       inTheWay: [
         ...gatedBy ? [{ kind: "gate", label: gatedBy }] : [],
         ...base.barriersUnclear.map((b) => ({ kind: "barrier", label: `${b.barrier.title} \u2014 can't tell yet` })),
-        ...base.fruitTension ? [{ kind: "fruit", label: `What they produce is a model you're ${base.fruitTension === "no" ? "not up for" : base.fruitTension === "against" ? "leaning against" : "in real friction with"}` }] : [],
+        ...base.workTension ? [{ kind: "work", label: "The work you'd be doing is the model you haven't settled on" }] : base.fruitTension ? [{ kind: "fruit", label: `What they produce is a model you're ${base.fruitTension === "no" ? "not up for" : base.fruitTension === "against" ? "leaning against" : "in real friction with"}` }] : [],
         ...blocks.map((b) => ({ kind: "block", block: b, label: b.title })),
         ...base.unsurveyed.map((u) => ({ kind: "unsurveyed", req: u.req, label: u.req.title }))
       ],
@@ -633,6 +639,9 @@ select { appearance: none; }
       return s.isPlace ? "You broke ground here." : "You committed to them. The work now is keeping it.";
     }
     if (s.stage === "ruled-out") return "You ruled this one out.";
+    if (s.workTension) {
+      return "Your own part here is the model you haven't settled on. You can hold a model at arm's length; you can't start them for a living at arm's length.";
+    }
     if (!s.check) return "Not surveyed yet. Walk the land.";
     if (s.barriersFailed?.length) {
       const names = s.barriersFailed.map((b2) => b2.barrier.title.toLowerCase()).join(" and ");
@@ -847,6 +856,18 @@ select { appearance: none; }
   }
   function seedState() {
     const convictions = seedConvictions();
+    convictions.push({
+      id: uid(),
+      domainId: "ministry",
+      title: "Where I actually stand on house churches",
+      weight: "forming",
+      summary: "Not a preference any more. Both live options in LA either produce house churches or would have me starting them, so this is the conviction the decision is waiting on.",
+      scriptures: "Acts 2:46; Acts 20:20; 1 Timothy 3:1-7; Titus 1:5; Hebrews 13:17",
+      practice: "I could say where I stand out loud to someone who plants them, and name the specific thing that would change my mind.",
+      forming: "I lean against the model \u2014 thin on teaching depth and real oversight. But my part in LA would be starting them. I can't hold both for another four years.",
+      seeded: true,
+      createdAt: (/* @__PURE__ */ new Date()).toISOString()
+    });
     const e3 = {
       id: uid(),
       name: "E3",
@@ -860,6 +881,23 @@ select { appearance: none; }
       notes: "A ministry, not a location. Been running with them for a while \u2014 the open question is whether I could settle in with them completely.",
       createdAt: (/* @__PURE__ */ new Date()).toISOString(),
       seeded: true
+    };
+    const npl = {
+      id: uid(),
+      name: "NPL",
+      kind: "network",
+      stage: "scouting",
+      placeId: "",
+      placeMode: "unknown",
+      modelId: "house",
+      horizon: "unknown",
+      output: "",
+      outputModelId: "",
+      myPart: "Start house churches.",
+      myPartModelId: "house",
+      notes: "Rename this if the name came through wrong. The point is the part: if you're in it, your week is spent starting house churches \u2014 the one model you've marked yourself as leaning against.",
+      seeded: true,
+      createdAt: (/* @__PURE__ */ new Date()).toISOString()
     };
     const antioch = {
       id: uid(),
@@ -891,10 +929,10 @@ select { appearance: none; }
       seeded: true,
       // He's been carrying this question for about four years.
       weighingSince: new Date((/* @__PURE__ */ new Date()).getFullYear() - 4, 0, 1).toISOString().slice(0, 10),
-      appliedSeeds: ["antioch", "consistent-community", "weighing-since", "e3-fruit"],
+      appliedSeeds: ["antioch", "consistent-community", "weighing-since", "e3-fruit", "npl-house-churches"],
       domains: DEFAULT_DOMAINS.map((d) => ({ ...d })),
       convictions,
-      contexts: [here, e3, antioch],
+      contexts: [here, e3, npl, antioch],
       checks: [],
       blocks: [
         {
@@ -1373,6 +1411,42 @@ select { appearance: none; }
         });
         mark("e3-fruit");
       }
+    }
+    if (!done.has("npl-house-churches")) {
+      if (!s.contexts.some((c) => /\bnpl\b/i.test(c.name || ""))) {
+        s.contexts.push({
+          id: uid(),
+          name: "NPL",
+          kind: "network",
+          stage: "scouting",
+          placeId: "",
+          placeMode: "unknown",
+          modelId: "house",
+          horizon: "unknown",
+          output: "",
+          outputModelId: "",
+          myPart: "Start house churches.",
+          myPartModelId: "house",
+          notes: "Rename this if the name came through wrong. The point is the part: if you're in it, your week is spent starting house churches \u2014 the one model you've marked yourself as leaning against.",
+          seeded: true,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      }
+      if (!s.convictions.some((c) => /house church/i.test(c.title || ""))) {
+        s.convictions.push({
+          id: uid(),
+          domainId: s.domains.some((d) => d.id === "ministry") ? "ministry" : s.domains[0]?.id,
+          title: "Where I actually stand on house churches",
+          weight: "forming",
+          summary: "Not a preference any more. Both live options in LA either produce house churches or would have me starting them, so this is the conviction the decision is waiting on.",
+          scriptures: "Acts 2:46; Acts 20:20; 1 Timothy 3:1-7; Titus 1:5; Hebrews 13:17",
+          practice: "I could say where I stand out loud to someone who plants them, and name the specific thing that would change my mind.",
+          forming: "I lean against the model \u2014 thin on teaching depth and real oversight. But my part in LA would be starting them. I can't hold both for another four years.",
+          seeded: true,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      }
+      mark("npl-house-churches");
     }
     s.appliedSeeds = [...done];
     return done.size !== before;
@@ -1980,6 +2054,8 @@ select { appearance: none; }
       modelId: "",
       output: "",
       outputModelId: "",
+      myPart: "",
+      myPartModelId: "",
       placeId: state2.calling?.placeId || "",
       notes: "",
       ...defaults
@@ -2077,6 +2153,20 @@ select { appearance: none; }
           draft.outputModelId = v;
         }
       ), "If what they produce is a model you're against, that's worth seeing plainly."),
+      field("And what would I actually be doing there?", area({
+        value: draft.myPart || "",
+        placeholder: "Your part, in one line. Not the title \u2014 the work.",
+        onInput: (e) => {
+          draft.myPart = e.target.value;
+        }
+      }), "What your week would be spent on if you said yes."),
+      field("And my work is which model?", segmented(
+        [...CHURCH_MODELS.map((m) => ({ id: m.id, label: m.name })), { id: "", label: "Not one of these" }],
+        draft.myPartModelId || "",
+        (v) => {
+          draft.myPartModelId = v;
+        }
+      ), "Weighing a model is one thing. Building it with your own hands is another."),
       field("Notes", area({ value: draft.notes, placeholder: "What you know, who you've talked to, what you're watching for.", onInput: (e) => {
         draft.notes = e.target.value;
       } })),
@@ -3181,6 +3271,28 @@ select { appearance: none; }
             ) : null
           );
         })(),
+        (() => {
+          if (!s.myPart) return null;
+          const workModel = CHURCH_MODELS.find((m) => m.id === s.myPart.modelId);
+          const workStance = s.myPart.stanceId ? byId(MODEL_STANCES, s.myPart.stanceId) : null;
+          return h(
+            "div",
+            { class: "card" },
+            h("div", { class: "eyebrow" }, "My part in it"),
+            h("p", { style: "margin:6px 0 0" }, s.myPart.text),
+            workModel ? h(
+              "div",
+              { class: "row spread", style: "margin-top:8px" },
+              h("span", { class: "small muted" }, `That work is ${workModel.name.toLowerCase()}`),
+              workStance ? h("span", { class: `small tone-${workStance.tone}` }, workStance.label) : null
+            ) : null,
+            s.workTension ? h(
+              "p",
+              { class: "tiny tone-bad", style: "margin:8px 0 0" },
+              "You'd be the one starting them. That settles differently than weighing them."
+            ) : null
+          );
+        })(),
         ground.kind !== "place" ? h(
           "div",
           { class: "card" },
@@ -4026,6 +4138,28 @@ select { appearance: none; }
           "You'd be building the thing you're not sure about. That's the question, not a footnote."
         ) : null,
         s.fruitTension && outModel ? h("button", { class: "icon-btn", style: "margin-top:8px", onClick: () => openModel(outModel.id) }, "Look at that model") : null
+      ));
+    }
+    if (s.myPart) {
+      const workModel = CHURCH_MODELS.find((m) => m.id === s.myPart.modelId);
+      const workStance = s.myPart.stanceId ? byId(MODEL_STANCES, s.myPart.stanceId) : null;
+      view3.append(h(
+        "div",
+        { class: "card", style: "margin-top:12px" },
+        h("div", { class: "eyebrow" }, "What I'd actually be doing"),
+        h("p", { class: "small", style: "margin:6px 0 0" }, s.myPart.text),
+        workModel ? h(
+          "div",
+          { class: "row spread", style: "margin-top:8px" },
+          h("span", { class: "tiny muted" }, `That work is ${workModel.name.toLowerCase()}`),
+          workStance ? h("span", { class: `tiny tone-${workStance.tone}` }, workStance.label) : null
+        ) : null,
+        s.workTension ? h(
+          "p",
+          { class: "verdict", style: "margin:10px 0 0; font-size:14px" },
+          "This isn't a reservation about them any more. It's the job description."
+        ) : null,
+        s.workTension && workModel ? h("button", { class: "icon-btn", style: "margin-top:8px", onClick: () => showSoilTab("settling") }, "Settle where I stand on it") : null
       ));
     }
     if (s.check && s.barriers.length) {

@@ -296,6 +296,19 @@ export function survey(state, ground) {
     ? base.fruit.stanceId
     : '';
 
+  // Your own part in it. Weighing a model at arm's length is one thing; being
+  // the one who starts them is another, and it's the heavier of the two.
+  base.myPart = ground.myPart
+    ? {
+      text: ground.myPart,
+      modelId: ground.myPartModelId || '',
+      stanceId: ground.myPartModelId ? (state.modelStances?.[ground.myPartModelId]?.stance || 'unknown') : '',
+    }
+    : null;
+  base.workTension = base.myPart && ['against', 'no', 'friction'].includes(base.myPart.stanceId)
+    ? base.myPart.stanceId
+    : '';
+
   const decided = ground.stage === 'built' || ground.stage === 'ruled-out';
   base.running = ground.stage === 'running';
   base.kind = ground.kind;
@@ -319,7 +332,11 @@ export function survey(state, ground) {
     inTheWay: [
       ...(gatedBy ? [{ kind: 'gate', label: gatedBy }] : []),
       ...base.barriersUnclear.map((b) => ({ kind: 'barrier', label: `${b.barrier.title} — can't tell yet` })),
-      ...(base.fruitTension ? [{ kind: 'fruit', label: `What they produce is a model you're ${base.fruitTension === 'no' ? 'not up for' : base.fruitTension === 'against' ? 'leaning against' : 'in real friction with'}` }] : []),
+      ...(base.workTension
+        ? [{ kind: 'work', label: 'The work you\'d be doing is the model you haven\'t settled on' }]
+        : base.fruitTension
+          ? [{ kind: 'fruit', label: `What they produce is a model you're ${base.fruitTension === 'no' ? 'not up for' : base.fruitTension === 'against' ? 'leaning against' : 'in real friction with'}` }]
+          : []),
       ...blocks.map((b) => ({ kind: 'block', block: b, label: b.title })),
       ...base.unsurveyed.map((u) => ({ kind: 'unsurveyed', req: u.req, label: u.req.title })),
     ],
@@ -333,6 +350,11 @@ export function verdict(s) {
     return s.isPlace ? 'You broke ground here.' : 'You committed to them. The work now is keeping it.';
   }
   if (s.stage === 'ruled-out') return 'You ruled this one out.';
+  // This one doesn't wait on a survey. If the work itself is the model you
+  // haven't settled on, no amount of walking the land answers it.
+  if (s.workTension) {
+    return 'Your own part here is the model you haven\'t settled on. You can hold a model at arm\'s length; you can\'t start them for a living at arm\'s length.';
+  }
   if (!s.check) return 'Not surveyed yet. Walk the land.';
   if (s.barriersFailed?.length) {
     const names = s.barriersFailed.map((b) => b.barrier.title.toLowerCase()).join(' and ');

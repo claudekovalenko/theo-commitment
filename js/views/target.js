@@ -176,6 +176,27 @@ export function render(state) {
         : null));
   }
 
+  // Your own part in it — the heavier version of the same question.
+  if (s.myPart) {
+    const workModel = CHURCH_MODELS.find((m) => m.id === s.myPart.modelId);
+    const workStance = s.myPart.stanceId ? byId(MODEL_STANCES, s.myPart.stanceId) : null;
+    view.append(h('div', { class: 'card', style: 'margin-top:12px' },
+      h('div', { class: 'eyebrow' }, 'What I\'d actually be doing'),
+      h('p', { class: 'small', style: 'margin:6px 0 0' }, s.myPart.text),
+      workModel
+        ? h('div', { class: 'row spread', style: 'margin-top:8px' },
+          h('span', { class: 'tiny muted' }, `That work is ${workModel.name.toLowerCase()}`),
+          workStance ? h('span', { class: `tiny tone-${workStance.tone}` }, workStance.label) : null)
+        : null,
+      s.workTension
+        ? h('p', { class: 'verdict', style: 'margin:10px 0 0; font-size:14px' },
+          'This isn\'t a reservation about them any more. It\'s the job description.')
+        : null,
+      s.workTension && workModel
+        ? h('button', { class: 'icon-btn', style: 'margin-top:8px', onClick: () => showSoilTab('settling') }, 'Settle where I stand on it')
+        : null));
+  }
+
   if (s.check && s.barriers.length) {
     view.append(h('div', { class: 'card', style: 'margin-top:12px' },
       h('div', { class: 'eyebrow' }, 'The lines I don\'t cross'),
