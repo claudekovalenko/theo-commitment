@@ -269,7 +269,7 @@ export function render(state) {
           h('strong', {}, c.name),
           h('span', { class: 'tiny muted' }, byId(KINDS, c.kind)?.label || '')),
         h('div', { class: `tiny ${p || rootless ? 'muted' : 'tone-thin'}` },
-          p ? `Would put us in ${p.name}` : (rootless ? mode.label : 'No ground attached yet'))));
+          rootless ? mode.label : (p ? `Would put us in ${p.name}` : 'No ground attached yet'))));
     });
     view.append(rows);
   }
