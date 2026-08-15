@@ -103,11 +103,18 @@ settle it and who could answer. When you look at a place and still don't say
 yes, the app asks why and writes it down — and if the same reason comes back
 three times, it says so. That isn't hesitation any more; it's an answer.
 
-**Breaking ground.** The point of the app. When you commit, you write one
-sentence about what you're saying yes to, and the sapling becomes a house. You
-can commit with things still unsettled — the app will show you exactly what
-they are first, because saying yes with your eyes open is different from
-drifting into it.
+**Committing.** The point of the app — and it works on people, not just land.
+A place gets *broken ground on*; a ministry or a community gets *committed to*.
+Same weight, same ceremony, different word, and either one can be the thing you
+finally settle into. When you commit, you write one sentence about what
+you're saying yes to — and then the harder field: **what dies for this to
+live?** The options you're closing, the freedom you're giving up, the doors you
+stop knocking on. A seed that keeps all its options open stays a seed. Both
+lines stay on the screen afterwards.
+
+You can commit with things still unsettled; the app shows you exactly what they
+are first, because saying yes with your eyes open is different from drifting
+into it.
 
 ## The two questions it always asks
 

@@ -263,6 +263,8 @@ export function survey(state, ground) {
 
   const decided = ground.stage === 'built' || ground.stage === 'ruled-out';
   base.running = ground.stage === 'running';
+  base.kind = ground.kind;
+  base.isPlace = ground.kind === 'place';
   const trusted = ['yes', 'some'].includes(base.kid.id);
   const gatedBy = check && !trusted
     ? `You wouldn't leave your kids with these people yet (${base.kid.label.toLowerCase()})`
@@ -288,7 +290,9 @@ export function survey(state, ground) {
 
 /** One plain sentence about what stands between you and a decision. */
 export function verdict(s) {
-  if (s.stage === 'built') return 'You broke ground here.';
+  if (s.stage === 'built') {
+    return s.isPlace ? 'You broke ground here.' : 'You committed to them. The work now is keeping it.';
+  }
   if (s.stage === 'ruled-out') return 'You ruled this one out.';
   if (!s.check) return 'Not surveyed yet. Walk the land.';
   if (s.kid.id === 'no' || s.kid.id === 'supervised') {

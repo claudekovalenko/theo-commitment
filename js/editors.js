@@ -445,10 +445,21 @@ export function captureHesitation(ground) {
 export function breakGround(ground) {
   const state = store.get();
   const s = survey(state, ground);
+  const isPlace = ground.kind === 'place';
+  // A place gets built on. People get committed to. Same weight, different word.
+  const word = {
+    title: isPlace ? `Build on ${ground.name}?` : `Commit to ${ground.name}?`,
+    go: isPlace ? 'Break ground here' : 'Commit to them',
+    saying: isPlace ? 'What are you saying yes to?' : 'What are you committing to?',
+    done: isPlace ? 'Stake in the ground' : 'Committed',
+    log: isPlace ? `Broke ground in ${ground.name}` : `Committed to ${ground.name}`,
+    out: isPlace ? 'Rule it out instead' : 'Walk away from them instead',
+  };
   let note = '';
+  let cost = '';
   let date = today();
 
-  openSheet(`Build on ${ground.name}?`, () => frag(
+  openSheet(word.title, () => frag(
     s.gatedBy
       ? h('div', { class: 'card', style: 'margin-bottom:16px' },
         h('strong', { class: 'tone-bad' }, s.gatedBy),
@@ -464,10 +475,14 @@ export function breakGround(ground) {
           'You can still say yes. Saying yes with your eyes open is different from drifting into it.'))
       : h('p', { class: 'verdict', style: 'margin-bottom:16px' }, 'Nothing is unsettled. This is a decision, not a discovery.'),
 
-    field('What are you saying yes to?', area({
+    field(word.saying, area({
       placeholder: 'In one sentence, so you can read it back in five years.',
       onInput: (e) => { note = e.target.value; },
     })),
+    field('What dies for this to live?', area({
+      placeholder: 'Options you\'re closing, freedom you\'re giving up, doors you stop knocking on.',
+      onInput: (e) => { cost = e.target.value; },
+    }), 'A seed that keeps all its options open stays a seed.'),
     field('Date', h('input', { type: 'date', value: date, onInput: (e) => { date = e.target.value || today(); } })),
     h('button', {
       class: 'btn primary block',
@@ -477,17 +492,19 @@ export function breakGround(ground) {
           g.stage = 'built';
           g.stakedAt = date;
           g.stakeNote = note;
+          g.stakeCost = cost;
           st.notes.push({
             id: uid(), date, kind: 'observation',
-            title: `Broke ground in ${ground.name}`, body: note,
+            title: word.log,
+            body: [note, cost ? `What dies for this: ${cost}` : ''].filter(Boolean).join('\n\n'),
             convictionIds: [], contextIds: [ground.id], source: '',
             createdAt: new Date().toISOString(),
           });
         });
         closeSheet(true);
-        toast('Stake in the ground');
+        toast(word.done);
       },
-    }, 'Break ground here'),
+    }, word.go),
     h('button', {
       class: 'btn ghost block', style: 'margin-top:10px',
       onClick: () => {
@@ -495,7 +512,7 @@ export function breakGround(ground) {
         closeSheet(true);
         toast('Ruled out');
       },
-    }, 'Rule it out instead'),
+    }, word.out),
   ));
 }
 

@@ -87,7 +87,7 @@ export function render(state) {
   view.append(h('div', { class: 'row spread', style: 'align-items:flex-end' },
     h('div', {},
       h('div', { class: 'eyebrow' },
-        staked ? 'Building here'
+        staked ? (ground.kind === 'place' ? 'Building here' : 'Committed to them')
           : ground.stage === 'running' ? 'Running with them, not settled'
             : (state.calling?.place && ground.kind !== 'place'
               ? `Who I'd build with in ${state.calling.place}`
@@ -96,7 +96,12 @@ export function render(state) {
     h('button', { class: 'icon-btn', onClick: () => openGround(ground.id) }, 'Open')));
 
   view.append(h('div', { style: 'margin:14px 0 10px' },
-    plot(s.depth, { staked, label: staked ? `Stake in the ground ${relDate(ground.stakedAt || today(), today()).toLowerCase()}` : `${Math.round(s.depth * 100)}% rooted · ${Math.round(s.surveyed * 100)}% of the land walked` })));
+    plot(s.depth, {
+      staked,
+      label: staked
+        ? `${ground.kind === 'place' ? 'Stake in the ground' : 'Committed'} ${relDate(ground.stakedAt || today(), today()).toLowerCase()}`
+        : `${Math.round(s.depth * 100)}% rooted · ${Math.round(s.surveyed * 100)}% walked`,
+    })));
 
   view.append(h('p', { class: 'verdict' }, verdict(s)));
 
@@ -138,8 +143,12 @@ export function render(state) {
     view.append(rows);
   }
 
-  if (staked && ground.stakeNote) {
-    view.append(h('p', { class: 'small muted', style: 'font-style:italic' }, `"${ground.stakeNote}"`));
+  if (staked && (ground.stakeNote || ground.stakeCost)) {
+    view.append(h('div', { class: 'card' },
+      ground.stakeNote ? h('p', { class: 'small', style: 'font-style:italic; margin:0' }, `"${ground.stakeNote}"`) : null,
+      ground.stakeCost
+        ? h('p', { class: 'tiny muted', style: 'margin:8px 0 0' }, `What died for it: ${ground.stakeCost}`)
+        : null));
   }
 
   const verse = state.settings?.verse;
@@ -162,7 +171,9 @@ export function render(state) {
             onClick: () => editBlock(null, { groundId: ground.id, hard: true, title: s.gatedBy }),
           }, 'Name what would have to change')
           : h('button', { class: 'btn primary block', onClick: () => breakGround(ground) },
-            s.inTheWay.length ? 'I\'m ready to build here' : 'Break ground here'),
+            ground.kind === 'place'
+              ? (s.inTheWay.length ? 'I\'m ready to build here' : 'Break ground here')
+              : (s.inTheWay.length ? 'I\'m ready to commit to them' : 'Commit to them')),
       h('button', { class: 'btn ghost block', onClick: () => captureHesitation(ground) }, 'Not yet — here\'s why'),
       s.gatedBy
         ? h('button', { class: 'btn ghost block small', onClick: () => breakGround(ground) }, 'Decide anyway')

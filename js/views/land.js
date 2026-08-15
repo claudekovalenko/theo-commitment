@@ -87,8 +87,9 @@ export function openGround(id) {
       h('div', { class: 'stack', style: 'margin:16px 0' },
         h('button', { class: 'btn primary block', onClick: () => walkTheLand(id, s.check) },
           s.check ? 'Walk it again' : 'Walk the land'),
-        ground.stage !== 'built' && ground.kind === 'place'
-          ? h('button', { class: 'btn block', onClick: () => breakGround(ground) }, 'Decide on this ground')
+        ground.stage !== 'built' && ground.stage !== 'ruled-out'
+          ? h('button', { class: 'btn block', onClick: () => breakGround(ground) },
+            ground.kind === 'place' ? 'Decide on this ground' : 'Decide on them')
           : null),
 
       s.check ? frag(
