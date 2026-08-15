@@ -41,6 +41,15 @@ comes from it:
 
 Change it in Settings to whatever you want in front of you.
 
+## More than one option
+
+A single option is a yes-or-no with nothing to weigh it against, so the home
+screen says so when only one thing is on the table: *"E3 is the only thing on
+the table. One option isn't a decision."* Once there are two or more, they sit
+under **The other options**, each showing how deep you could root, what the kid
+test came back as, and how many things are in the way — with a tap to compare
+them area by area.
+
 ## The gate
 
 Two questions decide a piece of ground, and they sit above everything else:

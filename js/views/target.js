@@ -230,21 +230,46 @@ export function render(state) {
   }
 
   /* ---- the other ground ---- */
-  const others = candidates(state).filter((r) => r.ground.id !== ground.id);
-  if (others.length) {
-    view.append(section(state.calling?.place ? 'Others there' : 'Other ground', 'Compare', () => go('land')));
+  const others = candidates(state).filter((r) => r.ground.id !== ground.id)
+    .filter((r) => r.ground.stage !== 'ruled-out');
+
+  view.append(section(
+    state.calling?.place ? 'The other options' : 'Other ground',
+    others.length ? 'Compare' : 'Add one',
+    () => (others.length ? go('land') : editGround(null, { kind: ground.kind === 'place' ? 'place' : 'community' })),
+  ));
+
+  if (!others.length) {
+    // One option on the table is a temptation, not a decision.
+    view.append(h('div', { class: 'card' },
+      h('strong', {}, `${ground.name} is the only thing on the table.`),
+      h('p', { class: 'small muted', style: 'margin:6px 0 12px' },
+        'One option isn\'t a decision — it\'s a yes or a no with nothing to weigh it against. '
+        + 'Name two or three you\'d genuinely consider, even the ones you\'ve half dismissed.'),
+      h('button', {
+        class: 'btn sm',
+        onClick: () => editGround(null, { kind: ground.kind === 'place' ? 'place' : 'community' }),
+      }, 'Name another option')));
+  } else {
     const rows = h('div', { class: 'rows' });
     others.forEach(({ ground: g, s: gs }) => {
-      const hz = g.kind === 'place' ? (byId(HORIZONS, g.horizon) || HORIZONS[0]) : byId(KINDS, g.kind);
+      const what = g.kind === 'place' ? (byId(HORIZONS, g.horizon) || HORIZONS[0]) : byId(KINDS, g.kind);
       rows.append(h('button', {
         class: 'card-tap', onClick: () => { focusId = g.id; go('target'); },
       },
       h('div', { class: 'row spread' },
         h('strong', {}, g.name),
         h('span', { class: 'tiny muted tnum' }, `${Math.round(gs.depth * 100)}% rooted`)),
-      h('div', { class: 'tiny muted' }, [hz.label, gs.inTheWay.length ? `${gs.inTheWay.length} in the way` : 'nothing in the way'].join(' · '))));
+      h('div', { class: 'tiny muted' },
+        [what?.label, gs.check ? `kids: ${gs.kid.label.toLowerCase()}` : 'not walked',
+          gs.inTheWay.length ? `${gs.inTheWay.length} in the way` : 'nothing in the way']
+          .filter(Boolean).join(' · '))));
     });
     view.append(rows);
+    view.append(h('button', {
+      class: 'btn ghost block', style: 'margin-top:12px',
+      onClick: () => editGround(null, { kind: ground.kind === 'place' ? 'place' : 'community' }),
+    }, 'Name another option'));
   }
 
   /* ---- the hesitations, said back to you ---- */
