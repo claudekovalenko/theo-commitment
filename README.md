@@ -64,6 +64,40 @@ You mark where you stand on each — at home / could work / real friction / not
 for us — and that stance travels: every community or ministry names the model it
 runs on, and your stance shows up beside it wherever you weigh it.
 
+## Judge it by its fruit
+
+Every ministry answers one more question: **what does it actually produce here?**
+Not the vision statement — the measurable artefact, in this city. E3's is
+*healthy house churches started in LA*, and that fruit is tagged with the model
+it runs on.
+
+Which is where it gets useful, because your stance on that model is already
+recorded. When the fruit is a model you lean against, the app doesn't soften it:
+
+> **What they actually produce is the model you lean against. Settle that, or
+> you're settling with something you don't believe in.**
+
+It goes in the way alongside everything else unsettled, with three things to go
+and look at: sit in the house churches they've actually started, on ordinary
+weeks; find out where oversight comes from when the room is small; and decide
+whether you're against the model or against the ones you've seen.
+
+## Settling
+
+Four years open is partly four years of convictions left at *still working it
+out*. **Soil → Settling** lists them — every requirement you marked as forming,
+and every barrier with no position written on it — and asks for one thing:
+where you've landed, in a sentence, dated.
+
+Settling isn't closing your mind. It's writing down where you stand today so you
+stop re-arguing it with yourself. A settled requirement moves from *still
+forming* to *strongly want*, the statement stays on it with its date, and the
+whole thing lands in the journal. Or you take the other button — **not yet, put
+it in the way** — which is also an answer, just a written one.
+
+The home screen carries the count: *4 still open in me.* Some of the waiting
+isn't about them.
+
 ## How long this has been open
 
 The home screen carries one line you can't scroll past: how long you've been
@@ -196,7 +230,7 @@ the list.
 | --- | --- |
 | **Ground** | The one place in front of you, and what stands between you and yes |
 | **Land** | Every piece of ground, ranked and compared area by area |
-| **Soil** | What the ground has to hold, by area of life |
+| **Soil** | What the ground has to hold, what you're still settling, and the models |
 | **Word** | Scripture threads, your studies, and the discernment instrument |
 | **In the way** | Everything unsettled, and what would settle it |
 | **Journal** | What you're learning, and the people you're walking with |

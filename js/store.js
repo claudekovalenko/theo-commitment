@@ -357,6 +357,32 @@ function applyLateSeeds(s) {
     mark('antioch');
   }
 
+  // What E3 measurably produces in LA is healthy house churches — which is the
+  // model he leans against. That tension is the decision, so the app records it
+  // as fruit and puts the three things worth going and looking at in the way.
+  if (!done.has('e3-fruit')) {
+    const e3 = s.contexts.find((c) => /\be3\b/i.test(c.name || ''));
+    if (e3 && !e3.output) {
+      e3.output = 'Healthy house churches started in LA.';
+      e3.outputModelId = 'house';
+      [
+        ['Sit in the house churches E3 has actually started here',
+          'Three of them, on ordinary weeks, not a showcase. Who teaches, who corrects, who\'s still there after two years.'],
+        ['Where does oversight come from in an E3 house church?',
+          'A name and a structure — who has authority to correct a leader, and what happened the last time one needed correcting.'],
+        ['Am I against the house church model, or against the ones I\'ve seen?',
+          'One sentence I\'d say out loud, and the specific thing that would change my mind.'],
+      ].forEach(([title, wouldSettle]) => {
+        if (s.blocks.some((b) => b.title === title)) return;
+        s.blocks.push({
+          id: uid(), groundId: e3.id, title, wouldSettle, who: '', due: '',
+          hard: true, status: 'open', seeded: true, createdAt: new Date().toISOString(),
+        });
+      });
+      mark('e3-fruit');
+    }
+  }
+
   s.appliedSeeds = [...done];
   return done.size !== before;
 }

@@ -597,6 +597,12 @@ select { appearance: none; }
     } else {
       base.gate = "";
     }
+    base.fruit = ground.output ? {
+      text: ground.output,
+      modelId: ground.outputModelId || "",
+      stanceId: ground.outputModelId ? state2.modelStances?.[ground.outputModelId]?.stance || "unknown" : ""
+    } : null;
+    base.fruitTension = base.fruit && ["against", "no", "friction"].includes(base.fruit.stanceId) ? base.fruit.stanceId : "";
     const decided = ground.stage === "built" || ground.stage === "ruled-out";
     base.running = ground.stage === "running";
     base.kind = ground.kind;
@@ -615,6 +621,7 @@ select { appearance: none; }
       inTheWay: [
         ...gatedBy ? [{ kind: "gate", label: gatedBy }] : [],
         ...base.barriersUnclear.map((b) => ({ kind: "barrier", label: `${b.barrier.title} \u2014 can't tell yet` })),
+        ...base.fruitTension ? [{ kind: "fruit", label: `What they produce is a model you're ${base.fruitTension === "no" ? "not up for" : base.fruitTension === "against" ? "leaning against" : "in real friction with"}` }] : [],
         ...blocks.map((b) => ({ kind: "block", block: b, label: b.title })),
         ...base.unsurveyed.map((u) => ({ kind: "unsurveyed", req: u.req, label: u.req.title }))
       ],
@@ -640,6 +647,9 @@ select { appearance: none; }
     if (s.kid.id === "unknown") return "You haven't been around these people enough to answer the only question that matters.";
     if (s.running && ["no", "notyet", "close"].includes(s.settle.id)) {
       return "You're running with them. You haven't settled with them. Name the difference.";
+    }
+    if (s.fruitTension === "against" || s.fruitTension === "no") {
+      return "What they actually produce is the model you lean against. Settle that, or you're settling with something you don't believe in.";
     }
     if (s.missingMusts.length) {
       return `${s.missingMusts.length} must-have${s.missingMusts.length > 1 ? "s are" : " is"} missing here.`;
@@ -845,6 +855,8 @@ select { appearance: none; }
       placeId: "",
       placeMode: "unknown",
       horizon: "unknown",
+      output: "Healthy house churches started in LA.",
+      outputModelId: "house",
       notes: "A ministry, not a location. Been running with them for a while \u2014 the open question is whether I could settle in with them completely.",
       createdAt: (/* @__PURE__ */ new Date()).toISOString(),
       seeded: true
@@ -879,7 +891,7 @@ select { appearance: none; }
       seeded: true,
       // He's been carrying this question for about four years.
       weighingSince: new Date((/* @__PURE__ */ new Date()).getFullYear() - 4, 0, 1).toISOString().slice(0, 10),
-      appliedSeeds: ["antioch", "consistent-community", "weighing-since"],
+      appliedSeeds: ["antioch", "consistent-community", "weighing-since", "e3-fruit"],
       domains: DEFAULT_DOMAINS.map((d) => ({ ...d })),
       convictions,
       contexts: [here, e3, antioch],
@@ -902,6 +914,42 @@ select { appearance: none; }
           groundId: e3.id,
           title: "I don't know if I could settle in with E3 completely",
           wouldSettle: "Name the specific thing I'm holding back on, and what would have to be true to let it go.",
+          who: "",
+          due: "",
+          hard: true,
+          status: "open",
+          seeded: true,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString()
+        },
+        {
+          id: uid(),
+          groundId: e3.id,
+          title: "Sit in the house churches E3 has actually started here",
+          wouldSettle: "Three of them, on ordinary weeks, not a showcase. Who teaches, who corrects, who's still there after two years.",
+          who: "",
+          due: "",
+          hard: true,
+          status: "open",
+          seeded: true,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString()
+        },
+        {
+          id: uid(),
+          groundId: e3.id,
+          title: "Where does oversight come from in an E3 house church?",
+          wouldSettle: "A name and a structure \u2014 who has authority to correct a leader, and what happened the last time one needed correcting.",
+          who: "",
+          due: "",
+          hard: true,
+          status: "open",
+          seeded: true,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString()
+        },
+        {
+          id: uid(),
+          groundId: e3.id,
+          title: "Am I against the house church model, or against the ones I've seen?",
+          wouldSettle: "One sentence I'd say out loud, and the specific thing that would change my mind.",
           who: "",
           due: "",
           hard: true,
@@ -1289,6 +1337,42 @@ select { appearance: none; }
         createdAt: (/* @__PURE__ */ new Date()).toISOString()
       });
       mark("antioch");
+    }
+    if (!done.has("e3-fruit")) {
+      const e3 = s.contexts.find((c) => /\be3\b/i.test(c.name || ""));
+      if (e3 && !e3.output) {
+        e3.output = "Healthy house churches started in LA.";
+        e3.outputModelId = "house";
+        [
+          [
+            "Sit in the house churches E3 has actually started here",
+            "Three of them, on ordinary weeks, not a showcase. Who teaches, who corrects, who's still there after two years."
+          ],
+          [
+            "Where does oversight come from in an E3 house church?",
+            "A name and a structure \u2014 who has authority to correct a leader, and what happened the last time one needed correcting."
+          ],
+          [
+            "Am I against the house church model, or against the ones I've seen?",
+            "One sentence I'd say out loud, and the specific thing that would change my mind."
+          ]
+        ].forEach(([title7, wouldSettle]) => {
+          if (s.blocks.some((b) => b.title === title7)) return;
+          s.blocks.push({
+            id: uid(),
+            groundId: e3.id,
+            title: title7,
+            wouldSettle,
+            who: "",
+            due: "",
+            hard: true,
+            status: "open",
+            seeded: true,
+            createdAt: (/* @__PURE__ */ new Date()).toISOString()
+          });
+        });
+        mark("e3-fruit");
+      }
     }
     s.appliedSeeds = [...done];
     return done.size !== before;
@@ -1744,6 +1828,77 @@ select { appearance: none; }
       }) : null)
     ));
   }
+  function settleIt(kind, id) {
+    const state2 = get();
+    const item = kind === "barrier" ? (state2.barriers || []).find((x) => x.id === id) : state2.convictions.find((x) => x.id === id);
+    if (!item) return;
+    let landed = kind === "barrier" ? item.position || "" : item.settledStatement || "";
+    let date = today();
+    openSheet(`Settle: ${item.title}`, () => frag(
+      h(
+        "p",
+        { class: "small muted" },
+        kind === "barrier" ? "Write the position you'd say out loud to someone who disagreed. Once it's written, it becomes the line every community gets measured against." : "You marked this one as still forming. Settling it doesn't mean closing your mind \u2014 it means writing down where you actually stand today, and dating it."
+      ),
+      item.summary ? h("div", { class: "card" }, h("div", { class: "eyebrow" }, "What you wrote before"), h("p", { class: "small", style: "margin:6px 0 0" }, item.summary)) : null,
+      item.detail ? h("div", { class: "card" }, h("div", { class: "eyebrow" }, "What you're watching for"), h("p", { class: "small", style: "margin:6px 0 0" }, item.detail)) : null,
+      item.scriptures ? h("p", { class: "small", style: "color:var(--moss)" }, item.scriptures) : null,
+      item.forming ? h("div", { class: "card" }, h("div", { class: "eyebrow" }, "The open edge"), h("p", { class: "small", style: "margin:6px 0 0" }, item.forming)) : null,
+      field("Where I've landed", area({
+        value: landed,
+        style: "min-height:130px",
+        placeholder: "Plainly, in your own words. Good enough to act on, not good enough to publish.",
+        onInput: (e) => {
+          landed = e.target.value;
+        }
+      })),
+      field("Dated", h("input", { type: "date", value: date, onInput: (e) => {
+        date = e.target.value || today();
+      } })),
+      h(
+        "div",
+        { class: "stack", style: "margin-top:18px" },
+        h("button", {
+          class: "btn primary block",
+          onClick: () => {
+            if (!landed.trim()) return toast("Write where you landed first");
+            update((st) => {
+              if (kind === "barrier") {
+                const b = st.barriers.find((x) => x.id === id);
+                b.position = landed;
+                b.settledAt = date;
+              } else {
+                const c = st.convictions.find((x) => x.id === id);
+                c.settledStatement = landed;
+                c.settledAt = date;
+                if (c.weight === "forming") c.weight = "conviction";
+              }
+              st.notes.push({
+                id: uid(),
+                date,
+                kind: "observation",
+                title: `Settled: ${item.title}`,
+                body: landed,
+                convictionIds: kind === "barrier" ? [] : [id],
+                contextIds: [],
+                source: "",
+                createdAt: (/* @__PURE__ */ new Date()).toISOString()
+              });
+            });
+            closeSheet();
+            toast("Settled");
+          }
+        }, "Settle it"),
+        h("button", {
+          class: "btn ghost block",
+          onClick: () => {
+            closeSheet();
+            editBlock(null, { title: `Settle where I stand on ${item.title.toLowerCase()}`, hard: true });
+          }
+        }, "Not yet \u2014 put it in the way")
+      )
+    ));
+  }
   function editCalling() {
     const state2 = get();
     const held = state2.calling || {};
@@ -1823,6 +1978,8 @@ select { appearance: none; }
       horizon: "unknown",
       placeMode: "unknown",
       modelId: "",
+      output: "",
+      outputModelId: "",
       placeId: state2.calling?.placeId || "",
       notes: "",
       ...defaults
@@ -1906,6 +2063,20 @@ select { appearance: none; }
       field("Could we still be here in ten years?", segmented(HORIZONS, draft.horizon, (v) => {
         draft.horizon = v;
       })),
+      field("What does it actually produce here?", area({
+        value: draft.output || "",
+        placeholder: "The measurable artefact. Not the vision statement \u2014 what exists because of them.",
+        onInput: (e) => {
+          draft.output = e.target.value;
+        }
+      }), "Fruit you could count, in this city."),
+      field("And that fruit is which model?", segmented(
+        [...CHURCH_MODELS.map((m) => ({ id: m.id, label: m.name })), { id: "", label: "Not one of these" }],
+        draft.outputModelId || "",
+        (v) => {
+          draft.outputModelId = v;
+        }
+      ), "If what they produce is a model you're against, that's worth seeing plainly."),
       field("Notes", area({ value: draft.notes, placeholder: "What you know, who you've talked to, what you're watching for.", onInput: (e) => {
         draft.notes = e.target.value;
       } })),
@@ -2773,8 +2944,8 @@ select { appearance: none; }
   // js/views/target.js
   var target_exports = {};
   __export(target_exports, {
-    render: () => render2,
-    title: () => title2
+    render: () => render3,
+    title: () => title3
   });
 
   // js/views/parts.js
@@ -2986,6 +3157,28 @@ select { appearance: none; }
               h("span", { class: `small tone-${stance.tone}` }, stance.label)
             ),
             h("p", { class: "tiny muted", style: "margin:8px 0 0" }, model.asks)
+          );
+        })(),
+        (() => {
+          if (!s.fruit) return null;
+          const outModel = CHURCH_MODELS.find((m) => m.id === s.fruit.modelId);
+          const outStance = s.fruit.stanceId ? byId(MODEL_STANCES, s.fruit.stanceId) : null;
+          return h(
+            "div",
+            { class: "card" },
+            h("div", { class: "eyebrow" }, state2.calling?.place ? `What it produces in ${state2.calling.place}` : "What it actually produces"),
+            h("p", { style: "margin:6px 0 0" }, s.fruit.text),
+            outModel ? h(
+              "div",
+              { class: "row spread", style: "margin-top:8px" },
+              h("span", { class: "small muted" }, `That fruit is ${outModel.name.toLowerCase()}`),
+              outStance ? h("span", { class: `small tone-${outStance.tone}` }, outStance.label) : null
+            ) : null,
+            s.fruitTension ? h(
+              "p",
+              { class: "tiny tone-bad", style: "margin:8px 0 0" },
+              "Judge them by the fruit, and the fruit is the model you're not sure about."
+            ) : null
           );
         })(),
         ground.kind !== "place" ? h(
@@ -3301,6 +3494,359 @@ select { appearance: none; }
   }
   var title = "The land";
 
+  // js/views/soil.js
+  var soil_exports = {};
+  __export(soil_exports, {
+    openModel: () => openModel,
+    openRequirement: () => openRequirement,
+    render: () => render2,
+    showSoilTab: () => showSoilTab,
+    title: () => title2
+  });
+  var tab = { at: "requirements" };
+  function showSoilTab(id) {
+    tab.at = id;
+    go("soil");
+  }
+  function barriers(state2, view3) {
+    view3.append(
+      h("h1", {}, "The lines I don't cross"),
+      h(
+        "p",
+        { class: "muted small" },
+        "Not preferences \u2014 walls. A community that fails one of these stops being scored: the app says so and stops asking you to weigh it."
+      )
+    );
+    const list = state2.barriers || [];
+    if (!list.length) {
+      view3.append(empty("None named yet.", "Add a barrier", () => editBarrier()));
+      return;
+    }
+    const rows = h("div", { class: "rows" });
+    list.forEach((b) => {
+      const failing = state2.contexts.filter((c) => {
+        const check = latestCheck(state2.checks, c.id);
+        return check?.barriers?.[b.id]?.state === "fails";
+      });
+      rows.append(h(
+        "button",
+        { class: "card-tap", onClick: () => editBarrier(b) },
+        h(
+          "div",
+          { class: "row spread" },
+          h("strong", {}, b.title),
+          h("span", { class: `tiny ${b.hard ? "tone-bad" : "muted"}` }, b.hard ? "a wall" : "heavy")
+        ),
+        b.position ? h("div", { class: "small muted" }, b.position) : h("div", { class: "tiny tone-thin" }, "You haven't written where you stand yet"),
+        failing.length ? h("div", { class: "tiny tone-bad", style: "margin-top:4px" }, `Fails here: ${failing.map((c) => c.name).join(", ")}`) : null
+      ));
+    });
+    view3.append(rows);
+    view3.append(h("button", { class: "btn block", style: "margin-top:18px", onClick: () => editBarrier() }, "Add a barrier"));
+  }
+  function settling(state2, view3) {
+    const unsettledReqs = state2.convictions.filter((c) => !c.settledStatement && (c.weight === "forming" || c.forming));
+    const unsettledBarriers = (state2.barriers || []).filter((b) => !b.position);
+    const settledReqs = state2.convictions.filter((c) => c.settledStatement).sort((a, b) => (a.settledAt || "") < (b.settledAt || "") ? 1 : -1);
+    const settledBarriers = (state2.barriers || []).filter((b) => b.position && b.settledAt);
+    const open2 = unsettledReqs.length + unsettledBarriers.length;
+    const done = settledReqs.length + settledBarriers.length;
+    view3.append(
+      h("h1", {}, "Settling"),
+      h(
+        "p",
+        { class: "muted small" },
+        `You don't need more options. You need fewer open questions in yourself. Each one below is something you've left at "still working it out" \u2014 settle it in a sentence, and date it.`
+      )
+    );
+    view3.append(h(
+      "p",
+      { class: "verdict" },
+      open2 === 0 && done === 0 ? "Nothing marked as forming. Mark what you're genuinely still working out and it comes here." : open2 === 0 ? `All ${done} settled. That's what settled looks like \u2014 written down and dated.` : `${done} settled, ${open2} still open in you.`
+    ));
+    if (open2) {
+      view3.append(section("Still open in me"));
+      const rows = h("div", { class: "rows" });
+      unsettledBarriers.forEach((b) => rows.append(h(
+        "button",
+        { class: "card-tap", onClick: () => settleIt("barrier", b.id) },
+        h(
+          "div",
+          { class: "row spread" },
+          h("strong", { class: "grow" }, b.title),
+          h("span", { class: "tiny tone-bad" }, b.hard ? "a wall" : "heavy")
+        ),
+        h("div", { class: "tiny tone-thin" }, "A line you don't cross, with no position written on it")
+      )));
+      unsettledReqs.forEach((c) => rows.append(h(
+        "button",
+        { class: "card-tap", onClick: () => settleIt("requirement", c.id) },
+        h(
+          "div",
+          { class: "row spread" },
+          h("strong", { class: "grow" }, c.title),
+          h("span", { class: "eyebrow" }, byId(WEIGHTS, c.weight)?.label || "")
+        ),
+        c.forming ? h("div", { class: "small muted" }, c.forming) : h("div", { class: "tiny tone-thin" }, "Marked still forming")
+      )));
+      view3.append(rows);
+    }
+    if (done) {
+      view3.append(section("Settled"));
+      const rows = h("div", { class: "rows" });
+      settledBarriers.forEach((b) => rows.append(h(
+        "button",
+        { class: "card-tap", onClick: () => settleIt("barrier", b.id) },
+        h(
+          "div",
+          { class: "row spread" },
+          h("strong", { class: "grow" }, b.title),
+          h("span", { class: "tiny muted" }, relDate(b.settledAt, today()))
+        ),
+        h("div", { class: "small muted" }, b.position)
+      )));
+      settledReqs.forEach((c) => rows.append(h(
+        "button",
+        { class: "card-tap", onClick: () => settleIt("requirement", c.id) },
+        h(
+          "div",
+          { class: "row spread" },
+          h("strong", { class: "grow" }, c.title),
+          h("span", { class: "tiny muted" }, c.settledAt ? relDate(c.settledAt, today()) : "")
+        ),
+        h("div", { class: "small muted" }, c.settledStatement)
+      )));
+      view3.append(rows);
+    }
+  }
+  function openModel(id) {
+    const build = () => {
+      const state2 = get();
+      const m = CHURCH_MODELS.find((x) => x.id === id);
+      const held = state2.modelStances?.[id] || { stance: "unknown", note: "" };
+      const draft = { ...held };
+      const running = state2.contexts.filter((c) => c.modelId === id);
+      const list = (label, items) => h(
+        "div",
+        { class: "card" },
+        h("div", { class: "eyebrow" }, label),
+        h("ul", { style: "margin:8px 0 0; padding-left:18px" }, items.map((x) => h("li", { class: "small" }, x)))
+      );
+      return frag(
+        h("p", { class: "muted" }, m.blurb),
+        list("What it looks like", m.marks),
+        list("What it tends to do well", m.strengths),
+        list("What it tends to cost", m.costs),
+        h(
+          "div",
+          { class: "card" },
+          h("div", { class: "eyebrow" }, "The question it puts to you"),
+          h("p", { class: "verdict", style: "margin:6px 0 0" }, m.asks)
+        ),
+        h(
+          "div",
+          { style: "margin-top:18px" },
+          field(
+            "Where do I stand with this model?",
+            segmented(MODEL_STANCES, draft.stance, (v) => {
+              draft.stance = v;
+            })
+          )
+        ),
+        field("Why", area({
+          value: draft.note,
+          placeholder: "What draws you to it, and what you'd have to make peace with.",
+          onInput: (e) => {
+            draft.note = e.target.value;
+          }
+        })),
+        running.length ? h("p", { class: "small muted" }, `You're weighing ${running.map((c) => c.name).join(", ")} on this model.`) : null,
+        h("button", {
+          class: "btn primary block",
+          style: "margin-top:12px",
+          onClick: () => {
+            update((st) => {
+              if (!st.modelStances) st.modelStances = {};
+              st.modelStances[id] = draft;
+            });
+            closeSheet();
+            toast("Saved");
+          }
+        }, "Save where I stand")
+      );
+    };
+    openSheet(() => CHURCH_MODELS.find((x) => x.id === id).name, build);
+  }
+  function models(state2, view3) {
+    view3.append(
+      h("h1", {}, "What model could I work in?"),
+      h(
+        "p",
+        { class: "muted small" },
+        "The shape of the thing, before the name on the sign. Mark where you stand and it travels with every community you weigh that runs on it."
+      )
+    );
+    const stanceOf = (id) => byId(MODEL_STANCES, state2.modelStances?.[id]?.stance || "unknown");
+    const order = ["home", "workable", "unknown", "friction", "no"];
+    const sorted = [...CHURCH_MODELS].sort((a, b) => order.indexOf(stanceOf(a.id).id) - order.indexOf(stanceOf(b.id).id));
+    const decided = CHURCH_MODELS.filter((m) => stanceOf(m.id).id !== "unknown").length;
+    view3.append(h("p", { class: "tiny muted" }, `${decided} of ${CHURCH_MODELS.length} marked.`));
+    const rows = h("div", { class: "rows" });
+    sorted.forEach((m) => {
+      const st = stanceOf(m.id);
+      const note = state2.modelStances?.[m.id]?.note;
+      const on = state2.contexts.filter((c) => c.modelId === m.id);
+      rows.append(h(
+        "button",
+        { class: "card-tap", onClick: () => openModel(m.id) },
+        h(
+          "div",
+          { class: "row spread" },
+          h("strong", {}, m.name),
+          h("span", { class: `small tone-${st.tone}` }, st.label)
+        ),
+        h("div", { class: "tiny muted" }, m.blurb),
+        note ? h("div", { class: "tiny muted", style: "margin-top:4px" }, note) : null,
+        on.length ? h("div", { class: "tiny", style: "margin-top:4px" }, `\u2192 ${on.map((c) => c.name).join(", ")}`) : null
+      ));
+    });
+    view3.append(rows);
+  }
+  function openRequirement(id) {
+    const build = () => {
+      const state2 = get();
+      const c = state2.convictions.find((x) => x.id === id);
+      if (!c) return h("p", { class: "muted" }, "Gone.");
+      const domain = state2.domains.find((d) => d.id === c.domainId);
+      const across = state2.contexts.map((g) => {
+        const check = latestCheck(state2.checks, g.id);
+        const rating = check?.ratings?.[id];
+        return rating && rating.level !== "unknown" ? { g, level: levelOf(rating.level), note: rating.note } : null;
+      }).filter(Boolean);
+      const notes = state2.notes.filter((n) => (n.convictionIds || []).includes(id)).sort((a, b) => a.date < b.date ? 1 : -1);
+      const chip = h("span", { class: "chip" }, domain?.label || "");
+      if (domain) chip.style.color = domain.color;
+      return frag(
+        h(
+          "div",
+          { class: "row wrap", style: "margin-bottom:12px" },
+          chip,
+          h("span", { class: "chip on" }, byId(WEIGHTS, c.weight)?.label || ""),
+          h("button", { class: "chip", onClick: () => editRequirement(c) }, "Edit"),
+          h("button", { class: "chip", onClick: () => editNote(null, { convictionIds: [id] }) }, "Write about it"),
+          h("button", { class: "chip", onClick: () => settleIt("requirement", id) }, c.settledStatement ? "Restate where I stand" : "Settle it")
+        ),
+        c.settledStatement ? h(
+          "div",
+          { class: "card" },
+          h("div", { class: "eyebrow" }, `Where I landed${c.settledAt ? ` \xB7 ${relDate(c.settledAt, today())}` : ""}`),
+          h("div", {}, c.settledStatement)
+        ) : null,
+        c.summary ? h("p", {}, c.summary) : null,
+        c.scriptures ? h("p", { class: "small", style: "color:var(--moss)" }, c.scriptures) : null,
+        c.practice ? h("div", { class: "card" }, h("div", { class: "eyebrow" }, "How I'd know"), h("div", {}, c.practice)) : null,
+        c.forming ? h("div", { class: "card" }, h("div", { class: "eyebrow" }, "Still working out"), h("div", {}, c.forming)) : null,
+        across.length ? frag(
+          section("Where it holds"),
+          h("div", { class: "rows" }, across.map((a) => h(
+            "div",
+            {},
+            h(
+              "div",
+              { class: "row spread" },
+              h("strong", {}, a.g.name),
+              h("span", { class: `small tone-${a.level.score === null ? "unknown" : a.level.score >= 0.7 ? "good" : a.level.score > 0 ? "thin" : "bad"}` }, a.level.label)
+            ),
+            a.note ? h("div", { class: "tiny muted" }, a.note) : null
+          )))
+        ) : null,
+        notes.length ? frag(
+          section("Journal"),
+          h("div", { class: "rows" }, notes.slice(0, 8).map((n) => h(
+            "div",
+            {},
+            h("div", { class: "tiny muted" }, relDate(n.date, today())),
+            h("div", { class: "small" }, n.title || n.body.slice(0, 80))
+          )))
+        ) : null
+      );
+    };
+    openSheet(() => get().convictions.find((x) => x.id === id)?.title || "Requirement", build);
+  }
+  var ORDER = WEIGHTS.map((w) => w.id);
+  function render2(state2) {
+    const view3 = h("div", {});
+    const tabs = h("div", { class: "row wrap", style: "margin-bottom:16px" });
+    [["requirements", "Requirements"], ["settling", "Settling"], ["barriers", "Barriers"], ["models", "Church models"]].forEach(([id, label]) => {
+      tabs.append(h("button", {
+        class: `chip${tab.at === id ? " on" : ""}`,
+        onClick: () => {
+          tab.at = id;
+          go("soil");
+        }
+      }, label));
+    });
+    view3.append(tabs);
+    if (tab.at === "models") {
+      models(state2, view3);
+      return view3;
+    }
+    if (tab.at === "barriers") {
+      barriers(state2, view3);
+      return view3;
+    }
+    if (tab.at === "settling") {
+      settling(state2, view3);
+      return view3;
+    }
+    view3.append(
+      h("h1", {}, "What the soil needs"),
+      h("p", { class: "muted small" }, "The things that have to be true of a place before you'd build on it. Weight them honestly \u2014 this is what every survey is scored against.")
+    );
+    if (!state2.convictions.length) {
+      view3.append(empty("Nothing yet. Start with the one thing you wouldn't build without.", "Add a requirement", () => editRequirement()));
+      return view3;
+    }
+    state2.domains.forEach((domain) => {
+      const group = state2.convictions.filter((c) => c.domainId === domain.id).sort((a, b) => ORDER.indexOf(a.weight) - ORDER.indexOf(b.weight));
+      const head = h(
+        "div",
+        { class: "section" },
+        h("h2", {}, domain.label),
+        h("button", { class: "icon-btn", onClick: () => editRequirement(null, { domainId: domain.id }) }, "Add")
+      );
+      head.style.borderBottomColor = domain.color;
+      view3.append(head);
+      if (domain.blurb) view3.append(h("p", { class: "tiny muted" }, domain.blurb));
+      if (!group.length) {
+        view3.append(h("p", { class: "small muted" }, "Nothing here yet."));
+        return;
+      }
+      const rows = h("div", { class: "rows" });
+      group.forEach((c) => rows.append(h(
+        "button",
+        { class: "card-tap", onClick: () => openRequirement(c.id) },
+        h(
+          "div",
+          { class: "row spread" },
+          h("strong", { class: "grow" }, c.title),
+          h("span", { class: "eyebrow" }, byId(WEIGHTS, c.weight)?.label || "")
+        ),
+        c.summary ? h("div", { class: "small muted" }, c.summary) : null,
+        c.settledStatement ? h("div", { class: "tiny tone-good", style: "margin-top:4px" }, `settled${c.settledAt ? ` ${relDate(c.settledAt, today()).toLowerCase()}` : ""}`) : c.forming ? h("div", { class: "tiny muted", style: "margin-top:4px" }, "still working this one out") : null
+      )));
+      view3.append(rows);
+    });
+    view3.append(h(
+      "div",
+      { class: "stack", style: "margin-top:24px" },
+      h("button", { class: "btn block", onClick: () => editRequirement() }, "Add a requirement"),
+      h("button", { class: "btn ghost block", onClick: () => editDomain() }, "Add an area of life")
+    ));
+    return view3;
+  }
+  var title2 = "The soil";
+
   // js/views/target.js
   var focusId = null;
   function candidates(state2) {
@@ -3319,7 +3865,7 @@ select { appearance: none; }
     }
     return ranked.find((r) => r.ground.stage === "built") || ranked[0] || null;
   }
-  function render2(state2) {
+  function render3(state2) {
     const view3 = h("div", {});
     const target = pick(state2);
     if (!target) {
@@ -3399,6 +3945,28 @@ select { appearance: none; }
         )
       ));
     }
+    {
+      const openInMe = state2.convictions.filter((c) => !c.settledStatement && (c.weight === "forming" || c.forming)).length + (state2.barriers || []).filter((b) => !b.position).length;
+      const settledInMe = state2.convictions.filter((c) => c.settledStatement).length + (state2.barriers || []).filter((b) => b.position && b.settledAt).length;
+      if (openInMe || settledInMe) {
+        view3.append(h(
+          "button",
+          { class: "card card-tap", style: "margin-bottom:18px", onClick: () => showSoilTab("settling") },
+          h("div", { class: "eyebrow" }, "Settled in myself"),
+          h(
+            "div",
+            { class: "row spread", style: "margin-top:4px" },
+            h("strong", {}, openInMe ? `${openInMe} still open in me` : `${settledInMe} settled`),
+            settledInMe && openInMe ? h("span", { class: "tiny muted" }, `${settledInMe} settled`) : null
+          ),
+          h(
+            "p",
+            { class: "tiny muted", style: "margin:8px 0 0" },
+            openInMe ? "Some of the waiting isn't about them. Settle one and date it." : "Everything you marked as forming has a position written on it now."
+          )
+        ));
+      }
+    }
     view3.append(h(
       "div",
       { class: "row spread", style: "align-items:flex-end" },
@@ -3436,6 +4004,28 @@ select { appearance: none; }
           h("span", { class: `small tone-${stance.tone}` }, stance.label)
         ),
         h("div", { class: "tiny muted", style: "margin-top:4px" }, model.asks)
+      ));
+    }
+    if (s.fruit) {
+      const outModel = CHURCH_MODELS.find((m) => m.id === s.fruit.modelId);
+      const outStance = s.fruit.stanceId ? byId(MODEL_STANCES, s.fruit.stanceId) : null;
+      view3.append(h(
+        "div",
+        { class: "card", style: "margin-top:12px" },
+        h("div", { class: "eyebrow" }, "What it actually produces here"),
+        h("p", { class: "small", style: "margin:6px 0 0" }, s.fruit.text),
+        outModel ? h(
+          "div",
+          { class: "row spread", style: "margin-top:8px" },
+          h("span", { class: "tiny muted" }, `That fruit is ${outModel.name.toLowerCase()}`),
+          outStance ? h("span", { class: `tiny tone-${outStance.tone}` }, outStance.label) : null
+        ) : null,
+        s.fruitTension ? h(
+          "p",
+          { class: "verdict", style: "margin:10px 0 0; font-size:14px" },
+          "You'd be building the thing you're not sure about. That's the question, not a footnote."
+        ) : null,
+        s.fruitTension && outModel ? h("button", { class: "icon-btn", style: "margin-top:8px", onClick: () => openModel(outModel.id) }, "Look at that model") : null
       ));
     }
     if (s.check && s.barriers.length) {
@@ -3725,269 +4315,7 @@ select { appearance: none; }
     }
     return view3;
   }
-  var title2 = "Good Ground";
-
-  // js/views/soil.js
-  var soil_exports = {};
-  __export(soil_exports, {
-    openModel: () => openModel,
-    openRequirement: () => openRequirement,
-    render: () => render3,
-    title: () => title3
-  });
-  var tab = { at: "requirements" };
-  function barriers(state2, view3) {
-    view3.append(
-      h("h1", {}, "The lines I don't cross"),
-      h(
-        "p",
-        { class: "muted small" },
-        "Not preferences \u2014 walls. A community that fails one of these stops being scored: the app says so and stops asking you to weigh it."
-      )
-    );
-    const list = state2.barriers || [];
-    if (!list.length) {
-      view3.append(empty("None named yet.", "Add a barrier", () => editBarrier()));
-      return;
-    }
-    const rows = h("div", { class: "rows" });
-    list.forEach((b) => {
-      const failing = state2.contexts.filter((c) => {
-        const check = latestCheck(state2.checks, c.id);
-        return check?.barriers?.[b.id]?.state === "fails";
-      });
-      rows.append(h(
-        "button",
-        { class: "card-tap", onClick: () => editBarrier(b) },
-        h(
-          "div",
-          { class: "row spread" },
-          h("strong", {}, b.title),
-          h("span", { class: `tiny ${b.hard ? "tone-bad" : "muted"}` }, b.hard ? "a wall" : "heavy")
-        ),
-        b.position ? h("div", { class: "small muted" }, b.position) : h("div", { class: "tiny tone-thin" }, "You haven't written where you stand yet"),
-        failing.length ? h("div", { class: "tiny tone-bad", style: "margin-top:4px" }, `Fails here: ${failing.map((c) => c.name).join(", ")}`) : null
-      ));
-    });
-    view3.append(rows);
-    view3.append(h("button", { class: "btn block", style: "margin-top:18px", onClick: () => editBarrier() }, "Add a barrier"));
-  }
-  function openModel(id) {
-    const build = () => {
-      const state2 = get();
-      const m = CHURCH_MODELS.find((x) => x.id === id);
-      const held = state2.modelStances?.[id] || { stance: "unknown", note: "" };
-      const draft = { ...held };
-      const running = state2.contexts.filter((c) => c.modelId === id);
-      const list = (label, items) => h(
-        "div",
-        { class: "card" },
-        h("div", { class: "eyebrow" }, label),
-        h("ul", { style: "margin:8px 0 0; padding-left:18px" }, items.map((x) => h("li", { class: "small" }, x)))
-      );
-      return frag(
-        h("p", { class: "muted" }, m.blurb),
-        list("What it looks like", m.marks),
-        list("What it tends to do well", m.strengths),
-        list("What it tends to cost", m.costs),
-        h(
-          "div",
-          { class: "card" },
-          h("div", { class: "eyebrow" }, "The question it puts to you"),
-          h("p", { class: "verdict", style: "margin:6px 0 0" }, m.asks)
-        ),
-        h(
-          "div",
-          { style: "margin-top:18px" },
-          field(
-            "Where do I stand with this model?",
-            segmented(MODEL_STANCES, draft.stance, (v) => {
-              draft.stance = v;
-            })
-          )
-        ),
-        field("Why", area({
-          value: draft.note,
-          placeholder: "What draws you to it, and what you'd have to make peace with.",
-          onInput: (e) => {
-            draft.note = e.target.value;
-          }
-        })),
-        running.length ? h("p", { class: "small muted" }, `You're weighing ${running.map((c) => c.name).join(", ")} on this model.`) : null,
-        h("button", {
-          class: "btn primary block",
-          style: "margin-top:12px",
-          onClick: () => {
-            update((st) => {
-              if (!st.modelStances) st.modelStances = {};
-              st.modelStances[id] = draft;
-            });
-            closeSheet();
-            toast("Saved");
-          }
-        }, "Save where I stand")
-      );
-    };
-    openSheet(() => CHURCH_MODELS.find((x) => x.id === id).name, build);
-  }
-  function models(state2, view3) {
-    view3.append(
-      h("h1", {}, "What model could I work in?"),
-      h(
-        "p",
-        { class: "muted small" },
-        "The shape of the thing, before the name on the sign. Mark where you stand and it travels with every community you weigh that runs on it."
-      )
-    );
-    const stanceOf = (id) => byId(MODEL_STANCES, state2.modelStances?.[id]?.stance || "unknown");
-    const order = ["home", "workable", "unknown", "friction", "no"];
-    const sorted = [...CHURCH_MODELS].sort((a, b) => order.indexOf(stanceOf(a.id).id) - order.indexOf(stanceOf(b.id).id));
-    const decided = CHURCH_MODELS.filter((m) => stanceOf(m.id).id !== "unknown").length;
-    view3.append(h("p", { class: "tiny muted" }, `${decided} of ${CHURCH_MODELS.length} marked.`));
-    const rows = h("div", { class: "rows" });
-    sorted.forEach((m) => {
-      const st = stanceOf(m.id);
-      const note = state2.modelStances?.[m.id]?.note;
-      const on = state2.contexts.filter((c) => c.modelId === m.id);
-      rows.append(h(
-        "button",
-        { class: "card-tap", onClick: () => openModel(m.id) },
-        h(
-          "div",
-          { class: "row spread" },
-          h("strong", {}, m.name),
-          h("span", { class: `small tone-${st.tone}` }, st.label)
-        ),
-        h("div", { class: "tiny muted" }, m.blurb),
-        note ? h("div", { class: "tiny muted", style: "margin-top:4px" }, note) : null,
-        on.length ? h("div", { class: "tiny", style: "margin-top:4px" }, `\u2192 ${on.map((c) => c.name).join(", ")}`) : null
-      ));
-    });
-    view3.append(rows);
-  }
-  function openRequirement(id) {
-    const build = () => {
-      const state2 = get();
-      const c = state2.convictions.find((x) => x.id === id);
-      if (!c) return h("p", { class: "muted" }, "Gone.");
-      const domain = state2.domains.find((d) => d.id === c.domainId);
-      const across = state2.contexts.map((g) => {
-        const check = latestCheck(state2.checks, g.id);
-        const rating = check?.ratings?.[id];
-        return rating && rating.level !== "unknown" ? { g, level: levelOf(rating.level), note: rating.note } : null;
-      }).filter(Boolean);
-      const notes = state2.notes.filter((n) => (n.convictionIds || []).includes(id)).sort((a, b) => a.date < b.date ? 1 : -1);
-      const chip = h("span", { class: "chip" }, domain?.label || "");
-      if (domain) chip.style.color = domain.color;
-      return frag(
-        h(
-          "div",
-          { class: "row wrap", style: "margin-bottom:12px" },
-          chip,
-          h("span", { class: "chip on" }, byId(WEIGHTS, c.weight)?.label || ""),
-          h("button", { class: "chip", onClick: () => editRequirement(c) }, "Edit"),
-          h("button", { class: "chip", onClick: () => editNote(null, { convictionIds: [id] }) }, "Write about it")
-        ),
-        c.summary ? h("p", {}, c.summary) : null,
-        c.scriptures ? h("p", { class: "small", style: "color:var(--moss)" }, c.scriptures) : null,
-        c.practice ? h("div", { class: "card" }, h("div", { class: "eyebrow" }, "How I'd know"), h("div", {}, c.practice)) : null,
-        c.forming ? h("div", { class: "card" }, h("div", { class: "eyebrow" }, "Still working out"), h("div", {}, c.forming)) : null,
-        across.length ? frag(
-          section("Where it holds"),
-          h("div", { class: "rows" }, across.map((a) => h(
-            "div",
-            {},
-            h(
-              "div",
-              { class: "row spread" },
-              h("strong", {}, a.g.name),
-              h("span", { class: `small tone-${a.level.score === null ? "unknown" : a.level.score >= 0.7 ? "good" : a.level.score > 0 ? "thin" : "bad"}` }, a.level.label)
-            ),
-            a.note ? h("div", { class: "tiny muted" }, a.note) : null
-          )))
-        ) : null,
-        notes.length ? frag(
-          section("Journal"),
-          h("div", { class: "rows" }, notes.slice(0, 8).map((n) => h(
-            "div",
-            {},
-            h("div", { class: "tiny muted" }, relDate(n.date, today())),
-            h("div", { class: "small" }, n.title || n.body.slice(0, 80))
-          )))
-        ) : null
-      );
-    };
-    openSheet(() => get().convictions.find((x) => x.id === id)?.title || "Requirement", build);
-  }
-  var ORDER = WEIGHTS.map((w) => w.id);
-  function render3(state2) {
-    const view3 = h("div", {});
-    const tabs = h("div", { class: "row wrap", style: "margin-bottom:16px" });
-    [["requirements", "Requirements"], ["barriers", "Barriers"], ["models", "Church models"]].forEach(([id, label]) => {
-      tabs.append(h("button", {
-        class: `chip${tab.at === id ? " on" : ""}`,
-        onClick: () => {
-          tab.at = id;
-          go("soil");
-        }
-      }, label));
-    });
-    view3.append(tabs);
-    if (tab.at === "models") {
-      models(state2, view3);
-      return view3;
-    }
-    if (tab.at === "barriers") {
-      barriers(state2, view3);
-      return view3;
-    }
-    view3.append(
-      h("h1", {}, "What the soil needs"),
-      h("p", { class: "muted small" }, "The things that have to be true of a place before you'd build on it. Weight them honestly \u2014 this is what every survey is scored against.")
-    );
-    if (!state2.convictions.length) {
-      view3.append(empty("Nothing yet. Start with the one thing you wouldn't build without.", "Add a requirement", () => editRequirement()));
-      return view3;
-    }
-    state2.domains.forEach((domain) => {
-      const group = state2.convictions.filter((c) => c.domainId === domain.id).sort((a, b) => ORDER.indexOf(a.weight) - ORDER.indexOf(b.weight));
-      const head = h(
-        "div",
-        { class: "section" },
-        h("h2", {}, domain.label),
-        h("button", { class: "icon-btn", onClick: () => editRequirement(null, { domainId: domain.id }) }, "Add")
-      );
-      head.style.borderBottomColor = domain.color;
-      view3.append(head);
-      if (domain.blurb) view3.append(h("p", { class: "tiny muted" }, domain.blurb));
-      if (!group.length) {
-        view3.append(h("p", { class: "small muted" }, "Nothing here yet."));
-        return;
-      }
-      const rows = h("div", { class: "rows" });
-      group.forEach((c) => rows.append(h(
-        "button",
-        { class: "card-tap", onClick: () => openRequirement(c.id) },
-        h(
-          "div",
-          { class: "row spread" },
-          h("strong", { class: "grow" }, c.title),
-          h("span", { class: "eyebrow" }, byId(WEIGHTS, c.weight)?.label || "")
-        ),
-        c.summary ? h("div", { class: "small muted" }, c.summary) : null,
-        c.forming ? h("div", { class: "tiny muted", style: "margin-top:4px" }, "still working this one out") : null
-      )));
-      view3.append(rows);
-    });
-    view3.append(h(
-      "div",
-      { class: "stack", style: "margin-top:24px" },
-      h("button", { class: "btn block", onClick: () => editRequirement() }, "Add a requirement"),
-      h("button", { class: "btn ghost block", onClick: () => editDomain() }, "Add an area of life")
-    ));
-    return view3;
-  }
-  var title3 = "The soil";
+  var title3 = "Good Ground";
 
   // js/views/unsettled.js
   var unsettled_exports = {};

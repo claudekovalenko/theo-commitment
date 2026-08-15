@@ -282,6 +282,20 @@ export function survey(state, ground) {
     base.gate = '';
   }
 
+  // The fruit: what this thing has actually produced where you'd be. If the
+  // artefact it produces runs on a model you've said you lean against, that's
+  // not a detail — it's the argument, and it belongs in front of you.
+  base.fruit = ground.output
+    ? {
+      text: ground.output,
+      modelId: ground.outputModelId || '',
+      stanceId: ground.outputModelId ? (state.modelStances?.[ground.outputModelId]?.stance || 'unknown') : '',
+    }
+    : null;
+  base.fruitTension = base.fruit && ['against', 'no', 'friction'].includes(base.fruit.stanceId)
+    ? base.fruit.stanceId
+    : '';
+
   const decided = ground.stage === 'built' || ground.stage === 'ruled-out';
   base.running = ground.stage === 'running';
   base.kind = ground.kind;
@@ -305,6 +319,7 @@ export function survey(state, ground) {
     inTheWay: [
       ...(gatedBy ? [{ kind: 'gate', label: gatedBy }] : []),
       ...base.barriersUnclear.map((b) => ({ kind: 'barrier', label: `${b.barrier.title} — can't tell yet` })),
+      ...(base.fruitTension ? [{ kind: 'fruit', label: `What they produce is a model you're ${base.fruitTension === 'no' ? 'not up for' : base.fruitTension === 'against' ? 'leaning against' : 'in real friction with'}` }] : []),
       ...blocks.map((b) => ({ kind: 'block', block: b, label: b.title })),
       ...base.unsurveyed.map((u) => ({ kind: 'unsurveyed', req: u.req, label: u.req.title })),
     ],
@@ -332,6 +347,9 @@ export function verdict(s) {
   if (s.kid.id === 'unknown') return 'You haven\'t been around these people enough to answer the only question that matters.';
   if (s.running && ['no', 'notyet', 'close'].includes(s.settle.id)) {
     return 'You\'re running with them. You haven\'t settled with them. Name the difference.';
+  }
+  if (s.fruitTension === 'against' || s.fruitTension === 'no') {
+    return 'What they actually produce is the model you lean against. Settle that, or you\'re settling with something you don\'t believe in.';
   }
   if (s.missingMusts.length) {
     return `${s.missingMusts.length} must-have${s.missingMusts.length > 1 ? 's are' : ' is'} missing here.`;

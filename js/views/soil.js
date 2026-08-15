@@ -4,12 +4,18 @@ import { WEIGHTS, byId, levelOf, latestCheck } from './../model.js';
 import { h, frag, empty, section, openSheet, closeSheet, relDate } from './../ui.js';
 import { today } from './../store.js';
 import * as store from './../store.js';
-import { editRequirement, editDomain, editNote, editBarrier } from './../editors.js';
+import { editRequirement, editDomain, editNote, editBarrier, settleIt } from './../editors.js';
 import { CHURCH_MODELS, MODEL_STANCES } from './../models.js';
 import { segmented, area, field, toast } from './../ui.js';
 import { go } from './../router.js';
 
 const tab = { at: 'requirements' };
+
+/** Jump straight to one of the soil tabs from elsewhere in the app. */
+export function showSoilTab(id) {
+  tab.at = id;
+  go('soil');
+}
 
 function barriers(state, view) {
   view.append(h('h1', {}, 'The lines I don\'t cross'),
@@ -39,6 +45,68 @@ function barriers(state, view) {
   });
   view.append(rows);
   view.append(h('button', { class: 'btn block', style: 'margin-top:18px', onClick: () => editBarrier() }, 'Add a barrier'));
+}
+
+/**
+ * Settling. Four years of weighing is partly four years of convictions left at
+ * "still forming" — so they get their own list, one at a time, dated when they
+ * land. Nothing here is closing your mind; it's writing down where you stand
+ * today so you can stop re-arguing it with yourself.
+ */
+function settling(state, view) {
+  const unsettledReqs = state.convictions.filter((c) => !c.settledStatement && (c.weight === 'forming' || c.forming));
+  const unsettledBarriers = (state.barriers || []).filter((b) => !b.position);
+  const settledReqs = state.convictions.filter((c) => c.settledStatement)
+    .sort((a, b) => ((a.settledAt || '') < (b.settledAt || '') ? 1 : -1));
+  const settledBarriers = (state.barriers || []).filter((b) => b.position && b.settledAt);
+  const open = unsettledReqs.length + unsettledBarriers.length;
+  const done = settledReqs.length + settledBarriers.length;
+
+  view.append(h('h1', {}, 'Settling'),
+    h('p', { class: 'muted small' },
+      'You don\'t need more options. You need fewer open questions in yourself. '
+      + 'Each one below is something you\'ve left at "still working it out" — settle it in a sentence, and date it.'));
+
+  view.append(h('p', { class: 'verdict' },
+    open === 0 && done === 0
+      ? 'Nothing marked as forming. Mark what you\'re genuinely still working out and it comes here.'
+      : open === 0
+        ? `All ${done} settled. That's what settled looks like — written down and dated.`
+        : `${done} settled, ${open} still open in you.`));
+
+  if (open) {
+    view.append(section('Still open in me'));
+    const rows = h('div', { class: 'rows' });
+    unsettledBarriers.forEach((b) => rows.append(h('button', { class: 'card-tap', onClick: () => settleIt('barrier', b.id) },
+      h('div', { class: 'row spread' },
+        h('strong', { class: 'grow' }, b.title),
+        h('span', { class: 'tiny tone-bad' }, b.hard ? 'a wall' : 'heavy')),
+      h('div', { class: 'tiny tone-thin' }, 'A line you don\'t cross, with no position written on it'))));
+    unsettledReqs.forEach((c) => rows.append(h('button', { class: 'card-tap', onClick: () => settleIt('requirement', c.id) },
+      h('div', { class: 'row spread' },
+        h('strong', { class: 'grow' }, c.title),
+        h('span', { class: 'eyebrow' }, byId(WEIGHTS, c.weight)?.label || '')),
+      c.forming
+        ? h('div', { class: 'small muted' }, c.forming)
+        : h('div', { class: 'tiny tone-thin' }, 'Marked still forming'))));
+    view.append(rows);
+  }
+
+  if (done) {
+    view.append(section('Settled'));
+    const rows = h('div', { class: 'rows' });
+    settledBarriers.forEach((b) => rows.append(h('button', { class: 'card-tap', onClick: () => settleIt('barrier', b.id) },
+      h('div', { class: 'row spread' },
+        h('strong', { class: 'grow' }, b.title),
+        h('span', { class: 'tiny muted' }, relDate(b.settledAt, today()))),
+      h('div', { class: 'small muted' }, b.position))));
+    settledReqs.forEach((c) => rows.append(h('button', { class: 'card-tap', onClick: () => settleIt('requirement', c.id) },
+      h('div', { class: 'row spread' },
+        h('strong', { class: 'grow' }, c.title),
+        h('span', { class: 'tiny muted' }, c.settledAt ? relDate(c.settledAt, today()) : '')),
+      h('div', { class: 'small muted' }, c.settledStatement))));
+    view.append(rows);
+  }
 }
 
 /** One model, opened up: what it is, what it costs, and where you stand. */
@@ -143,8 +211,14 @@ export function openRequirement(id) {
         chip,
         h('span', { class: 'chip on' }, byId(WEIGHTS, c.weight)?.label || ''),
         h('button', { class: 'chip', onClick: () => editRequirement(c) }, 'Edit'),
-        h('button', { class: 'chip', onClick: () => editNote(null, { convictionIds: [id] }) }, 'Write about it')),
+        h('button', { class: 'chip', onClick: () => editNote(null, { convictionIds: [id] }) }, 'Write about it'),
+        h('button', { class: 'chip', onClick: () => settleIt('requirement', id) }, c.settledStatement ? 'Restate where I stand' : 'Settle it')),
 
+      c.settledStatement
+        ? h('div', { class: 'card' },
+          h('div', { class: 'eyebrow' }, `Where I landed${c.settledAt ? ` · ${relDate(c.settledAt, today())}` : ''}`),
+          h('div', {}, c.settledStatement))
+        : null,
       c.summary ? h('p', {}, c.summary) : null,
       c.scriptures ? h('p', { class: 'small', style: 'color:var(--moss)' }, c.scriptures) : null,
       c.practice ? h('div', { class: 'card' }, h('div', { class: 'eyebrow' }, 'How I\'d know'), h('div', {}, c.practice)) : null,
@@ -176,7 +250,7 @@ export function render(state) {
   const view = h('div', {});
 
   const tabs = h('div', { class: 'row wrap', style: 'margin-bottom:16px' });
-  [['requirements', 'Requirements'], ['barriers', 'Barriers'], ['models', 'Church models']].forEach(([id, label]) => {
+  [['requirements', 'Requirements'], ['settling', 'Settling'], ['barriers', 'Barriers'], ['models', 'Church models']].forEach(([id, label]) => {
     tabs.append(h('button', {
       class: `chip${tab.at === id ? ' on' : ''}`,
       onClick: () => { tab.at = id; go('soil'); },
@@ -190,6 +264,10 @@ export function render(state) {
   }
   if (tab.at === 'barriers') {
     barriers(state, view);
+    return view;
+  }
+  if (tab.at === 'settling') {
+    settling(state, view);
     return view;
   }
 
@@ -222,7 +300,9 @@ export function render(state) {
         h('strong', { class: 'grow' }, c.title),
         h('span', { class: 'eyebrow' }, byId(WEIGHTS, c.weight)?.label || '')),
       c.summary ? h('div', { class: 'small muted' }, c.summary) : null,
-      c.forming ? h('div', { class: 'tiny muted', style: 'margin-top:4px' }, 'still working this one out') : null)));
+      c.settledStatement
+        ? h('div', { class: 'tiny tone-good', style: 'margin-top:4px' }, `settled${c.settledAt ? ` ${relDate(c.settledAt, today()).toLowerCase()}` : ''}`)
+        : c.forming ? h('div', { class: 'tiny muted', style: 'margin-top:4px' }, 'still working this one out') : null)));
     view.append(rows);
   });
 

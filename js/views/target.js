@@ -14,6 +14,7 @@ import {
 import { plot, areaBars, usLine } from './parts.js';
 import { CHURCH_MODELS, MODEL_STANCES } from './../models.js';
 import { openGround } from './land.js';
+import { openModel, showSoilTab } from './soil.js';
 import { go } from './../router.js';
 
 let focusId = null;
@@ -103,6 +104,25 @@ export function render(state) {
           : 'Nothing ruled in or out yet. The length of that is itself worth looking at.')));
   }
 
+  /* ---- settled in myself ---- */
+  {
+    const openInMe = state.convictions.filter((c) => !c.settledStatement && (c.weight === 'forming' || c.forming)).length
+      + (state.barriers || []).filter((b) => !b.position).length;
+    const settledInMe = state.convictions.filter((c) => c.settledStatement).length
+      + (state.barriers || []).filter((b) => b.position && b.settledAt).length;
+    if (openInMe || settledInMe) {
+      view.append(h('button', { class: 'card card-tap', style: 'margin-bottom:18px', onClick: () => showSoilTab('settling') },
+        h('div', { class: 'eyebrow' }, 'Settled in myself'),
+        h('div', { class: 'row spread', style: 'margin-top:4px' },
+          h('strong', {}, openInMe ? `${openInMe} still open in me` : `${settledInMe} settled`),
+          settledInMe && openInMe ? h('span', { class: 'tiny muted' }, `${settledInMe} settled`) : null),
+        h('p', { class: 'tiny muted', style: 'margin:8px 0 0' },
+          openInMe
+            ? 'Some of the waiting isn\'t about them. Settle one and date it.'
+            : 'Everything you marked as forming has a position written on it now.')));
+    }
+  }
+
   view.append(h('div', { class: 'row spread', style: 'align-items:flex-end' },
     h('div', {},
       h('div', { class: 'eyebrow' },
@@ -133,6 +153,27 @@ export function render(state) {
         h('span', { class: 'small' }, model.name),
         h('span', { class: `small tone-${stance.tone}` }, stance.label)),
       h('div', { class: 'tiny muted', style: 'margin-top:4px' }, model.asks)));
+  }
+
+  // What it produces here — the artefact, not the vision statement.
+  if (s.fruit) {
+    const outModel = CHURCH_MODELS.find((m) => m.id === s.fruit.modelId);
+    const outStance = s.fruit.stanceId ? byId(MODEL_STANCES, s.fruit.stanceId) : null;
+    view.append(h('div', { class: 'card', style: 'margin-top:12px' },
+      h('div', { class: 'eyebrow' }, 'What it actually produces here'),
+      h('p', { class: 'small', style: 'margin:6px 0 0' }, s.fruit.text),
+      outModel
+        ? h('div', { class: 'row spread', style: 'margin-top:8px' },
+          h('span', { class: 'tiny muted' }, `That fruit is ${outModel.name.toLowerCase()}`),
+          outStance ? h('span', { class: `tiny tone-${outStance.tone}` }, outStance.label) : null)
+        : null,
+      s.fruitTension
+        ? h('p', { class: 'verdict', style: 'margin:10px 0 0; font-size:14px' },
+          'You\'d be building the thing you\'re not sure about. That\'s the question, not a footnote.')
+        : null,
+      s.fruitTension && outModel
+        ? h('button', { class: 'icon-btn', style: 'margin-top:8px', onClick: () => openModel(outModel.id) }, 'Look at that model')
+        : null));
   }
 
   if (s.check && s.barriers.length) {

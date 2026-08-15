@@ -76,6 +76,24 @@ export function openGround(id) {
           h('p', { class: 'tiny muted', style: 'margin:8px 0 0' }, model.asks));
       })(),
 
+      (() => {
+        if (!s.fruit) return null;
+        const outModel = CHURCH_MODELS.find((m) => m.id === s.fruit.modelId);
+        const outStance = s.fruit.stanceId ? byId(MODEL_STANCES, s.fruit.stanceId) : null;
+        return h('div', { class: 'card' },
+          h('div', { class: 'eyebrow' }, state.calling?.place ? `What it produces in ${state.calling.place}` : 'What it actually produces'),
+          h('p', { style: 'margin:6px 0 0' }, s.fruit.text),
+          outModel
+            ? h('div', { class: 'row spread', style: 'margin-top:8px' },
+              h('span', { class: 'small muted' }, `That fruit is ${outModel.name.toLowerCase()}`),
+              outStance ? h('span', { class: `small tone-${outStance.tone}` }, outStance.label) : null)
+            : null,
+          s.fruitTension
+            ? h('p', { class: 'tiny tone-bad', style: 'margin:8px 0 0' },
+              'Judge them by the fruit, and the fruit is the model you\'re not sure about.')
+            : null);
+      })(),
+
       ground.kind !== 'place'
         ? h('div', { class: 'card' },
           byId(KINDS, ground.kind)?.rootless

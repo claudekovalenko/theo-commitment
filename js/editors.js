@@ -136,6 +136,70 @@ export function editBarrier(existing) {
   ));
 }
 
+/* ---------- settling something of your own ---------- */
+
+export function settleIt(kind, id) {
+  const state = store.get();
+  const item = kind === 'barrier'
+    ? (state.barriers || []).find((x) => x.id === id)
+    : state.convictions.find((x) => x.id === id);
+  if (!item) return;
+
+  let landed = kind === 'barrier' ? (item.position || '') : (item.settledStatement || '');
+  let date = today();
+
+  openSheet(`Settle: ${item.title}`, () => frag(
+    h('p', { class: 'small muted' },
+      kind === 'barrier'
+        ? 'Write the position you\'d say out loud to someone who disagreed. Once it\'s written, it becomes the line every community gets measured against.'
+        : 'You marked this one as still forming. Settling it doesn\'t mean closing your mind — it means writing down where you actually stand today, and dating it.'),
+
+    item.summary ? h('div', { class: 'card' }, h('div', { class: 'eyebrow' }, 'What you wrote before'), h('p', { class: 'small', style: 'margin:6px 0 0' }, item.summary)) : null,
+    item.detail ? h('div', { class: 'card' }, h('div', { class: 'eyebrow' }, 'What you\'re watching for'), h('p', { class: 'small', style: 'margin:6px 0 0' }, item.detail)) : null,
+    item.scriptures ? h('p', { class: 'small', style: 'color:var(--moss)' }, item.scriptures) : null,
+    item.forming ? h('div', { class: 'card' }, h('div', { class: 'eyebrow' }, 'The open edge'), h('p', { class: 'small', style: 'margin:6px 0 0' }, item.forming)) : null,
+
+    field('Where I\'ve landed', area({
+      value: landed, style: 'min-height:130px',
+      placeholder: 'Plainly, in your own words. Good enough to act on, not good enough to publish.',
+      onInput: (e) => { landed = e.target.value; },
+    })),
+    field('Dated', h('input', { type: 'date', value: date, onInput: (e) => { date = e.target.value || today(); } })),
+
+    h('div', { class: 'stack', style: 'margin-top:18px' },
+      h('button', {
+        class: 'btn primary block',
+        onClick: () => {
+          if (!landed.trim()) return toast('Write where you landed first');
+          store.update((st) => {
+            if (kind === 'barrier') {
+              const b = st.barriers.find((x) => x.id === id);
+              b.position = landed;
+              b.settledAt = date;
+            } else {
+              const c = st.convictions.find((x) => x.id === id);
+              c.settledStatement = landed;
+              c.settledAt = date;
+              if (c.weight === 'forming') c.weight = 'conviction';
+            }
+            st.notes.push({
+              id: uid(), date, kind: 'observation',
+              title: `Settled: ${item.title}`, body: landed,
+              convictionIds: kind === 'barrier' ? [] : [id], contextIds: [], source: '',
+              createdAt: new Date().toISOString(),
+            });
+          });
+          closeSheet();
+          toast('Settled');
+        },
+      }, 'Settle it'),
+      h('button', {
+        class: 'btn ghost block',
+        onClick: () => { closeSheet(); editBlock(null, { title: `Settle where I stand on ${item.title.toLowerCase()}`, hard: true }); },
+      }, 'Not yet — put it in the way')),
+  ));
+}
+
 /* ---------- the calling: held, not re-litigated ---------- */
 
 export function editCalling() {
@@ -196,6 +260,7 @@ export function editGround(existing, defaults = {}) {
   const g = existing || {
     id: uid(), name: '', kind: state.calling?.placeId ? 'community' : 'place',
     stage: 'scouting', horizon: 'unknown', placeMode: 'unknown', modelId: '',
+    output: '', outputModelId: '',
     placeId: state.calling?.placeId || '', notes: '', ...defaults,
   };
   const draft = { ...g };
@@ -272,6 +337,14 @@ export function editGround(existing, defaults = {}) {
     modelField,
     stageField,
     field('Could we still be here in ten years?', segmented(HORIZONS, draft.horizon, (v) => { draft.horizon = v; })),
+    field('What does it actually produce here?', area({
+      value: draft.output || '', placeholder: 'The measurable artefact. Not the vision statement — what exists because of them.',
+      onInput: (e) => { draft.output = e.target.value; },
+    }), 'Fruit you could count, in this city.'),
+    field('And that fruit is which model?', segmented(
+      [...CHURCH_MODELS.map((m) => ({ id: m.id, label: m.name })), { id: '', label: 'Not one of these' }],
+      draft.outputModelId || '', (v) => { draft.outputModelId = v; },
+    ), 'If what they produce is a model you\'re against, that\'s worth seeing plainly.'),
     field('Notes', area({ value: draft.notes, placeholder: 'What you know, who you\'ve talked to, what you\'re watching for.', onInput: (e) => { draft.notes = e.target.value; } })),
     saveBar(() => {
       if (!draft.name.trim()) return toast('Give it a name first');
