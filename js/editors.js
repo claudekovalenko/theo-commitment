@@ -153,6 +153,10 @@ export function editCalling() {
       onInput: (e) => { draft.why = e.target.value; },
     })),
     field('By when', input({ value: draft.by || '', placeholder: 'A year, a season, "as soon as we can"', onInput: (e) => { draft.by = e.target.value; } })),
+    field('Since when have I been weighing this?', h('input', {
+      type: 'date', value: state.weighingSince || '',
+      onInput: (e) => store.update((st) => { st.weighingSince = e.target.value; }),
+    }), 'How long it\'s been open is part of the picture.'),
     saveBar(() => {
       const name = (draft.place || '').trim();
       if (!name) return toast('Name the city');

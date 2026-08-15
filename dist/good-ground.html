@@ -760,6 +760,14 @@ select { appearance: none; }
       ),
       conviction(
         "roots",
+        "Community that stays",
+        "core",
+        "The same faces over years, not a rotating cast. Consistency is what turns people into family \u2014 you can't be known by a crowd that keeps changing.",
+        "Acts 2:46; Hebrews 10:24-25; Proverbs 27:10",
+        "The people who were here three years ago are still here, and still close."
+      ),
+      conviction(
+        "roots",
         "Community my wife and kids actually have",
         "conviction",
         "Not my network \u2014 theirs. Friendships that don't depend on my title and don't leave when I do.",
@@ -841,6 +849,19 @@ select { appearance: none; }
       createdAt: (/* @__PURE__ */ new Date()).toISOString(),
       seeded: true
     };
+    const antioch = {
+      id: uid(),
+      name: "Antioch",
+      kind: "network",
+      stage: "scouting",
+      placeId: "",
+      placeMode: "unknown",
+      modelId: "",
+      horizon: "unknown",
+      notes: "A church-planting movement with a strong sending and discipleship culture. Weigh the specific congregation, not the movement \u2014 networks vary church to church, and the kid test is answered by the households in the room, not the brand.",
+      createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+      seeded: true
+    };
     const here = {
       id: uid(),
       name: "Where we are now",
@@ -856,9 +877,12 @@ select { appearance: none; }
       version: 3,
       createdAt: (/* @__PURE__ */ new Date()).toISOString(),
       seeded: true,
+      // He's been carrying this question for about four years.
+      weighingSince: new Date((/* @__PURE__ */ new Date()).getFullYear() - 4, 0, 1).toISOString().slice(0, 10),
+      appliedSeeds: ["antioch", "consistent-community", "weighing-since"],
       domains: DEFAULT_DOMAINS.map((d) => ({ ...d })),
       convictions,
-      contexts: [here, e3],
+      contexts: [here, e3, antioch],
       checks: [],
       blocks: [
         {
@@ -1021,7 +1045,9 @@ select { appearance: none; }
     const parsed = raw ? JSON.parse(raw) : null;
     state = parsed ? migrate(parsed) : seedState();
     lastSaved = state.updatedAt || null;
-    if (!parsed || parsed.version !== state.version) persist();
+    const changed = state.__seeded;
+    delete state.__seeded;
+    if (!parsed || parsed.version !== state.version || changed) persist();
     return state;
   }
   async function unlock(pin) {
@@ -1038,7 +1064,9 @@ select { appearance: none; }
       lastSaved = state.updatedAt || null;
       cryptoKey = key;
       saltB64 = blob.salt;
-      if (parsed.version !== state.version) await persist();
+      const changed = state.__seeded;
+      delete state.__seeded;
+      if (parsed.version !== state.version || changed) await persist();
       return true;
     } catch {
       return false;
@@ -1144,6 +1172,8 @@ select { appearance: none; }
       discernments: [],
       modelStances: {},
       barriers: [],
+      weighingSince: "",
+      appliedSeeds: [],
       calling: { placeId: "", place: "", why: "", by: "" },
       settings: {
         autoLockMinutes: 15,
@@ -1215,8 +1245,53 @@ select { appearance: none; }
     s.blocks.forEach((b) => {
       if (!b.status) b.status = "open";
     });
+    s.__seeded = applyLateSeeds(s);
     s.version = 3;
     return s;
+  }
+  function applyLateSeeds(s) {
+    const done = new Set(s.appliedSeeds || []);
+    const before = done.size;
+    const mark = (id) => {
+      done.add(id);
+    };
+    if (!done.has("weighing-since") && !s.weighingSince) {
+      s.weighingSince = new Date((/* @__PURE__ */ new Date()).getFullYear() - 4, 0, 1).toISOString().slice(0, 10);
+      mark("weighing-since");
+    }
+    if (!done.has("consistent-community") && !s.convictions.some((c) => (c.title || "").toLowerCase() === "community that stays")) {
+      s.convictions.push({
+        id: uid(),
+        domainId: s.domains.some((d) => d.id === "roots") ? "roots" : s.domains[0]?.id,
+        title: "Community that stays",
+        weight: "core",
+        summary: "The same faces over years, not a rotating cast. Consistency is what turns people into family \u2014 you can't be known by a crowd that keeps changing.",
+        scriptures: "Acts 2:46; Hebrews 10:24-25; Proverbs 27:10",
+        practice: "The people who were here three years ago are still here, and still close.",
+        forming: "",
+        seeded: true,
+        createdAt: (/* @__PURE__ */ new Date()).toISOString()
+      });
+      mark("consistent-community");
+    }
+    if (!done.has("antioch") && !s.contexts.some((c) => (c.name || "").toLowerCase().includes("antioch"))) {
+      s.contexts.push({
+        id: uid(),
+        name: "Antioch",
+        kind: "network",
+        stage: "scouting",
+        placeId: "",
+        placeMode: "unknown",
+        modelId: "",
+        horizon: "unknown",
+        notes: "A church-planting movement with a strong sending and discipleship culture. Weigh the specific congregation, not the movement \u2014 networks vary church to church, and the kid test is answered by the households in the room, not the brand.",
+        seeded: true,
+        createdAt: (/* @__PURE__ */ new Date()).toISOString()
+      });
+      mark("antioch");
+    }
+    s.appliedSeeds = [...done];
+    return done.size !== before;
   }
 
   // js/ui.js
@@ -1692,6 +1767,13 @@ select { appearance: none; }
       field("By when", input({ value: draft.by || "", placeholder: 'A year, a season, "as soon as we can"', onInput: (e) => {
         draft.by = e.target.value;
       } })),
+      field("Since when have I been weighing this?", h("input", {
+        type: "date",
+        value: state2.weighingSince || "",
+        onInput: (e) => update((st) => {
+          st.weighingSince = e.target.value;
+        })
+      }), "How long it's been open is part of the picture."),
       saveBar(() => {
         const name = (draft.place || "").trim();
         if (!name) return toast("Name the city");
@@ -3290,6 +3372,31 @@ select { appearance: none; }
         ),
         calling.why ? h("p", { class: "small muted", style: "margin:8px 0 0" }, calling.why) : null,
         h("p", { class: "tiny muted", style: "margin:8px 0 0" }, "Settled. Not re-decided every time you get nervous.")
+      ));
+    }
+    if (state2.weighingSince) {
+      const years = Math.floor(Math.max(0, daysBetween(state2.weighingSince, today())) / 365);
+      const decided = state2.contexts.filter((c) => c.stage === "built" || c.stage === "ruled-out").length;
+      const hesitations2 = state2.notes.filter((n) => n.kind === "hesitation").length;
+      view3.append(h(
+        "button",
+        { class: "card card-tap", style: "margin-bottom:18px", onClick: editCalling },
+        h("div", { class: "eyebrow" }, "How long this has been open"),
+        h(
+          "div",
+          { class: "row spread", style: "margin-top:4px" },
+          h("strong", {}, years >= 1 ? `${years} year${years > 1 ? "s" : ""}` : "Under a year"),
+          h(
+            "span",
+            { class: "tiny muted" },
+            [`${decided} decided`, hesitations2 ? `${hesitations2} hesitations written` : null].filter(Boolean).join(" \xB7 ")
+          )
+        ),
+        h(
+          "p",
+          { class: "tiny muted", style: "margin:8px 0 0" },
+          decided ? "Some of it is settled. Keep going." : "Nothing ruled in or out yet. The length of that is itself worth looking at."
+        )
       ));
     }
     view3.append(h(

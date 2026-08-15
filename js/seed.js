@@ -79,6 +79,12 @@ export function seedConvictions() {
       'Titus 2:3-8; Deuteronomy 6:6-9; Proverbs 13:20',
       'I could drop him off for a week and not think twice.'),
     conviction('roots',
+      'Community that stays',
+      'core',
+      'The same faces over years, not a rotating cast. Consistency is what turns people into family — you can\'t be known by a crowd that keeps changing.',
+      'Acts 2:46; Hebrews 10:24-25; Proverbs 27:10',
+      'The people who were here three years ago are still here, and still close.'),
+    conviction('roots',
       'Community my wife and kids actually have',
       'conviction',
       'Not my network — theirs. Friendships that don\'t depend on my title and don\'t leave when I do.',
@@ -149,6 +155,22 @@ export function seedState() {
     seeded: true,
   };
 
+  const antioch = {
+    id: uid(),
+    name: 'Antioch',
+    kind: 'network',
+    stage: 'scouting',
+    placeId: '',
+    placeMode: 'unknown',
+    modelId: '',
+    horizon: 'unknown',
+    notes: 'A church-planting movement with a strong sending and discipleship culture. '
+      + 'Weigh the specific congregation, not the movement — networks vary church to church, '
+      + 'and the kid test is answered by the households in the room, not the brand.',
+    createdAt: new Date().toISOString(),
+    seeded: true,
+  };
+
   const here = {
     id: uid(),
     name: 'Where we are now',
@@ -166,9 +188,12 @@ export function seedState() {
     version: 3,
     createdAt: new Date().toISOString(),
     seeded: true,
+    // He's been carrying this question for about four years.
+    weighingSince: new Date(new Date().getFullYear() - 4, 0, 1).toISOString().slice(0, 10),
+    appliedSeeds: ['antioch', 'consistent-community', 'weighing-since'],
     domains: DEFAULT_DOMAINS.map((d) => ({ ...d })),
     convictions,
-    contexts: [here, e3],
+    contexts: [here, e3, antioch],
     checks: [],
     blocks: [
       {

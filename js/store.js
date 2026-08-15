@@ -80,7 +80,9 @@ export function open() {
   lastSaved = state.updatedAt || null; // so "last saved" is true across restarts
   // Write straight back when we seeded or upgraded, so the new shape is durable
   // even if the next thing that happens is the browser being closed.
-  if (!parsed || parsed.version !== state.version) persist();
+  const changed = state.__seeded;
+  delete state.__seeded;
+  if (!parsed || parsed.version !== state.version || changed) persist();
   return state;
 }
 
@@ -97,7 +99,9 @@ export async function unlock(pin) {
     lastSaved = state.updatedAt || null;
     cryptoKey = key;
     saltB64 = blob.salt;
-    if (parsed.version !== state.version) await persist();
+    const changed = state.__seeded;
+    delete state.__seeded;
+    if (parsed.version !== state.version || changed) await persist();
     return true;
   } catch {
     return false;
@@ -217,6 +221,7 @@ function migrate(data) {
     createdAt: new Date().toISOString(),
     domains: [], convictions: [], contexts: [], checks: [], blocks: [], notes: [], people: [],
     verses: [], discernments: [], modelStances: {}, barriers: [],
+    weighingSince: '', appliedSeeds: [],
     calling: { placeId: '', place: '', why: '', by: '' },
     settings: {
       autoLockMinutes: 15,
@@ -295,6 +300,63 @@ function migrate(data) {
 
   s.blocks.forEach((b) => { if (!b.status) b.status = 'open'; });
 
+  s.__seeded = applyLateSeeds(s);
+
   s.version = 3;
   return s;
+}
+
+/**
+ * Things added to the app after someone already had data. Each runs once and
+ * is remembered by id, so deleting one doesn't bring it back next launch.
+ */
+function applyLateSeeds(s) {
+  const done = new Set(s.appliedSeeds || []);
+  const before = done.size;
+  const mark = (id) => { done.add(id); };
+
+  if (!done.has('weighing-since') && !s.weighingSince) {
+    s.weighingSince = new Date(new Date().getFullYear() - 4, 0, 1).toISOString().slice(0, 10);
+    mark('weighing-since');
+  }
+
+  if (!done.has('consistent-community')
+    && !s.convictions.some((c) => (c.title || '').toLowerCase() === 'community that stays')) {
+    s.convictions.push({
+      id: uid(),
+      domainId: s.domains.some((d) => d.id === 'roots') ? 'roots' : s.domains[0]?.id,
+      title: 'Community that stays',
+      weight: 'core',
+      summary: 'The same faces over years, not a rotating cast. Consistency is what turns people into '
+        + 'family — you can\'t be known by a crowd that keeps changing.',
+      scriptures: 'Acts 2:46; Hebrews 10:24-25; Proverbs 27:10',
+      practice: 'The people who were here three years ago are still here, and still close.',
+      forming: '',
+      seeded: true,
+      createdAt: new Date().toISOString(),
+    });
+    mark('consistent-community');
+  }
+
+  if (!done.has('antioch') && !s.contexts.some((c) => (c.name || '').toLowerCase().includes('antioch'))) {
+    s.contexts.push({
+      id: uid(),
+      name: 'Antioch',
+      kind: 'network',
+      stage: 'scouting',
+      placeId: '',
+      placeMode: 'unknown',
+      modelId: '',
+      horizon: 'unknown',
+      notes: 'A church-planting movement with a strong sending and discipleship culture. '
+        + 'Weigh the specific congregation, not the movement — networks vary church to church, '
+        + 'and the kid test is answered by the households in the room, not the brand.',
+      seeded: true,
+      createdAt: new Date().toISOString(),
+    });
+    mark('antioch');
+  }
+
+  s.appliedSeeds = [...done];
+  return done.size !== before;
 }

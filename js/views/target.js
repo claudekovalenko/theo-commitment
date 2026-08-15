@@ -7,7 +7,7 @@ import {
   survey, verdict, rankGrounds, byId, HORIZONS, HOME_LEVELS, KINDS, PLACE_MODES, STAGES,
   callingPlace, withinCalling,
 } from './../model.js';
-import { h, empty, section, relDate, toast } from './../ui.js';
+import { h, empty, section, relDate, daysBetween, toast } from './../ui.js';
 import {
   walkTheLand, editGround, editBlock, breakGround, captureHesitation, editNote, editPerson, editCalling,
 } from './../editors.js';
@@ -83,6 +83,24 @@ export function render(state) {
         calling.by ? h('span', { class: 'tiny muted' }, calling.by) : null),
       calling.why ? h('p', { class: 'small muted', style: 'margin:8px 0 0' }, calling.why) : null,
       h('p', { class: 'tiny muted', style: 'margin:8px 0 0' }, 'Settled. Not re-decided every time you get nervous.')));
+  }
+
+  /* ---- how long this has been open ---- */
+  if (state.weighingSince) {
+    const years = Math.floor(Math.max(0, daysBetween(state.weighingSince, today())) / 365);
+    const decided = state.contexts.filter((c) => c.stage === 'built' || c.stage === 'ruled-out').length;
+    const hesitations = state.notes.filter((n) => n.kind === 'hesitation').length;
+    view.append(h('button', { class: 'card card-tap', style: 'margin-bottom:18px', onClick: editCalling },
+      h('div', { class: 'eyebrow' }, 'How long this has been open'),
+      h('div', { class: 'row spread', style: 'margin-top:4px' },
+        h('strong', {}, years >= 1 ? `${years} year${years > 1 ? 's' : ''}` : 'Under a year'),
+        h('span', { class: 'tiny muted' },
+          [`${decided} decided`, hesitations ? `${hesitations} hesitations written` : null]
+            .filter(Boolean).join(' · '))),
+      h('p', { class: 'tiny muted', style: 'margin:8px 0 0' },
+        decided
+          ? 'Some of it is settled. Keep going.'
+          : 'Nothing ruled in or out yet. The length of that is itself worth looking at.')));
   }
 
   view.append(h('div', { class: 'row spread', style: 'align-items:flex-end' },

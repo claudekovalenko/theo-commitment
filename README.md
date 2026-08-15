@@ -64,6 +64,13 @@ You mark where you stand on each — at home / could work / real friction / not
 for us — and that stance travels: every community or ministry names the model it
 runs on, and your stance shows up beside it wherever you weigh it.
 
+## How long this has been open
+
+The home screen carries one line you can't scroll past: how long you've been
+weighing this, how many options you've actually ruled in or out, and how many
+times you've written down a hesitation. Four years with nothing decided is
+information too. Set the start date wherever you edit the calling.
+
 ## Barriers — the lines you don't cross
 
 Separate from requirements, and heavier: **baptism**, **leadership and
@@ -232,6 +239,10 @@ Screen (iOS) or the install icon (Android / desktop). It runs offline once
 installed.
 
 ## Upgrading
+
+Things added to the app after you already had data — Antioch on the board, the
+*community that stays* requirement, the start date — arrive once and are
+remembered by id. Delete one and it stays deleted.
 
 Old data migrates in place. Convictions become requirements, contexts become
 ground, checks become surveys, and anything that was an open follow-up becomes
