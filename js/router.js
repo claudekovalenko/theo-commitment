@@ -1,4 +1,4 @@
-export const ROUTES = ['target', 'land', 'soil', 'unsettled', 'journal'];
+export const ROUTES = ['target', 'land', 'soil', 'word', 'unsettled', 'journal'];
 
 // what these tabs were called in earlier versions
 const OLD = { compass: 'target', where: 'land', plays: 'land', convictions: 'soil', do: 'unsettled', log: 'journal', people: 'journal' };

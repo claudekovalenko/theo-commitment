@@ -109,6 +109,33 @@ Never scored. Just asked, every time.
 **Ten years.** Every piece of ground carries one question: could we still be
 here in ten years?
 
+## The Word
+
+A working library, not a devotional. Ten threads aimed at the question actually
+in front of you: how God guides, counsel and the church, calling and being sent,
+land and roots and staying, household and children, spiritual family, the seed
+falling into the ground, waiting and timing, testing a church or a teacher, and
+peace and provision.
+
+Each entry is a **reference and a note on why it belongs there** — not the text.
+You open your own Bible, copy the passage out in your own translation, and write
+three things: what it says, what it asks of you, and what you'd do differently.
+That last line is the one the app surfaces back to you. Any study can become
+something in the way.
+
+### The discernment instrument
+
+Ten questions with a scripture behind each, run against one decision and dated,
+so you can run it again when something changes:
+
+Scripture · Prayer · Counsel · The church · My wife · Open and closed doors ·
+Desire · Peace · Fruit · Cost
+
+Each gets one of: not asked yet / asked, still unclear / leaning / clear /
+clearly against. The tally is blunt about it — *"6 of 10 asked. The unasked ones
+are the work."* — and a run that comes back with anything **against** says so on
+the list.
+
 ## Tabs
 
 | | |
@@ -116,6 +143,7 @@ here in ten years?
 | **Ground** | The one place in front of you, and what stands between you and yes |
 | **Land** | Every piece of ground, ranked and compared area by area |
 | **Soil** | What the ground has to hold, by area of life |
+| **Word** | Scripture threads, your studies, and the discernment instrument |
 | **In the way** | Everything unsettled, and what would settle it |
 | **Journal** | What you're learning, and the people you're walking with |
 

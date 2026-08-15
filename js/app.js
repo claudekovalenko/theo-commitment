@@ -8,19 +8,21 @@ import * as target from './views/target.js';
 import * as land from './views/land.js';
 import * as soil from './views/soil.js';
 import * as unsettled from './views/unsettled.js';
+import * as word from './views/word.js';
 import * as journal from './views/journal.js';
 
-const VIEWS = { target, land, soil, unsettled, journal };
+const VIEWS = { target, land, soil, word, unsettled, journal };
 
 const ICONS = {
   target: '<path d="M3.5 13h17"/><path d="M12 13v-5"/><circle cx="12" cy="5.5" r="2.8"/><path d="M12 13c0 4-3 5-4.5 7M12 13c0 4 3 5 4.5 7M12 13v7.5"/>',
   land: '<path d="M2.5 17.5 9 6l6.5 11.5z"/><path d="M13 17.5 17 10l4.5 7.5z"/><path d="M2 20.5h20"/>',
   soil: '<path d="M3.5 9h17"/><path d="M7 9v11M12 9v11M17 9v11"/><path d="M4 5.5c2.5-2 5-2 8 0s5.5 2 8 0"/>',
+  word: '<path d="M4 4.5A2 2 0 0 1 6 3h5v17H6a2 2 0 0 0-2 1.5z"/><path d="M20 4.5A2 2 0 0 0 18 3h-5v17h5a2 2 0 0 1 2 1.5z"/><path d="M12 7v3M10.5 8.5h3"/>',
   unsettled: '<path d="M12 3.5 21 19H3z"/><path d="M12 10v4"/><circle cx="12" cy="16.6" r=".6" fill="currentColor"/>',
   journal: '<path d="M6 3h12v18H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M8.5 3v18"/>',
 };
 
-const LABELS = { target: 'Ground', land: 'Land', soil: 'Soil', unsettled: 'In the way', journal: 'Journal' };
+const LABELS = { target: 'Ground', land: 'Land', soil: 'Soil', word: 'Word', unsettled: 'In the way', journal: 'Journal' };
 
 /* ---------- render ---------- */
 

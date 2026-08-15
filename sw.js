@@ -1,7 +1,7 @@
 // Offline shell. Everything the app needs is cached on install; there are no
 // other network requests to worry about, because the app never makes any.
 
-const CACHE = 'good-ground-v3';
+const CACHE = 'good-ground-v4';
 
 const ASSETS = [
   './',
@@ -18,6 +18,8 @@ const ASSETS = [
   './js/views/target.js',
   './js/views/parts.js',
   './js/views/land.js',
+  './js/scripture.js',
+  './js/views/word.js',
   './js/views/soil.js',
   './js/views/unsettled.js',
   './js/views/journal.js',
