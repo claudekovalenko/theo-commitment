@@ -4,12 +4,42 @@ import { WEIGHTS, byId, levelOf, latestCheck } from './../model.js';
 import { h, frag, empty, section, openSheet, closeSheet, relDate } from './../ui.js';
 import { today } from './../store.js';
 import * as store from './../store.js';
-import { editRequirement, editDomain, editNote } from './../editors.js';
+import { editRequirement, editDomain, editNote, editBarrier } from './../editors.js';
 import { CHURCH_MODELS, MODEL_STANCES } from './../models.js';
 import { segmented, area, field, toast } from './../ui.js';
 import { go } from './../router.js';
 
 const tab = { at: 'requirements' };
+
+function barriers(state, view) {
+  view.append(h('h1', {}, 'The lines I don\'t cross'),
+    h('p', { class: 'muted small' },
+      'Not preferences — walls. A community that fails one of these stops being scored: the app says so and stops asking you to weigh it.'));
+
+  const list = state.barriers || [];
+  if (!list.length) {
+    view.append(empty('None named yet.', 'Add a barrier', () => editBarrier()));
+    return;
+  }
+
+  const rows = h('div', { class: 'rows' });
+  list.forEach((b) => {
+    const failing = state.contexts.filter((c) => {
+      const check = latestCheck(state.checks, c.id);
+      return check?.barriers?.[b.id]?.state === 'fails';
+    });
+    rows.append(h('button', { class: 'card-tap', onClick: () => editBarrier(b) },
+      h('div', { class: 'row spread' },
+        h('strong', {}, b.title),
+        h('span', { class: `tiny ${b.hard ? 'tone-bad' : 'muted'}` }, b.hard ? 'a wall' : 'heavy')),
+      b.position
+        ? h('div', { class: 'small muted' }, b.position)
+        : h('div', { class: 'tiny tone-thin' }, 'You haven\'t written where you stand yet'),
+      failing.length ? h('div', { class: 'tiny tone-bad', style: 'margin-top:4px' }, `Fails here: ${failing.map((c) => c.name).join(', ')}`) : null));
+  });
+  view.append(rows);
+  view.append(h('button', { class: 'btn block', style: 'margin-top:18px', onClick: () => editBarrier() }, 'Add a barrier'));
+}
 
 /** One model, opened up: what it is, what it costs, and where you stand. */
 export function openModel(id) {
@@ -146,7 +176,7 @@ export function render(state) {
   const view = h('div', {});
 
   const tabs = h('div', { class: 'row wrap', style: 'margin-bottom:16px' });
-  [['requirements', 'Requirements'], ['models', 'Church models']].forEach(([id, label]) => {
+  [['requirements', 'Requirements'], ['barriers', 'Barriers'], ['models', 'Church models']].forEach(([id, label]) => {
     tabs.append(h('button', {
       class: `chip${tab.at === id ? ' on' : ''}`,
       onClick: () => { tab.at = id; go('soil'); },
@@ -156,6 +186,10 @@ export function render(state) {
 
   if (tab.at === 'models') {
     models(state, view);
+    return view;
+  }
+  if (tab.at === 'barriers') {
+    barriers(state, view);
     return view;
   }
 

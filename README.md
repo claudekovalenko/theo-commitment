@@ -64,6 +64,23 @@ You mark where you stand on each — at home / could work / real friction / not
 for us — and that stance travels: every community or ministry names the model it
 runs on, and your stance shows up beside it wherever you weigh it.
 
+## Barriers — the lines you don't cross
+
+Separate from requirements, and heavier: **baptism**, **leadership and
+oversight**, **the role of women**, plus any you add. Each holds your position
+in your own words and what you're actually watching for — practice, not the
+statement of faith.
+
+Every walk asks the barriers **first**, before anything else. Fail a hard one
+and the app stops scoring the place: the roots cap at 20%, the verdict reads
+*"This fails on baptism. That's a wall, not a cost,"* and it won't invite you to
+commit. A barrier you can't read yet shows up as something in the way.
+
+## Quiet
+
+The prompts that repeat — *one option isn't a decision*, *no spiritual family
+named yet* — each carry a **Stop telling me** button, and they stay gone.
+
 ## The gate
 
 Two questions decide a piece of ground, and they sit above everything else:

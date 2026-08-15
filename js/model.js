@@ -97,6 +97,14 @@ export const HOME_LEVELS = [
   { id: 'unknown', label: 'Too early to say', tone: 'unknown' },
 ];
 
+/** Where a community stands on a barrier of yours. */
+export const BARRIER_STATES = [
+  { id: 'clears', label: 'Clears it', tone: 'good', score: 1 },
+  { id: 'mostly', label: 'Mostly', tone: 'ok', score: 0.7 },
+  { id: 'unclear', label: 'Can\'t tell yet', tone: 'unknown', score: null },
+  { id: 'fails', label: 'Fails it', tone: 'bad', score: 0 },
+];
+
 export const HORIZONS = [
   { id: 'unknown', label: 'No idea yet' },
   { id: 'season', label: 'A season (1–2 yrs)' },
@@ -249,12 +257,25 @@ export function survey(state, ground) {
 
   base.household = state.people.filter((p) => p.groundId === ground.id);
 
+  // Barriers: the doctrinal lines you don't cross. A hard one failed is a wall,
+  // not a deduction.
+  base.barriers = (state.barriers || []).map((b) => ({
+    barrier: b,
+    state: byId(BARRIER_STATES, check?.barriers?.[b.id]?.state || 'unclear'),
+    note: check?.barriers?.[b.id]?.note || '',
+  }));
+  base.barriersFailed = base.barriers.filter((b) => b.barrier.hard && b.state.id === 'fails');
+  base.barriersUnclear = base.barriers.filter((b) => b.barrier.hard && b.state.id === 'unclear');
+
   if (check) {
-    const cap = Math.min(base.kid.cap, base.formation.cap);
+    const barrierCap = base.barriersFailed.length ? 0.2 : 1;
+    const cap = Math.min(base.kid.cap, base.formation.cap, barrierCap);
     base.gate = depth > cap
-      ? (base.kid.cap <= base.formation.cap
-        ? `Capped by the kid test: ${base.kid.label.toLowerCase()}`
-        : `Capped by which way he'd be formed: ${base.formation.label.toLowerCase()}`)
+      ? (base.barriersFailed.length
+        ? `Blocked by ${base.barriersFailed.map((b) => b.barrier.title.toLowerCase()).join(' and ')}`
+        : base.kid.cap <= base.formation.cap
+          ? `Capped by the kid test: ${base.kid.label.toLowerCase()}`
+          : `Capped by which way he'd be formed: ${base.formation.label.toLowerCase()}`)
       : '';
     depth = Math.min(depth, cap);
   } else {
@@ -266,7 +287,9 @@ export function survey(state, ground) {
   base.kind = ground.kind;
   base.isPlace = ground.kind === 'place';
   const trusted = ['yes', 'some'].includes(base.kid.id);
-  const gatedBy = check && !trusted
+  const gatedBy = check && base.barriersFailed.length
+    ? `${base.barriersFailed.map((b) => b.barrier.title).join(' and ')} — a line you said you don't cross`
+    : check && !trusted
     ? `You wouldn't leave your kids with these people yet (${base.kid.label.toLowerCase()})`
     : (check && base.formation.id === 'softer' ? 'He\'d come back softer, not sharper' : '');
   const ready = !decided && trusted && surveyed >= 0.8 && blocks.length === 0 && (base.fit ?? 0) >= 0.6;
@@ -281,6 +304,7 @@ export function survey(state, ground) {
     stage: decided ? ground.stage : (ready ? 'ready' : (surveyed > 0.15 ? 'surveying' : 'scouting')),
     inTheWay: [
       ...(gatedBy ? [{ kind: 'gate', label: gatedBy }] : []),
+      ...base.barriersUnclear.map((b) => ({ kind: 'barrier', label: `${b.barrier.title} — can't tell yet` })),
       ...blocks.map((b) => ({ kind: 'block', block: b, label: b.title })),
       ...base.unsurveyed.map((u) => ({ kind: 'unsurveyed', req: u.req, label: u.req.title })),
     ],
@@ -295,6 +319,10 @@ export function verdict(s) {
   }
   if (s.stage === 'ruled-out') return 'You ruled this one out.';
   if (!s.check) return 'Not surveyed yet. Walk the land.';
+  if (s.barriersFailed?.length) {
+    const names = s.barriersFailed.map((b) => b.barrier.title.toLowerCase()).join(' and ');
+    return `This fails on ${names}. That's a wall, not a cost.`;
+  }
   if (s.kid.id === 'no' || s.kid.id === 'supervised') {
     return 'You wouldn\'t leave your kids here unsupervised. Until that changes, nothing else counts.';
   }

@@ -214,7 +214,41 @@ export function seedState() {
     people: [],
     verses: [],
     discernments: [],
-    modelStances: {},
+    modelStances: {
+      house: {
+        stance: 'against',
+        note: 'Drawn to the intertwining, but I can\'t see where strong preaching, real eldership and correction come from.',
+      },
+    },
+    barriers: [
+      {
+        id: uid(),
+        title: 'Baptism',
+        position: '',
+        detail: 'Who gets baptised, what it means, and whether we\'d be at peace with how they practise it.',
+        hard: true,
+        seeded: true,
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: uid(),
+        title: 'Leadership and oversight',
+        position: '',
+        detail: 'Who leads, how they\'re appointed, who they answer to, and whether there\'s real correction.',
+        hard: true,
+        seeded: true,
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: uid(),
+        title: 'The role of women',
+        position: 'Complementarian — biblical submission and distinct, God-given roles in the home and in the church.',
+        detail: 'How it\'s taught, how it\'s practised, and whether it\'s held pastorally or as a slogan.',
+        hard: true,
+        seeded: true,
+        createdAt: new Date().toISOString(),
+      },
+    ],
     calling: { placeId: '', place: '', why: '', by: '' },
     settings: {
       autoLockMinutes: 15,

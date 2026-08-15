@@ -117,6 +117,16 @@ export function render(state) {
       h('div', { class: 'tiny muted', style: 'margin-top:4px' }, model.asks)));
   }
 
+  if (s.check && s.barriers.length) {
+    view.append(h('div', { class: 'card', style: 'margin-top:12px' },
+      h('div', { class: 'eyebrow' }, 'The lines I don\'t cross'),
+      h('div', { class: 'rows' }, s.barriers.map((b) => h('div', {},
+        h('div', { class: 'row spread' },
+          h('span', { class: 'small' }, b.barrier.title),
+          h('span', { class: `small tone-${b.state.tone}` }, b.state.label)),
+        b.note ? h('div', { class: 'tiny muted' }, b.note) : null)))));
+  }
+
   if (s.check) {
     const home = byId(HOME_LEVELS, s.home?.id || 'unknown');
     view.append(h('div', { class: 'card', style: 'margin-top:12px' },
@@ -143,8 +153,16 @@ export function render(state) {
   // spiritual family, by name
   view.append(section('Spiritual family here', 'Add', () => editPerson(null, { groundId: ground.id })));
   if (!s.household.length) {
-    view.append(h('p', { class: 'muted small' },
-      'No one named yet. Intertwined is people you could call at 11pm — if you can\'t name them, the ground isn\'t ready.'));
+    if (!state.settings?.hushed?.family) {
+      view.append(h('p', { class: 'muted small' },
+        'No one named yet. Intertwined is people you could call at 11pm — if you can\'t name them, the ground isn\'t ready.'));
+      view.append(h('button', {
+        class: 'icon-btn',
+        onClick: () => store.update((st) => {
+          st.settings.hushed = { ...(st.settings.hushed || {}), family: true };
+        }),
+      }, 'Stop telling me'));
+    }
   } else {
     const rows = h('div', { class: 'rows' });
     s.household.forEach((p) => rows.append(h('button', { class: 'card-tap', onClick: () => editPerson(p) },
@@ -262,7 +280,7 @@ export function render(state) {
     () => (others.length ? go('land') : editGround(null, { kind: ground.kind === 'place' ? 'place' : 'community' })),
   ));
 
-  if (!others.length) {
+  if (!others.length && !state.settings?.hushed?.oneOption) {
     // One option on the table is a temptation, not a decision.
     view.append(h('div', { class: 'card' },
       h('strong', {}, `${ground.name} is the only thing on the table.`),
@@ -272,7 +290,13 @@ export function render(state) {
       h('button', {
         class: 'btn sm',
         onClick: () => editGround(null, { kind: ground.kind === 'place' ? 'place' : 'community' }),
-      }, 'Name another option')));
+      }, 'Name another option'),
+      h('button', {
+        class: 'icon-btn', style: 'margin-left:8px',
+        onClick: () => store.update((st) => {
+          st.settings.hushed = { ...(st.settings.hushed || {}), oneOption: true };
+        }),
+      }, 'Stop telling me')));
   } else {
     const rows = h('div', { class: 'rows' });
     others.forEach(({ ground: g, s: gs }) => {

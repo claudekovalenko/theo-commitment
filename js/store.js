@@ -184,7 +184,7 @@ export function importJSON(text, { merge }) {
   if (!merge) {
     state = incoming;
   } else {
-    for (const list of ['domains', 'convictions', 'contexts', 'checks', 'blocks', 'notes', 'people', 'verses', 'discernments']) {
+    for (const list of ['domains', 'convictions', 'contexts', 'checks', 'blocks', 'notes', 'people', 'verses', 'discernments', 'barriers']) {
       const have = new Set(state[list].map((r) => r.id));
       state[list].push(...(incoming[list] || []).filter((r) => !have.has(r.id)));
     }
@@ -216,11 +216,12 @@ function migrate(data) {
     version: 3,
     createdAt: new Date().toISOString(),
     domains: [], convictions: [], contexts: [], checks: [], blocks: [], notes: [], people: [],
-    verses: [], discernments: [], modelStances: {},
+    verses: [], discernments: [], modelStances: {}, barriers: [],
     calling: { placeId: '', place: '', why: '', by: '' },
     settings: {
       autoLockMinutes: 15,
       name: '',
+      hushed: {},
       verse: {
         text: 'Unless a grain of wheat falls into the ground and dies, it remains alone; but if it dies, it produces much grain.',
         ref: 'John 12:24',
@@ -234,6 +235,7 @@ function migrate(data) {
     settings: {
       ...base.settings,
       ...(data.settings || {}),
+      hushed: { ...base.settings.hushed, ...((data.settings || {}).hushed || {}) },
       verse: { ...base.settings.verse, ...((data.settings || {}).verse || {}) },
     },
   };
@@ -263,6 +265,7 @@ function migrate(data) {
     if (!c.placeMode) c.placeMode = c.placeId ? 'in' : 'unknown';
   });
   s.checks.forEach((k) => {
+    if (!k.barriers) k.barriers = {};
     if (!k.us) k.us = { level: 'na', note: '' };
     if (!k.kid) k.kid = { level: 'unknown', note: '' };
     if (!k.formation) k.formation = { level: 'unknown', note: '' };

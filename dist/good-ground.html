@@ -460,6 +460,12 @@ select { appearance: none; }
     { id: "done", label: "We already have", tone: "good" },
     { id: "unknown", label: "Too early to say", tone: "unknown" }
   ];
+  var BARRIER_STATES = [
+    { id: "clears", label: "Clears it", tone: "good", score: 1 },
+    { id: "mostly", label: "Mostly", tone: "ok", score: 0.7 },
+    { id: "unclear", label: "Can't tell yet", tone: "unknown", score: null },
+    { id: "fails", label: "Fails it", tone: "bad", score: 0 }
+  ];
   var HORIZONS = [
     { id: "unknown", label: "No idea yet" },
     { id: "season", label: "A season (1\u20132 yrs)" },
@@ -576,9 +582,17 @@ select { appearance: none; }
     base.kidNote = check?.kid?.note || "";
     base.formationNote = check?.formation?.note || "";
     base.household = state2.people.filter((p) => p.groundId === ground.id);
+    base.barriers = (state2.barriers || []).map((b) => ({
+      barrier: b,
+      state: byId(BARRIER_STATES, check?.barriers?.[b.id]?.state || "unclear"),
+      note: check?.barriers?.[b.id]?.note || ""
+    }));
+    base.barriersFailed = base.barriers.filter((b) => b.barrier.hard && b.state.id === "fails");
+    base.barriersUnclear = base.barriers.filter((b) => b.barrier.hard && b.state.id === "unclear");
     if (check) {
-      const cap = Math.min(base.kid.cap, base.formation.cap);
-      base.gate = depth > cap ? base.kid.cap <= base.formation.cap ? `Capped by the kid test: ${base.kid.label.toLowerCase()}` : `Capped by which way he'd be formed: ${base.formation.label.toLowerCase()}` : "";
+      const barrierCap = base.barriersFailed.length ? 0.2 : 1;
+      const cap = Math.min(base.kid.cap, base.formation.cap, barrierCap);
+      base.gate = depth > cap ? base.barriersFailed.length ? `Blocked by ${base.barriersFailed.map((b) => b.barrier.title.toLowerCase()).join(" and ")}` : base.kid.cap <= base.formation.cap ? `Capped by the kid test: ${base.kid.label.toLowerCase()}` : `Capped by which way he'd be formed: ${base.formation.label.toLowerCase()}` : "";
       depth = Math.min(depth, cap);
     } else {
       base.gate = "";
@@ -588,7 +602,7 @@ select { appearance: none; }
     base.kind = ground.kind;
     base.isPlace = ground.kind === "place";
     const trusted = ["yes", "some"].includes(base.kid.id);
-    const gatedBy = check && !trusted ? `You wouldn't leave your kids with these people yet (${base.kid.label.toLowerCase()})` : check && base.formation.id === "softer" ? "He'd come back softer, not sharper" : "";
+    const gatedBy = check && base.barriersFailed.length ? `${base.barriersFailed.map((b) => b.barrier.title).join(" and ")} \u2014 a line you said you don't cross` : check && !trusted ? `You wouldn't leave your kids with these people yet (${base.kid.label.toLowerCase()})` : check && base.formation.id === "softer" ? "He'd come back softer, not sharper" : "";
     const ready = !decided && trusted && surveyed >= 0.8 && blocks.length === 0 && (base.fit ?? 0) >= 0.6;
     return {
       ...base,
@@ -600,6 +614,7 @@ select { appearance: none; }
       stage: decided ? ground.stage : ready ? "ready" : surveyed > 0.15 ? "surveying" : "scouting",
       inTheWay: [
         ...gatedBy ? [{ kind: "gate", label: gatedBy }] : [],
+        ...base.barriersUnclear.map((b) => ({ kind: "barrier", label: `${b.barrier.title} \u2014 can't tell yet` })),
         ...blocks.map((b) => ({ kind: "block", block: b, label: b.title })),
         ...base.unsurveyed.map((u) => ({ kind: "unsurveyed", req: u.req, label: u.req.title }))
       ],
@@ -612,6 +627,10 @@ select { appearance: none; }
     }
     if (s.stage === "ruled-out") return "You ruled this one out.";
     if (!s.check) return "Not surveyed yet. Walk the land.";
+    if (s.barriersFailed?.length) {
+      const names = s.barriersFailed.map((b2) => b2.barrier.title.toLowerCase()).join(" and ");
+      return `This fails on ${names}. That's a wall, not a cost.`;
+    }
     if (s.kid.id === "no" || s.kid.id === "supervised") {
       return "You wouldn't leave your kids here unsupervised. Until that changes, nothing else counts.";
     }
@@ -882,7 +901,41 @@ select { appearance: none; }
       people: [],
       verses: [],
       discernments: [],
-      modelStances: {},
+      modelStances: {
+        house: {
+          stance: "against",
+          note: "Drawn to the intertwining, but I can't see where strong preaching, real eldership and correction come from."
+        }
+      },
+      barriers: [
+        {
+          id: uid(),
+          title: "Baptism",
+          position: "",
+          detail: "Who gets baptised, what it means, and whether we'd be at peace with how they practise it.",
+          hard: true,
+          seeded: true,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString()
+        },
+        {
+          id: uid(),
+          title: "Leadership and oversight",
+          position: "",
+          detail: "Who leads, how they're appointed, who they answer to, and whether there's real correction.",
+          hard: true,
+          seeded: true,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString()
+        },
+        {
+          id: uid(),
+          title: "The role of women",
+          position: "Complementarian \u2014 biblical submission and distinct, God-given roles in the home and in the church.",
+          detail: "How it's taught, how it's practised, and whether it's held pastorally or as a slogan.",
+          hard: true,
+          seeded: true,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString()
+        }
+      ],
       calling: { placeId: "", place: "", why: "", by: "" },
       settings: {
         autoLockMinutes: 15,
@@ -1055,7 +1108,7 @@ select { appearance: none; }
     if (!merge) {
       state = incoming;
     } else {
-      for (const list of ["domains", "convictions", "contexts", "checks", "blocks", "notes", "people", "verses", "discernments"]) {
+      for (const list of ["domains", "convictions", "contexts", "checks", "blocks", "notes", "people", "verses", "discernments", "barriers"]) {
         const have = new Set(state[list].map((r) => r.id));
         state[list].push(...(incoming[list] || []).filter((r) => !have.has(r.id)));
       }
@@ -1090,10 +1143,12 @@ select { appearance: none; }
       verses: [],
       discernments: [],
       modelStances: {},
+      barriers: [],
       calling: { placeId: "", place: "", why: "", by: "" },
       settings: {
         autoLockMinutes: 15,
         name: "",
+        hushed: {},
         verse: {
           text: "Unless a grain of wheat falls into the ground and dies, it remains alone; but if it dies, it produces much grain.",
           ref: "John 12:24"
@@ -1108,6 +1163,7 @@ select { appearance: none; }
       settings: {
         ...base.settings,
         ...data.settings || {},
+        hushed: { ...base.settings.hushed, ...(data.settings || {}).hushed || {} },
         verse: { ...base.settings.verse, ...(data.settings || {}).verse || {} }
       }
     };
@@ -1130,6 +1186,7 @@ select { appearance: none; }
       if (!c.placeMode) c.placeMode = c.placeId ? "in" : "unknown";
     });
     s.checks.forEach((k) => {
+      if (!k.barriers) k.barriers = {};
       if (!k.us) k.us = { level: "na", note: "" };
       if (!k.kid) k.kid = { level: "unknown", note: "" };
       if (!k.formation) k.formation = { level: "unknown", note: "" };
@@ -1442,6 +1499,7 @@ select { appearance: none; }
     { id: "home", label: "At home here", tone: "good", weight: 1 },
     { id: "workable", label: "Could work", tone: "ok", weight: 0.7 },
     { id: "friction", label: "Real friction", tone: "thin", weight: 0.35 },
+    { id: "against", label: "Leaning against", tone: "bad", weight: 0.15 },
     { id: "no", label: "Not for us", tone: "bad", weight: 0 },
     { id: "unknown", label: "Haven't decided", tone: "unknown", weight: null }
   ];
@@ -1556,6 +1614,58 @@ select { appearance: none; }
       }, existing ? () => confirmDelete("requirement", (s) => {
         s.convictions = s.convictions.filter((x) => x.id !== draft.id);
         s.checks.forEach((k) => delete k.ratings[draft.id]);
+      }) : null)
+    ));
+  }
+  function editBarrier(existing) {
+    const b = existing || { id: uid(), title: "", position: "", detail: "", hard: true };
+    const draft = { ...b };
+    openSheet(existing ? "Edit barrier" : "A line I don't cross", () => frag(
+      h(
+        "p",
+        { class: "small muted" },
+        "Not a preference \u2014 a wall. If a community fails one of these, the app stops scoring it and says so."
+      ),
+      field("What is it?", input({ value: draft.title, placeholder: "Baptism, leadership, the role of women\u2026", onInput: (e) => {
+        draft.title = e.target.value;
+      } })),
+      field("Where I stand", area({
+        value: draft.position,
+        placeholder: "Your position, in your own words \u2014 the one you'd say out loud to someone who disagreed.",
+        onInput: (e) => {
+          draft.position = e.target.value;
+        }
+      })),
+      field("What I'm actually watching for", area({
+        value: draft.detail,
+        placeholder: "How you'd tell whether a place clears it \u2014 practice, not just the statement of faith.",
+        onInput: (e) => {
+          draft.detail = e.target.value;
+        }
+      })),
+      field("How hard is this line?", segmented(
+        [{ id: "yes", label: "A wall \u2014 we couldn't join" }, { id: "no", label: "Heavy, but not a wall" }],
+        draft.hard ? "yes" : "no",
+        (v) => {
+          draft.hard = v === "yes";
+        }
+      )),
+      saveBar(() => {
+        if (!draft.title.trim()) return toast("Name it first");
+        update((st) => {
+          if (!st.barriers) st.barriers = [];
+          const i = st.barriers.findIndex((x) => x.id === draft.id);
+          draft.seeded = false;
+          if (i < 0) st.barriers.push({ ...draft, createdAt: (/* @__PURE__ */ new Date()).toISOString() });
+          else st.barriers[i] = { ...st.barriers[i], ...draft };
+        });
+        closeSheet();
+        toast("Saved");
+      }, existing ? () => confirmDelete("barrier", (st) => {
+        st.barriers = st.barriers.filter((x) => x.id !== draft.id);
+        st.checks.forEach((k) => {
+          if (k.barriers) delete k.barriers[draft.id];
+        });
       }) : null)
     ));
   }
@@ -1759,6 +1869,7 @@ select { appearance: none; }
     if (!check.formation?.level) check.formation = { level: "unknown", note: "" };
     if (!check.home) check.home = "unknown";
     if (!check.settle) check.settle = "unknown";
+    if (!check.barriers) check.barriers = {};
     let only = null;
     openSheet(`Walking ${ground.name}`, () => {
       const readout = h("div", { class: "card", style: "margin-bottom:16px" });
@@ -1834,6 +1945,43 @@ select { appearance: none; }
       paint();
       paintFilter();
       paintRows();
+      const barriers2 = (state2.barriers || []).length ? h(
+        "div",
+        { class: "card", style: "margin-bottom:16px" },
+        h("div", { class: "eyebrow" }, "The lines I don't cross"),
+        h(
+          "p",
+          { class: "tiny muted", style: "margin:6px 0 12px" },
+          "Practice, not the statement of faith. Fail one of these and nothing else counts."
+        ),
+        ...state2.barriers.map((b) => {
+          const cell = check.barriers[b.id] || (check.barriers[b.id] = { state: "unclear", note: "" });
+          return h(
+            "div",
+            { style: "margin-bottom:14px" },
+            h(
+              "div",
+              { class: "row spread" },
+              h("strong", {}, b.title),
+              b.hard ? h("span", { class: "tiny muted" }, "a wall") : null
+            ),
+            b.position ? h("p", { class: "tiny muted", style: "margin:2px 0 6px" }, b.position) : null,
+            segmented(BARRIER_STATES, cell.state, (v) => {
+              cell.state = v;
+              paint();
+            }),
+            h("input", {
+              type: "text",
+              value: cell.note || "",
+              placeholder: "What you actually saw or were told",
+              style: "margin-top:8px",
+              onInput: (e) => {
+                cell.note = e.target.value;
+              }
+            })
+          );
+        })
+      ) : null;
       const gate = h(
         "div",
         { class: "card", style: "margin-bottom:16px" },
@@ -1886,6 +2034,7 @@ select { appearance: none; }
         field("Date walked", h("input", { type: "date", value: check.date, onInput: (e) => {
           check.date = e.target.value || today();
         } })),
+        barriers2,
         gate,
         filter,
         rows,
@@ -2797,6 +2946,24 @@ select { appearance: none; }
             ground.kind === "place" ? "Decide on this ground" : "Decide on them"
           ) : null
         ),
+        s.check && s.barriers.length ? frag(
+          section("The lines I don't cross"),
+          h(
+            "div",
+            { class: "card" },
+            h("div", { class: "rows" }, s.barriers.map((b) => h(
+              "div",
+              {},
+              h(
+                "div",
+                { class: "row spread" },
+                h("span", { class: "small" }, b.barrier.title),
+                h("span", { class: `small tone-${b.state.tone}` }, b.state.label)
+              ),
+              b.note ? h("div", { class: "tiny muted" }, b.note) : null
+            )))
+          )
+        ) : null,
         s.check ? frag(
           section("The test that decides it"),
           h(
@@ -3164,6 +3331,24 @@ select { appearance: none; }
         h("div", { class: "tiny muted", style: "margin-top:4px" }, model.asks)
       ));
     }
+    if (s.check && s.barriers.length) {
+      view3.append(h(
+        "div",
+        { class: "card", style: "margin-top:12px" },
+        h("div", { class: "eyebrow" }, "The lines I don't cross"),
+        h("div", { class: "rows" }, s.barriers.map((b) => h(
+          "div",
+          {},
+          h(
+            "div",
+            { class: "row spread" },
+            h("span", { class: "small" }, b.barrier.title),
+            h("span", { class: `small tone-${b.state.tone}` }, b.state.label)
+          ),
+          b.note ? h("div", { class: "tiny muted" }, b.note) : null
+        )))
+      ));
+    }
     if (s.check) {
       const home = byId(HOME_LEVELS, s.home?.id || "unknown");
       view3.append(h(
@@ -3201,11 +3386,19 @@ select { appearance: none; }
     }
     view3.append(section("Spiritual family here", "Add", () => editPerson(null, { groundId: ground.id })));
     if (!s.household.length) {
-      view3.append(h(
-        "p",
-        { class: "muted small" },
-        "No one named yet. Intertwined is people you could call at 11pm \u2014 if you can't name them, the ground isn't ready."
-      ));
+      if (!state2.settings?.hushed?.family) {
+        view3.append(h(
+          "p",
+          { class: "muted small" },
+          "No one named yet. Intertwined is people you could call at 11pm \u2014 if you can't name them, the ground isn't ready."
+        ));
+        view3.append(h("button", {
+          class: "icon-btn",
+          onClick: () => update((st) => {
+            st.settings.hushed = { ...st.settings.hushed || {}, family: true };
+          })
+        }, "Stop telling me"));
+      }
     } else {
       const rows = h("div", { class: "rows" });
       s.household.forEach((p) => rows.append(h(
@@ -3345,7 +3538,7 @@ select { appearance: none; }
       others.length ? "Compare" : "Add one",
       () => others.length ? go("land") : editGround(null, { kind: ground.kind === "place" ? "place" : "community" })
     ));
-    if (!others.length) {
+    if (!others.length && !state2.settings?.hushed?.oneOption) {
       view3.append(h(
         "div",
         { class: "card" },
@@ -3358,7 +3551,14 @@ select { appearance: none; }
         h("button", {
           class: "btn sm",
           onClick: () => editGround(null, { kind: ground.kind === "place" ? "place" : "community" })
-        }, "Name another option")
+        }, "Name another option"),
+        h("button", {
+          class: "icon-btn",
+          style: "margin-left:8px",
+          onClick: () => update((st) => {
+            st.settings.hushed = { ...st.settings.hushed || {}, oneOption: true };
+          })
+        }, "Stop telling me")
       ));
     } else {
       const rows = h("div", { class: "rows" });
@@ -3429,6 +3629,42 @@ select { appearance: none; }
     title: () => title3
   });
   var tab = { at: "requirements" };
+  function barriers(state2, view3) {
+    view3.append(
+      h("h1", {}, "The lines I don't cross"),
+      h(
+        "p",
+        { class: "muted small" },
+        "Not preferences \u2014 walls. A community that fails one of these stops being scored: the app says so and stops asking you to weigh it."
+      )
+    );
+    const list = state2.barriers || [];
+    if (!list.length) {
+      view3.append(empty("None named yet.", "Add a barrier", () => editBarrier()));
+      return;
+    }
+    const rows = h("div", { class: "rows" });
+    list.forEach((b) => {
+      const failing = state2.contexts.filter((c) => {
+        const check = latestCheck(state2.checks, c.id);
+        return check?.barriers?.[b.id]?.state === "fails";
+      });
+      rows.append(h(
+        "button",
+        { class: "card-tap", onClick: () => editBarrier(b) },
+        h(
+          "div",
+          { class: "row spread" },
+          h("strong", {}, b.title),
+          h("span", { class: `tiny ${b.hard ? "tone-bad" : "muted"}` }, b.hard ? "a wall" : "heavy")
+        ),
+        b.position ? h("div", { class: "small muted" }, b.position) : h("div", { class: "tiny tone-thin" }, "You haven't written where you stand yet"),
+        failing.length ? h("div", { class: "tiny tone-bad", style: "margin-top:4px" }, `Fails here: ${failing.map((c) => c.name).join(", ")}`) : null
+      ));
+    });
+    view3.append(rows);
+    view3.append(h("button", { class: "btn block", style: "margin-top:18px", onClick: () => editBarrier() }, "Add a barrier"));
+  }
   function openModel(id) {
     const build = () => {
       const state2 = get();
@@ -3580,7 +3816,7 @@ select { appearance: none; }
   function render3(state2) {
     const view3 = h("div", {});
     const tabs = h("div", { class: "row wrap", style: "margin-bottom:16px" });
-    [["requirements", "Requirements"], ["models", "Church models"]].forEach(([id, label]) => {
+    [["requirements", "Requirements"], ["barriers", "Barriers"], ["models", "Church models"]].forEach(([id, label]) => {
       tabs.append(h("button", {
         class: `chip${tab.at === id ? " on" : ""}`,
         onClick: () => {
@@ -3592,6 +3828,10 @@ select { appearance: none; }
     view3.append(tabs);
     if (tab.at === "models") {
       models(state2, view3);
+      return view3;
+    }
+    if (tab.at === "barriers") {
+      barriers(state2, view3);
       return view3;
     }
     view3.append(

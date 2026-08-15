@@ -4,7 +4,7 @@ import * as store from './store.js';
 import { uid, today } from './store.js';
 import {
   WEIGHTS, LEVELS, NOTE_KINDS, KINDS, STAGES, PEOPLE_STAGES, US_LEVELS, HORIZONS,
-  KID_LEVELS, FORMATION_LEVELS, HOME_LEVELS, SETTLE_LEVELS, PLACE_MODES,
+  KID_LEVELS, FORMATION_LEVELS, HOME_LEVELS, SETTLE_LEVELS, PLACE_MODES, BARRIER_STATES,
   byId, survey, verdict,
 } from './model.js';
 import { CHURCH_MODELS, MODEL_STANCES } from './models.js';
@@ -92,6 +92,46 @@ export function editRequirement(existing, defaults = {}) {
     }, existing ? () => confirmDelete('requirement', (s) => {
       s.convictions = s.convictions.filter((x) => x.id !== draft.id);
       s.checks.forEach((k) => delete k.ratings[draft.id]);
+    }) : null),
+  ));
+}
+
+/* ---------- barriers: the lines you don't cross ---------- */
+
+export function editBarrier(existing) {
+  const b = existing || { id: uid(), title: '', position: '', detail: '', hard: true };
+  const draft = { ...b };
+
+  openSheet(existing ? 'Edit barrier' : 'A line I don\'t cross', () => frag(
+    h('p', { class: 'small muted' },
+      'Not a preference — a wall. If a community fails one of these, the app stops scoring it and says so.'),
+    field('What is it?', input({ value: draft.title, placeholder: 'Baptism, leadership, the role of women…', onInput: (e) => { draft.title = e.target.value; } })),
+    field('Where I stand', area({
+      value: draft.position, placeholder: 'Your position, in your own words — the one you\'d say out loud to someone who disagreed.',
+      onInput: (e) => { draft.position = e.target.value; },
+    })),
+    field('What I\'m actually watching for', area({
+      value: draft.detail, placeholder: 'How you\'d tell whether a place clears it — practice, not just the statement of faith.',
+      onInput: (e) => { draft.detail = e.target.value; },
+    })),
+    field('How hard is this line?', segmented(
+      [{ id: 'yes', label: 'A wall — we couldn\'t join' }, { id: 'no', label: 'Heavy, but not a wall' }],
+      draft.hard ? 'yes' : 'no', (v) => { draft.hard = v === 'yes'; },
+    )),
+    saveBar(() => {
+      if (!draft.title.trim()) return toast('Name it first');
+      store.update((st) => {
+        if (!st.barriers) st.barriers = [];
+        const i = st.barriers.findIndex((x) => x.id === draft.id);
+        draft.seeded = false;
+        if (i < 0) st.barriers.push({ ...draft, createdAt: new Date().toISOString() });
+        else st.barriers[i] = { ...st.barriers[i], ...draft };
+      });
+      closeSheet();
+      toast('Saved');
+    }, existing ? () => confirmDelete('barrier', (st) => {
+      st.barriers = st.barriers.filter((x) => x.id !== draft.id);
+      st.checks.forEach((k) => { if (k.barriers) delete k.barriers[draft.id]; });
     }) : null),
   ));
 }
@@ -270,6 +310,7 @@ export function walkTheLand(groundId, existing) {
   if (!check.formation?.level) check.formation = { level: 'unknown', note: '' };
   if (!check.home) check.home = 'unknown';
   if (!check.settle) check.settle = 'unknown';
+  if (!check.barriers) check.barriers = {};
 
   let only = null;
 
@@ -327,6 +368,26 @@ export function walkTheLand(groundId, existing) {
     paintFilter();
     paintRows();
 
+    const barriers = (state.barriers || []).length
+      ? h('div', { class: 'card', style: 'margin-bottom:16px' },
+        h('div', { class: 'eyebrow' }, 'The lines I don\'t cross'),
+        h('p', { class: 'tiny muted', style: 'margin:6px 0 12px' },
+          'Practice, not the statement of faith. Fail one of these and nothing else counts.'),
+        ...state.barriers.map((b) => {
+          const cell = check.barriers[b.id] || (check.barriers[b.id] = { state: 'unclear', note: '' });
+          return h('div', { style: 'margin-bottom:14px' },
+            h('div', { class: 'row spread' },
+              h('strong', {}, b.title),
+              b.hard ? h('span', { class: 'tiny muted' }, 'a wall') : null),
+            b.position ? h('p', { class: 'tiny muted', style: 'margin:2px 0 6px' }, b.position) : null,
+            segmented(BARRIER_STATES, cell.state, (v) => { cell.state = v; paint(); }),
+            h('input', {
+              type: 'text', value: cell.note || '', placeholder: 'What you actually saw or were told',
+              style: 'margin-top:8px', onInput: (e) => { cell.note = e.target.value; },
+            }));
+        }))
+      : null;
+
     const gate = h('div', { class: 'card', style: 'margin-bottom:16px' },
       h('div', { class: 'eyebrow' }, 'The test that decides it'),
       h('h3', { style: 'margin:6px 0 2px' }, 'Could I leave my kids with these people, unsupervised?'),
@@ -355,6 +416,7 @@ export function walkTheLand(groundId, existing) {
     return frag(
       readout,
       field('Date walked', h('input', { type: 'date', value: check.date, onInput: (e) => { check.date = e.target.value || today(); } })),
+      barriers,
       gate,
       filter,
       rows,

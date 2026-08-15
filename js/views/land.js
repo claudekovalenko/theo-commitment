@@ -105,6 +105,16 @@ export function openGround(id) {
             ground.kind === 'place' ? 'Decide on this ground' : 'Decide on them')
           : null),
 
+      s.check && s.barriers.length ? frag(
+        section('The lines I don\'t cross'),
+        h('div', { class: 'card' },
+          h('div', { class: 'rows' }, s.barriers.map((b) => h('div', {},
+            h('div', { class: 'row spread' },
+              h('span', { class: 'small' }, b.barrier.title),
+              h('span', { class: `small tone-${b.state.tone}` }, b.state.label)),
+            b.note ? h('div', { class: 'tiny muted' }, b.note) : null)))),
+      ) : null,
+
       s.check ? frag(
         section('The test that decides it'),
         h('div', { class: 'card' },

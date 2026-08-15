@@ -84,6 +84,7 @@ export const MODEL_STANCES = [
   { id: 'home', label: 'At home here', tone: 'good', weight: 1 },
   { id: 'workable', label: 'Could work', tone: 'ok', weight: 0.7 },
   { id: 'friction', label: 'Real friction', tone: 'thin', weight: 0.35 },
+  { id: 'against', label: 'Leaning against', tone: 'bad', weight: 0.15 },
   { id: 'no', label: 'Not for us', tone: 'bad', weight: 0 },
   { id: 'unknown', label: 'Haven\'t decided', tone: 'unknown', weight: null },
 ];
