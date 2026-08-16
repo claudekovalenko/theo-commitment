@@ -333,6 +333,58 @@ select { appearance: none; }
 
 .mark { display: inline-block; width: 1.2em; font-weight: 700; }
 
+/* ---------- the plan: steps toward being at home with one of them ---------- */
+
+.option { padding: 0; overflow: hidden; }
+.option-head {
+  display: block; width: 100%; text-align: left;
+  background: none; border: 0; font: inherit; color: inherit; cursor: pointer;
+  padding: 13px 14px;
+}
+.option-head > * + * { margin-top: 5px; }
+
+.plan-bar {
+  display: block; height: 5px; border-radius: 3px;
+  background: color-mix(in srgb, var(--moss) 14%, transparent);
+  overflow: hidden; margin: 8px 0;
+}
+.plan-bar > span { display: block; height: 100%; background: var(--moss); border-radius: 3px; }
+
+.next {
+  display: flex; align-items: stretch; gap: 0;
+  border-top: 1px solid var(--line); background: var(--paper);
+}
+.goal, .next { text-align: left; }
+.goal { display: flex; align-items: stretch; gap: 0; }
+.goal + .goal { border-top: 1px solid var(--line); }
+
+.tick {
+  flex: 0 0 auto; width: 46px; display: grid; place-items: center;
+  background: none; border: 0; cursor: pointer;
+  font-size: 1rem; font-weight: 700; color: var(--moss);
+}
+.tick::before {
+  content: ''; width: 20px; height: 20px; border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--ink) 30%, transparent);
+  position: absolute;
+}
+.tick { position: relative; }
+.goal.done .tick::before, .next .tick:not(:empty)::before { border-color: var(--moss); background: var(--moss-soft); }
+
+.goal-body {
+  flex: 1 1 auto; min-width: 0; padding: 11px 14px 11px 0;
+  background: none; border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer;
+}
+.next .goal-body { padding-left: 0; }
+.next > .goal-body:only-child { padding-left: 14px; }
+.goal.done .goal-body > .row .grow { text-decoration: line-through; color: var(--muted); }
+
+.plain-head {
+  font-size: .7rem; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--muted); font-family: inherit; font-weight: 700;
+  margin: 22px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line);
+}
+
 </style>
 </head>
 <body>
@@ -948,6 +1000,7 @@ select { appearance: none; }
       convictions,
       contexts: [here, e3, npl, antioch],
       checks: [],
+      goals: [],
       blocks: [
         {
           id: uid(),
@@ -1236,7 +1289,7 @@ select { appearance: none; }
     if (!merge) {
       state = incoming;
     } else {
-      for (const list of ["domains", "convictions", "contexts", "checks", "blocks", "notes", "people", "verses", "discernments", "barriers"]) {
+      for (const list of ["domains", "convictions", "contexts", "checks", "blocks", "notes", "people", "verses", "discernments", "barriers", "goals"]) {
         const have = new Set(state[list].map((r) => r.id));
         state[list].push(...(incoming[list] || []).filter((r) => !have.has(r.id)));
       }
@@ -1272,6 +1325,7 @@ select { appearance: none; }
       discernments: [],
       modelStances: {},
       barriers: [],
+      goals: [],
       aim: "",
       weighingSince: "",
       appliedSeeds: [],
@@ -2715,6 +2769,130 @@ select { appearance: none; }
       }) : null)
     ));
   }
+  function editGoal(existing, defaults = {}) {
+    const g = existing || {
+      id: uid(),
+      groundId: "",
+      title: "",
+      why: "",
+      due: "",
+      done: false,
+      doneAt: "",
+      result: "",
+      ...defaults
+    };
+    const draft = { ...g };
+    const state2 = get();
+    const ground = state2.contexts.find((c) => c.id === draft.groundId);
+    openSheet(existing ? "Edit step" : `A step toward being at home with ${ground?.name || "them"}`, () => frag(
+      h(
+        "p",
+        { class: "small muted" },
+        "Something you do, not something you conclude. If it can't be done on a specific week, it isn't a step yet."
+      ),
+      field("What I'll do", input({
+        value: draft.title,
+        placeholder: "e.g. Eat in three of their homes",
+        onInput: (e) => {
+          draft.title = e.target.value;
+        }
+      })),
+      field("Why it moves me closer", area({
+        value: draft.why || "",
+        placeholder: "What this would actually tell you.",
+        onInput: (e) => {
+          draft.why = e.target.value;
+        }
+      })),
+      field(
+        "By when",
+        h("input", { type: "date", value: draft.due || "", onInput: (e) => {
+          draft.due = e.target.value;
+        } }),
+        "A date makes it a step. No date makes it a wish."
+      ),
+      existing && draft.done ? field("What happened", area({
+        value: draft.result || "",
+        placeholder: "What you actually found.",
+        onInput: (e) => {
+          draft.result = e.target.value;
+        }
+      })) : null,
+      saveBar(() => {
+        if (!draft.title.trim()) return toast("Say what you'll do");
+        update((st) => {
+          if (!st.goals) st.goals = [];
+          const i = st.goals.findIndex((x) => x.id === draft.id);
+          draft.seeded = false;
+          if (i < 0) st.goals.push({ ...draft, createdAt: (/* @__PURE__ */ new Date()).toISOString() });
+          else st.goals[i] = { ...st.goals[i], ...draft };
+        });
+        closeSheet();
+        toast("Saved");
+      }, existing ? () => confirmDelete("step", (st) => {
+        st.goals = st.goals.filter((x) => x.id !== draft.id);
+      }) : null)
+    ));
+  }
+  function completeGoal(id) {
+    const state2 = get();
+    const goal = (state2.goals || []).find((g) => g.id === id);
+    if (!goal) return;
+    if (goal.done) {
+      update((st) => {
+        const g = st.goals.find((x) => x.id === id);
+        g.done = false;
+        g.doneAt = "";
+      });
+      return toast("Back on the list");
+    }
+    let result = goal.result || "";
+    let when = today();
+    openSheet("Done \u2014 what happened?", () => frag(
+      h("h2", { style: "margin:0 0 4px" }, goal.title),
+      goal.why ? h("p", { class: "small muted" }, goal.why) : null,
+      field("What I actually found", area({
+        value: result,
+        style: "min-height:130px",
+        placeholder: "The honest version. This is the part you'll want in six months.",
+        onInput: (e) => {
+          result = e.target.value;
+        }
+      })),
+      field("When", h("input", { type: "date", value: when, onInput: (e) => {
+        when = e.target.value || today();
+      } })),
+      h(
+        "div",
+        { class: "stack", style: "margin-top:16px" },
+        h("button", {
+          class: "btn primary block",
+          onClick: () => {
+            update((st) => {
+              const g = st.goals.find((x) => x.id === id);
+              g.done = true;
+              g.doneAt = when;
+              g.result = result;
+              st.notes.push({
+                id: uid(),
+                date: when,
+                kind: "visit",
+                title: goal.title,
+                body: result,
+                convictionIds: [],
+                contextIds: goal.groundId ? [goal.groundId] : [],
+                source: "",
+                createdAt: (/* @__PURE__ */ new Date()).toISOString()
+              });
+            });
+            closeSheet();
+            toast("Done");
+          }
+        }, "Mark it done"),
+        h("button", { class: "btn ghost block", onClick: () => closeSheet() }, "Not yet")
+      )
+    ));
+  }
 
   // js/views/settings.js
   function download(name, text) {
@@ -3009,11 +3187,66 @@ select { appearance: none; }
   var aim_exports = {};
   __export(aim_exports, {
     editAim: () => editAim,
+    editHomeMeans: () => editHomeMeans,
     openShot: () => openShot,
     render: () => render,
     shot: () => shot,
     title: () => title
   });
+
+  // js/goals.js
+  var GOAL_TEMPLATES = [
+    {
+      title: "Eat in three of their homes, on ordinary weeks",
+      why: "Not an event they put on. A Tuesday. You learn a people by their kitchens."
+    },
+    {
+      title: "Bring my wife, and hear her read on it first",
+      why: "She sees what I miss, and her yes is not optional."
+    },
+    {
+      title: "Leave my son with one of their families for a day",
+      why: "The test I said decides it. Small version of it, taken on purpose."
+    },
+    {
+      title: "Ask their leader the three barriers straight out",
+      why: "Baptism, leadership and oversight, the role of women. Their practice, not their statement."
+    },
+    {
+      title: "Watch how they correct someone",
+      why: "Every group looks healthy until someone is wrong. Find out what happens then."
+    },
+    {
+      title: "Do their actual work for a month \u2014 not observe it",
+      why: "Running with them for a season tells you what a hundred conversations won't."
+    },
+    {
+      title: "Teach once, and get real feedback",
+      why: "Whether they want strong preaching is answered by what they say afterwards."
+    },
+    {
+      title: "Name three households here I'd call at 11pm",
+      why: "Spiritual family is names, not a feeling. If you can't name them, you're not home yet."
+    },
+    {
+      title: "Ask who's still here after three years \u2014 and why the ones who left, left",
+      why: "Consistency is the thing you said you needed. This is how you measure it."
+    },
+    {
+      title: "Sit with someone who left on bad terms",
+      why: "The only account nobody will volunteer, and the one that tells you the most."
+    }
+  ];
+  var goalsFor = (state2, groundId) => (state2.goals || []).filter((g) => g.groundId === groundId).sort((a, b) => {
+    if (!!a.done !== !!b.done) return a.done ? 1 : -1;
+    return (a.due || "9999") < (b.due || "9999") ? -1 : 1;
+  });
+  function progressFor(state2, groundId) {
+    const list = goalsFor(state2, groundId);
+    const done = list.filter((g) => g.done).length;
+    return { list, done, total: list.length, ratio: list.length ? done / list.length : 0 };
+  }
+  var nextGoal = (state2, groundId) => goalsFor(state2, groundId).find((g) => !g.done) || null;
 
   // js/views/parts.js
   var NS = "http://www.w3.org/2000/svg";
@@ -3412,10 +3645,10 @@ select { appearance: none; }
   var title = "The target";
   var GLYPH = { good: "\u2713", ok: "~", thin: "!", bad: "\u2715", unknown: "\xB7" };
   var RINGS = [
-    { id: "bullseye", at: 0.22, label: "This is it", tone: "good" },
+    { id: "bullseye", at: 0.22, label: "At home here", tone: "good" },
     { id: "close", at: 0.46, label: "Close", tone: "ok" },
-    { id: "wide", at: 0.7, label: "Wide", tone: "thin" },
-    { id: "edge", at: 0.94, label: "Barely on it", tone: "bad" }
+    { id: "wide", at: 0.7, label: "Started", tone: "thin" },
+    { id: "edge", at: 0.94, label: "Barely begun", tone: "bad" }
   ];
   var DEFAULT_AIM = "A ministry I could be planted with \u2014 where I'd leave my kids unsupervised, where my son comes back more on mission, that makes disciples and doesn't cross my lines.";
   function editAim() {
@@ -3510,65 +3743,76 @@ select { appearance: none; }
   function shot(state2, ground) {
     const check = latestCheck(state2.checks, ground.id);
     const rowList = rows(state2);
+    const plan = progressFor(state2, ground.id);
+    if (ground.stage === "built") {
+      return { dist: 0.05, tone: "good", word: "Planted", why: "You committed to them.", check, plan };
+    }
     if (ground.stage === "ruled-out") {
-      return { dist: 1.3, tone: "bad", word: "Off the target", why: "You ruled them out.", check };
+      return { dist: 1.3, tone: "bad", word: "Off the target", why: "You ruled them out.", check, plan };
     }
-    if (!check) {
-      return { dist: 1.3, tone: "unknown", word: "Not taken", why: "You haven't marked a single thing here.", check };
-    }
-    const walls = (state2.barriers || []).filter((b) => b.hard && check.barriers?.[b.id]?.state === "fails");
+    const walls = (state2.barriers || []).filter((b) => b.hard && check?.barriers?.[b.id]?.state === "fails");
     if (walls.length) {
       return {
         dist: 1.3,
         tone: "bad",
         word: "Off the target",
-        why: `Fails ${walls.map((b) => b.title.toLowerCase()).join(" and ")}. That's a wall, not a distance.`,
-        check
+        plan,
+        check,
+        why: `Fails ${walls.map((b) => b.title.toLowerCase()).join(" and ")}. That's a wall, not a distance.`
       };
     }
-    let got = 0;
-    let possible = 0;
+    if (!plan.total) {
+      return {
+        dist: 1.22,
+        tone: "unknown",
+        word: "No plan yet",
+        plan,
+        check,
+        why: "Nothing set to actually do here. Being at home somewhere doesn't happen by weighing it."
+      };
+    }
+    let fitGot = 0;
+    let fitPossible = 0;
     let answered = 0;
     rowList.forEach((r) => {
       const w = worth(r, cellValue(check, r));
       if (w === null) return;
       answered += 1;
-      got += w * r.weight;
-      possible += r.weight;
+      fitGot += w * r.weight;
+      fitPossible += r.weight;
     });
-    const known = rowList.length ? answered / rowList.length : 0;
-    const fit = possible ? got / possible : 0;
-    const closeness = fit * (0.45 + 0.55 * known);
+    const fit = fitPossible ? fitGot / fitPossible : 0.5;
+    const closeness = plan.ratio * 0.8 + fit * 0.2;
     const dist = Math.max(0.05, Math.min(1.15, 1 - closeness));
-    const kid = check.kid?.level || "unknown";
-    const missing = rowList.length - answered;
-    let word = "Wide";
-    let why = "";
+    const kid = check?.kid?.level || "unknown";
+    const softer = check?.formation?.level === "softer";
+    const left = plan.total - plan.done;
     let out = dist;
-    if (kid === "no" || kid === "supervised" || check.formation?.level === "softer") {
-      out = Math.max(dist, RINGS[3].at);
-    }
+    let word;
+    let why;
     if (kid === "no" || kid === "supervised") {
+      out = Math.max(dist, RINGS[3].at);
       word = "Barely on it";
       why = "You wouldn't leave your kids with them. Nothing else moves it in.";
-    } else if (check.formation?.level === "softer") {
+    } else if (softer) {
+      out = Math.max(dist, RINGS[3].at);
       word = "Barely on it";
       why = "He'd come back softer. That pushes everything out.";
-    } else if (dist <= RINGS[0].at) {
-      word = "This is it";
-      why = missing ? `${missing} still unanswered, and none of it is failing.` : "Nothing in the way. This is a decision now.";
-    } else if (dist <= RINGS[1].at) {
+    } else if (out <= RINGS[0].at) {
+      word = "At home here";
+      why = left ? `${plan.done} of ${plan.total} done. ${left} left, and none of it is failing.` : "You did everything you said would make you at home here. That's a decision now, not a discovery.";
+    } else if (out <= RINGS[1].at) {
       word = "Close";
-      why = missing ? `${missing} of ${rowList.length} you still can't answer.` : "Close, but something is short.";
-    } else if (dist <= RINGS[2].at) {
-      word = "Wide";
-      why = missing > answered ? `You've only answered ${answered} of ${rowList.length}. Mostly you don't know them yet.` : "Real gaps, not just unknowns.";
+      why = `${plan.done} of ${plan.total} done. ${left} still to do.`;
+    } else if (out <= RINGS[2].at) {
+      word = "Started";
+      why = plan.done ? `${plan.done} of ${plan.total} done. Started, not close.` : `${plan.total} steps set, none taken yet.`;
     } else {
-      word = "Barely on it";
-      why = missing > answered ? "Almost nothing answered yet." : "Too much of it is short.";
+      word = "Barely begun";
+      why = plan.done ? `Only ${plan.done} of ${plan.total} done.` : `${plan.total} steps set, none taken yet.`;
     }
     const tone = out <= RINGS[0].at ? "good" : out <= RINGS[1].at ? "ok" : out <= RINGS[2].at ? "thin" : "bad";
-    return { dist: out, tone, word, why, check, answered, missing, total: rowList.length };
+    return { dist: out, tone, word, why, check, plan, answered, total: rowList.length };
   }
   function targetSvg(shots) {
     const W = 340;
@@ -3691,6 +3935,68 @@ select { appearance: none; }
       check.date = today();
     });
   }
+  function editHomeMeans(groundId) {
+    const state2 = get();
+    const ground = state2.contexts.find((c) => c.id === groundId);
+    let text = ground?.homeMeans || "";
+    openSheet(`At home with ${ground?.name || "them"} means\u2026`, () => frag(
+      h(
+        "p",
+        { class: "small muted" },
+        "Not the general version \u2014 this one. What would have to be true before you'd say you belong with these particular people? Write it, then set the steps that get you there."
+      ),
+      field("At home here means", area({
+        value: text,
+        style: "min-height:130px",
+        placeholder: "e.g. My wife has two friends here she'd call at 11pm, my son asks to go back, and I've been corrected by one of them and stayed.",
+        onInput: (e) => {
+          text = e.target.value;
+        }
+      })),
+      h("button", {
+        class: "btn primary block",
+        style: "margin-top:16px",
+        onClick: () => {
+          update((st) => {
+            const g = st.contexts.find((c) => c.id === groundId);
+            g.homeMeans = text.trim();
+          });
+          closeSheet();
+          toast("Saved");
+        }
+      }, "Save")
+    ));
+  }
+  function useTemplates(groundId, showAll) {
+    update((st) => {
+      if (!st.goals) st.goals = [];
+      const have = new Set(goalsFor(st, groundId).map((g) => g.title));
+      GOAL_TEMPLATES.forEach((t) => {
+        if (have.has(t.title)) return;
+        st.goals.push({
+          id: uid(),
+          groundId,
+          title: t.title,
+          why: t.why,
+          due: "",
+          done: false,
+          doneAt: "",
+          result: "",
+          seeded: true,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      });
+    });
+    openShot(groundId, { all: showAll, replace: true });
+    toast("Ten steps added");
+  }
+  function progressBar(plan) {
+    const bar = h("div", { class: "plan-bar" });
+    const fill = h("span", {});
+    fill.style.width = `${Math.round(plan.ratio * 100)}%`;
+    bar.append(fill);
+    return bar;
+  }
   function openShot(groundId, { all = false, replace = false } = {}) {
     const showAll = all;
     openSheet(() => get().contexts.find((c) => c.id === groundId)?.name || "", () => {
@@ -3701,12 +4007,41 @@ select { appearance: none; }
       const check = latestCheck(state2.checks, groundId);
       const model = CHURCH_MODELS.find((m) => m.id === ground.modelId);
       const stance = model ? byId(MODEL_STANCES, state2.modelStances?.[model.id]?.stance || "unknown") : null;
-      const list = h("div", { class: "rows" });
+      const plan = s.plan;
+      const planList = h("div", { class: "rows" });
+      plan.list.forEach((g) => {
+        const overdue = !g.done && g.due && g.due < today();
+        planList.append(h(
+          "div",
+          { class: `goal${g.done ? " done" : ""}` },
+          h("button", {
+            class: "tick",
+            "aria-label": g.done ? `Undo ${g.title}` : `Mark done: ${g.title}`,
+            onClick: () => completeGoal(g.id)
+          }, g.done ? "\u2713" : ""),
+          h(
+            "button",
+            { class: "goal-body", onClick: () => editGoal(g) },
+            h(
+              "div",
+              { class: "row spread" },
+              h("span", { class: "grow" }, g.title),
+              h(
+                "span",
+                { class: `tiny ${overdue ? "tone-bad" : "muted"}` },
+                g.done ? g.doneAt ? fmtDate(g.doneAt) : "done" : g.due ? relDate(g.due, today()) : "no date"
+              )
+            ),
+            g.done && g.result ? h("div", { class: "small muted" }, g.result) : g.why ? h("div", { class: "tiny muted" }, g.why) : null
+          )
+        ));
+      });
+      const marks = h("div", { class: "rows" });
       rows(state2, { all: showAll }).forEach((row) => {
         const v = cellValue(check, row);
         const lv = byId(row.levels, v) || { tone: "unknown", label: "Not answered" };
         const note = cellNote(check, row);
-        list.append(h(
+        marks.append(h(
           "button",
           { class: "card-tap", onClick: () => openCell(groundId, row) },
           h(
@@ -3725,6 +4060,16 @@ select { appearance: none; }
       return frag(
         h("p", { class: `eyebrow tone-${s.tone}` }, s.word),
         h("p", { class: "verdict", style: "margin-top:2px" }, s.why),
+        h(
+          "button",
+          { class: "card card-tap", onClick: () => editHomeMeans(groundId) },
+          h("div", { class: "eyebrow" }, "At home here would mean"),
+          ground.homeMeans ? h("p", { style: "margin:6px 0 0" }, ground.homeMeans) : h(
+            "p",
+            { class: "muted", style: "margin:6px 0 0" },
+            "Not written yet. Say what belonging with these people would actually look like \u2014 then the steps below have something to aim at."
+          )
+        ),
         ground.myPart ? h("p", { class: "small" }, h("strong", {}, "My part: "), ground.myPart) : null,
         ground.output ? h("p", { class: "small" }, h("strong", {}, "What it produces: "), ground.output) : null,
         model ? h(
@@ -3732,9 +4077,23 @@ select { appearance: none; }
           { class: "small muted" },
           `Runs on ${model.name.toLowerCase()}${stance && stance.id !== "unknown" ? ` \u2014 you: ${stance.label.toLowerCase()}` : ""}`
         ) : null,
+        h("h3", { class: "plain-head" }, plan.total ? `The plan \u2014 ${plan.done} of ${plan.total} done` : "The plan"),
+        plan.total ? progressBar(plan) : null,
+        plan.total ? planList : h(
+          "p",
+          { class: "muted small" },
+          "Nothing set yet. These are the things that actually make someone at home somewhere \u2014 eating in their houses, being corrected by them, leaving your son with them."
+        ),
         h(
           "div",
-          { class: "row wrap", style: "margin:14px 0 6px" },
+          { class: "row wrap", style: "margin:14px 0 4px" },
+          h("button", { class: "btn sm", onClick: () => editGoal(null, { groundId }) }, "+ A step"),
+          plan.total < GOAL_TEMPLATES.length ? h("button", { class: "btn sm ghost", onClick: () => useTemplates(groundId, showAll) }, "Start with the ten") : null
+        ),
+        h("h3", { class: "plain-head" }, "What I've learned so far"),
+        h(
+          "div",
+          { class: "row wrap", style: "margin-bottom:8px" },
           h(
             "button",
             { class: `chip${showAll ? " on" : ""}`, onClick: () => openShot(groundId, { all: !showAll, replace: true }) },
@@ -3746,7 +4105,7 @@ select { appearance: none; }
           } }, "Full detail"),
           h("button", { class: "chip", onClick: () => editGround(ground) }, "Edit")
         ),
-        list
+        marks
       );
     }, { replace });
   }
@@ -3790,26 +4149,76 @@ select { appearance: none; }
       { class: "ring-key" },
       RINGS.map((r) => h("span", { class: `key tone-${r.tone}` }, r.label))
     ));
-    const list = h("div", { class: "rows" });
     shots.forEach(({ ground, s }) => {
-      list.append(h(
+      const next = nextGoal(state2, ground.id);
+      const card = h("div", { class: "card option" });
+      card.append(h(
         "button",
-        { class: "card-tap", onClick: () => openShot(ground.id) },
+        { class: "option-head", onClick: () => openShot(ground.id) },
         h(
           "div",
           { class: "row spread" },
           h("strong", { class: "grow" }, ground.name),
           h("span", { class: `small tone-${s.tone}` }, s.word)
         ),
-        h("div", { class: "small muted" }, s.why),
-        ground.myPart ? h("div", { class: "tiny", style: "margin-top:4px" }, `My part: ${ground.myPart}`) : null
+        ground.homeMeans ? h("div", { class: "tiny muted" }, `At home here: ${ground.homeMeans}`) : h("div", { class: "tiny tone-thin" }, "You haven't said what being at home here would look like"),
+        s.plan.total ? progressBar(s.plan) : null,
+        h("div", { class: "small muted" }, s.why)
       ));
+      if (next) {
+        card.append(h(
+          "div",
+          { class: "next" },
+          h("button", {
+            class: "tick",
+            "aria-label": `Mark done: ${next.title}`,
+            onClick: () => completeGoal(next.id)
+          }, ""),
+          h(
+            "button",
+            { class: "goal-body", onClick: () => editGoal(next) },
+            h("div", { class: "eyebrow" }, "Next"),
+            h(
+              "div",
+              { class: "row spread" },
+              h("span", { class: "grow" }, next.title),
+              h(
+                "span",
+                { class: `tiny ${next.due && next.due < today() ? "tone-bad" : "muted"}` },
+                next.due ? relDate(next.due, today()) : "no date"
+              )
+            )
+          )
+        ));
+      } else if (s.plan.total) {
+        card.append(h(
+          "div",
+          { class: "next" },
+          h(
+            "button",
+            { class: "goal-body", onClick: () => editGoal(null, { groundId: ground.id }) },
+            h("div", { class: "eyebrow tone-good" }, "Every step done"),
+            h("div", { class: "small" }, "Set another, or decide.")
+          )
+        ));
+      } else {
+        card.append(h(
+          "div",
+          { class: "next" },
+          h(
+            "button",
+            { class: "goal-body", onClick: () => openShot(ground.id) },
+            h("div", { class: "eyebrow tone-thin" }, "No plan yet"),
+            h("div", { class: "small" }, "Set the steps that would make you at home here.")
+          )
+        ));
+      }
+      view3.append(card);
     });
-    view3.append(list);
     view3.append(h(
       "div",
-      { class: "row wrap", style: "margin-top:12px" },
-      h("button", { class: "chip", onClick: () => editGround(null, { kind: "network" }) }, "+ Another option"),
+      { class: "row wrap", style: "margin-top:14px" },
+      h("button", { class: "chip", onClick: () => editGround(null, { kind: "network" }) }, "+ Another ministry"),
       h("button", { class: "chip", onClick: editCalling }, state2.calling?.place ? "The calling" : "Name the calling")
     ));
     return view3;

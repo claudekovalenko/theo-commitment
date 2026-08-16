@@ -2,39 +2,62 @@
 
 A private, offline app for one question:
 
-> **Which ministry could I be planted with?**
+> **Which ministry could I actually be at home with?**
 
-Not a pros-and-cons list. A **target** — the thing you're going for in the
-middle, and every option you could say yes to placed by how close it actually
-lands.
+Not a scorecard and not a pros-and-cons list. A **target** — what you're going
+for in the middle, and for each ministry a plan of things to actually do that
+would get you there.
 
 ## The target
 
-**The centre is what you're going for**, in one sentence you write yourself:
+**The centre is what you're going for**, in one sentence you write yourself. It
+starts filled in from your own words and you can rewrite it any time:
 
 > A ministry I could be planted with — where I'd leave my kids unsupervised,
 > where my son comes back more on mission, that makes disciples and doesn't
 > cross my lines.
 
-Change it whenever it changes. Everything else is measured against it, so it
-matters more than anything below it.
+**Every ministry is a shot at that centre**, and where it lands is driven by
+what you've actually *done*, not by how well it scores. Four rings out from the
+middle: **At home here · Close · Started · Barely begun.** Outside the rings
+altogether goes anything that fails a wall, because that isn't a distance.
 
-**Every option is a shot at that centre.** E3, Antioch, NPL, whatever else is
-real. Where each one lands is worked out from what you've marked, and distance
-is earned two ways — by answering well *and* by actually knowing. Something
-you've barely looked at can't sit near the middle, however good it sounds.
+## The plan
 
-Four rings, from the middle out: **This is it · Close · Wide · Barely on it.**
-And outside the rings altogether: anything that fails a wall, because that isn't
-a distance. *E3 — off the target. Fails baptism. That's a wall, not a distance.*
+Each ministry gets two things of its own.
 
-Under the drawing, the same thing in words, closest first. Tap any option to
-open it: where its shot landed, why, and every answer behind it — the two that
-decide it, your walls, your must-haves, your wife, and whether you could settle
-in completely. Tap any one of those to change it and write what you actually
-saw. Two taps per answer, and nothing has to be completed — what you haven't
-answered stays visibly unanswered, and it holds the shot out from the middle
-until you go and find out.
+**What being at home *here* would mean** — this one, not the general version.
+Written in your words: *my wife has two friends here she'd call at 11pm, my son
+asks to go back, and I've been corrected by one of them and stayed.*
+
+**And the steps that would get you there.** Real things, on real weeks, that you
+either did or didn't. One tap loads the ten that actually make someone at home
+somewhere:
+
+1. Eat in three of their homes, on ordinary weeks
+2. Bring my wife, and hear her read on it first
+3. Leave my son with one of their families for a day
+4. Ask their leader the three barriers straight out
+5. Watch how they correct someone
+6. Do their actual work for a month — not observe it
+7. Teach once, and get real feedback
+8. Name three households here I'd call at 11pm
+9. Ask who's still here after three years — and why the ones who left, left
+10. Sit with someone who left on bad terms
+
+Edit them, delete them, add your own. Each one takes a date, because a date
+makes it a step and no date makes it a wish. Ticking one off asks the only
+question worth asking — **what happened?** — and that answer is kept on the step
+and copied into the log.
+
+The target screen shows every ministry with its progress bar and **the next
+thing to do**, ticked off from there without opening anything. A ministry with
+no plan says so and won't move in: *"Nothing set to actually do here. Being at
+home somewhere doesn't happen by weighing it."*
+
+Underneath the plan, what you've learned so far — the two that decide it, your
+walls, your must-haves, your wife — each tappable to change and to write what you
+actually saw. That's evidence now, not the score.
 
 ## The calling
 
@@ -278,7 +301,7 @@ the list.
 
 | | |
 | --- | --- |
-| **Target** | What I'm going for, and how close each option lands |
+| **Target** | What I'm going for, each ministry's plan, and the next step |
 | **What matters** | The rows: requirements, what you're still settling, your walls, the models |
 | **In the way** | Everything unsettled, and what would settle it |
 | **Word** | Scripture threads, your studies, and the discernment instrument |
@@ -342,6 +365,7 @@ js/model.js           vocabulary, survey math, verdicts
 js/seed.js            starter content
 js/ui.js              DOM helpers, sheet, form controls
 js/editors.js         every add/edit form, plus breaking ground
+js/goals.js           the ten steps toward being at home somewhere
 js/views/aim.js       the target — the screen the app is for
 js/views/*.js         one file per tab, plus settings
 tools/make_icons.py   regenerates icons/ (no dependencies)

@@ -750,3 +750,99 @@ export function editPerson(existing, defaults = {}) {
   ));
 }
 
+
+/* ---------- a goal: something to do that would make me at home here ---------- */
+
+export function editGoal(existing, defaults = {}) {
+  const g = existing || {
+    id: uid(), groundId: '', title: '', why: '', due: '', done: false, doneAt: '', result: '',
+    ...defaults,
+  };
+  const draft = { ...g };
+  const state = store.get();
+  const ground = state.contexts.find((c) => c.id === draft.groundId);
+
+  openSheet(existing ? 'Edit step' : `A step toward being at home with ${ground?.name || 'them'}`, () => frag(
+    h('p', { class: 'small muted' },
+      'Something you do, not something you conclude. If it can\'t be done on a specific '
+      + 'week, it isn\'t a step yet.'),
+    field('What I\'ll do', input({
+      value: draft.title, placeholder: 'e.g. Eat in three of their homes',
+      onInput: (e) => { draft.title = e.target.value; },
+    })),
+    field('Why it moves me closer', area({
+      value: draft.why || '', placeholder: 'What this would actually tell you.',
+      onInput: (e) => { draft.why = e.target.value; },
+    })),
+    field('By when', h('input', { type: 'date', value: draft.due || '', onInput: (e) => { draft.due = e.target.value; } }),
+      'A date makes it a step. No date makes it a wish.'),
+    existing && draft.done
+      ? field('What happened', area({
+        value: draft.result || '', placeholder: 'What you actually found.',
+        onInput: (e) => { draft.result = e.target.value; },
+      }))
+      : null,
+    saveBar(() => {
+      if (!draft.title.trim()) return toast('Say what you\'ll do');
+      store.update((st) => {
+        if (!st.goals) st.goals = [];
+        const i = st.goals.findIndex((x) => x.id === draft.id);
+        draft.seeded = false;
+        if (i < 0) st.goals.push({ ...draft, createdAt: new Date().toISOString() });
+        else st.goals[i] = { ...st.goals[i], ...draft };
+      });
+      closeSheet();
+      toast('Saved');
+    }, existing ? () => confirmDelete('step', (st) => {
+      st.goals = st.goals.filter((x) => x.id !== draft.id);
+    }) : null),
+  ));
+}
+
+/** Marking a step done asks the only question that matters: what happened. */
+export function completeGoal(id) {
+  const state = store.get();
+  const goal = (state.goals || []).find((g) => g.id === id);
+  if (!goal) return;
+  if (goal.done) {
+    store.update((st) => {
+      const g = st.goals.find((x) => x.id === id);
+      g.done = false;
+      g.doneAt = '';
+    });
+    return toast('Back on the list');
+  }
+  let result = goal.result || '';
+  let when = today();
+  openSheet('Done — what happened?', () => frag(
+    h('h2', { style: 'margin:0 0 4px' }, goal.title),
+    goal.why ? h('p', { class: 'small muted' }, goal.why) : null,
+    field('What I actually found', area({
+      value: result, style: 'min-height:130px',
+      placeholder: 'The honest version. This is the part you\'ll want in six months.',
+      onInput: (e) => { result = e.target.value; },
+    })),
+    field('When', h('input', { type: 'date', value: when, onInput: (e) => { when = e.target.value || today(); } })),
+    h('div', { class: 'stack', style: 'margin-top:16px' },
+      h('button', {
+        class: 'btn primary block',
+        onClick: () => {
+          store.update((st) => {
+            const g = st.goals.find((x) => x.id === id);
+            g.done = true;
+            g.doneAt = when;
+            g.result = result;
+            st.notes.push({
+              id: uid(), date: when, kind: 'visit',
+              title: goal.title, body: result,
+              convictionIds: [], contextIds: goal.groundId ? [goal.groundId] : [], source: '',
+              createdAt: new Date().toISOString(),
+            });
+          });
+          closeSheet();
+          toast('Done');
+        },
+      }, 'Mark it done'),
+      h('button', { class: 'btn ghost block', onClick: () => closeSheet() }, 'Not yet')),
+  ));
+}

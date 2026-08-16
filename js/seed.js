@@ -238,6 +238,7 @@ export function seedState() {
     convictions,
     contexts: [here, e3, npl, antioch],
     checks: [],
+    goals: [],
     blocks: [
       {
         id: uid(),

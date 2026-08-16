@@ -11,9 +11,10 @@ import {
   byId, latestCheck, weightOf,
 } from './../model.js';
 import {
-  h, frag, empty, openSheet, closeSheet, field, area, toast, daysBetween,
+  h, frag, empty, openSheet, closeSheet, field, area, toast, daysBetween, relDate, fmtDate,
 } from './../ui.js';
-import { editGround, editCalling } from './../editors.js';
+import { editGround, editCalling, editGoal, completeGoal } from './../editors.js';
+import { GOAL_TEMPLATES, goalsFor, progressFor, nextGoal } from './../goals.js';
 import { CHURCH_MODELS, MODEL_STANCES } from './../models.js';
 import { openGround } from './land.js';
 
@@ -23,10 +24,10 @@ const GLYPH = { good: '✓', ok: '~', thin: '!', bad: '✕', unknown: '·' };
 
 /** The rings, from the centre out. Where a shot lands is the whole answer. */
 const RINGS = [
-  { id: 'bullseye', at: 0.22, label: 'This is it', tone: 'good' },
+  { id: 'bullseye', at: 0.22, label: 'At home here', tone: 'good' },
   { id: 'close', at: 0.46, label: 'Close', tone: 'ok' },
-  { id: 'wide', at: 0.70, label: 'Wide', tone: 'thin' },
-  { id: 'edge', at: 0.94, label: 'Barely on it', tone: 'bad' },
+  { id: 'wide', at: 0.70, label: 'Started', tone: 'thin' },
+  { id: 'edge', at: 0.94, label: 'Barely begun', tone: 'bad' },
 ];
 
 /* ---------- what I'm going for ---------- */
@@ -124,73 +125,85 @@ function worth(row, value) {
 export function shot(state, ground) {
   const check = latestCheck(state.checks, ground.id);
   const rowList = rows(state);
+  const plan = progressFor(state, ground.id);
 
+  if (ground.stage === 'built') {
+    return { dist: 0.05, tone: 'good', word: 'Planted', why: 'You committed to them.', check, plan };
+  }
   if (ground.stage === 'ruled-out') {
-    return { dist: 1.3, tone: 'bad', word: 'Off the target', why: 'You ruled them out.', check };
-  }
-  if (!check) {
-    return { dist: 1.3, tone: 'unknown', word: 'Not taken', why: 'You haven\'t marked a single thing here.', check };
+    return { dist: 1.3, tone: 'bad', word: 'Off the target', why: 'You ruled them out.', check, plan };
   }
 
-  const walls = (state.barriers || []).filter((b) => b.hard && check.barriers?.[b.id]?.state === 'fails');
+  // A wall is not a distance. Nothing you do moves it.
+  const walls = (state.barriers || []).filter((b) => b.hard && check?.barriers?.[b.id]?.state === 'fails');
   if (walls.length) {
     return {
-      dist: 1.3, tone: 'bad', word: 'Off the target',
+      dist: 1.3, tone: 'bad', word: 'Off the target', plan, check,
       why: `Fails ${walls.map((b) => b.title.toLowerCase()).join(' and ')}. That's a wall, not a distance.`,
-      check,
     };
   }
 
-  let got = 0;
-  let possible = 0;
+  // No plan is its own answer: you can't get closer to being at home with people
+  // by thinking about them.
+  if (!plan.total) {
+    return {
+      dist: 1.22, tone: 'unknown', word: 'No plan yet', plan, check,
+      why: 'Nothing set to actually do here. Being at home somewhere doesn\'t happen by weighing it.',
+    };
+  }
+
+  // Distance is what you've done. What you've learned only nudges it.
+  let fitGot = 0;
+  let fitPossible = 0;
   let answered = 0;
   rowList.forEach((r) => {
     const w = worth(r, cellValue(check, r));
     if (w === null) return;
     answered += 1;
-    got += w * r.weight;
-    possible += r.weight;
+    fitGot += w * r.weight;
+    fitPossible += r.weight;
   });
-
-  const known = rowList.length ? answered / rowList.length : 0;
-  const fit = possible ? got / possible : 0;
-  const closeness = fit * (0.45 + 0.55 * known);
+  const fit = fitPossible ? fitGot / fitPossible : 0.5;
+  const closeness = plan.ratio * 0.8 + fit * 0.2;
   const dist = Math.max(0.05, Math.min(1.15, 1 - closeness));
 
-  const kid = check.kid?.level || 'unknown';
-  const missing = rowList.length - answered;
-  let word = 'Wide';
-  let why = '';
-  // The gate doesn't average in with everything else. Fail it and the shot is
-  // pushed to the outside ring no matter how well the rest marked up.
+  const kid = check?.kid?.level || 'unknown';
+  const softer = check?.formation?.level === 'softer';
+  const left = plan.total - plan.done;
   let out = dist;
-  if (kid === 'no' || kid === 'supervised' || check.formation?.level === 'softer') {
-    out = Math.max(dist, RINGS[3].at);
-  }
+  let word;
+  let why;
+
+  // The gate doesn't average in. Fail it and the shot is pushed out no matter
+  // how much of the plan you got through.
   if (kid === 'no' || kid === 'supervised') {
+    out = Math.max(dist, RINGS[3].at);
     word = 'Barely on it';
     why = 'You wouldn\'t leave your kids with them. Nothing else moves it in.';
-  } else if (check.formation?.level === 'softer') {
+  } else if (softer) {
+    out = Math.max(dist, RINGS[3].at);
     word = 'Barely on it';
     why = 'He\'d come back softer. That pushes everything out.';
-  } else if (dist <= RINGS[0].at) {
-    word = 'This is it';
-    why = missing ? `${missing} still unanswered, and none of it is failing.` : 'Nothing in the way. This is a decision now.';
-  } else if (dist <= RINGS[1].at) {
+  } else if (out <= RINGS[0].at) {
+    word = 'At home here';
+    why = left
+      ? `${plan.done} of ${plan.total} done. ${left} left, and none of it is failing.`
+      : 'You did everything you said would make you at home here. That\'s a decision now, not a discovery.';
+  } else if (out <= RINGS[1].at) {
     word = 'Close';
-    why = missing ? `${missing} of ${rowList.length} you still can't answer.` : 'Close, but something is short.';
-  } else if (dist <= RINGS[2].at) {
-    word = 'Wide';
-    why = missing > answered
-      ? `You've only answered ${answered} of ${rowList.length}. Mostly you don't know them yet.`
-      : 'Real gaps, not just unknowns.';
+    why = `${plan.done} of ${plan.total} done. ${left} still to do.`;
+  } else if (out <= RINGS[2].at) {
+    word = 'Started';
+    why = plan.done
+      ? `${plan.done} of ${plan.total} done. Started, not close.`
+      : `${plan.total} steps set, none taken yet.`;
   } else {
-    word = 'Barely on it';
-    why = missing > answered ? 'Almost nothing answered yet.' : 'Too much of it is short.';
+    word = 'Barely begun';
+    why = plan.done ? `Only ${plan.done} of ${plan.total} done.` : `${plan.total} steps set, none taken yet.`;
   }
 
   const tone = out <= RINGS[0].at ? 'good' : out <= RINGS[1].at ? 'ok' : out <= RINGS[2].at ? 'thin' : 'bad';
-  return { dist: out, tone, word, why, check, answered, missing, total: rowList.length };
+  return { dist: out, tone, word, why, check, plan, answered, total: rowList.length };
 }
 
 /* ---------- drawing it ---------- */
@@ -307,7 +320,62 @@ function markCell(groundId, row, level, note) {
   });
 }
 
-/** One option, opened: where its shot landed and every answer behind it. */
+/** What being at home with these particular people would look like. */
+export function editHomeMeans(groundId) {
+  const state = store.get();
+  const ground = state.contexts.find((c) => c.id === groundId);
+  let text = ground?.homeMeans || '';
+  openSheet(`At home with ${ground?.name || 'them'} means…`, () => frag(
+    h('p', { class: 'small muted' },
+      'Not the general version — this one. What would have to be true before you\'d say '
+      + 'you belong with these particular people? Write it, then set the steps that get you there.'),
+    field('At home here means', area({
+      value: text, style: 'min-height:130px',
+      placeholder: 'e.g. My wife has two friends here she\'d call at 11pm, my son asks to go back, '
+        + 'and I\'ve been corrected by one of them and stayed.',
+      onInput: (e) => { text = e.target.value; },
+    })),
+    h('button', {
+      class: 'btn primary block', style: 'margin-top:16px',
+      onClick: () => {
+        store.update((st) => {
+          const g = st.contexts.find((c) => c.id === groundId);
+          g.homeMeans = text.trim();
+        });
+        closeSheet();
+        toast('Saved');
+      },
+    }, 'Save'),
+  ));
+}
+
+/** Drops the ten starting steps onto one ministry, skipping any already there. */
+function useTemplates(groundId, showAll) {
+  store.update((st) => {
+    if (!st.goals) st.goals = [];
+    const have = new Set(goalsFor(st, groundId).map((g) => g.title));
+    GOAL_TEMPLATES.forEach((t) => {
+      if (have.has(t.title)) return;
+      st.goals.push({
+        id: uid(), groundId, title: t.title, why: t.why, due: '',
+        done: false, doneAt: '', result: '', seeded: true, createdAt: new Date().toISOString(),
+      });
+    });
+  });
+  // The sheet is built once, so re-open it in place to show what just landed.
+  openShot(groundId, { all: showAll, replace: true });
+  toast('Ten steps added');
+}
+
+function progressBar(plan) {
+  const bar = h('div', { class: 'plan-bar' });
+  const fill = h('span', {});
+  fill.style.width = `${Math.round(plan.ratio * 100)}%`;
+  bar.append(fill);
+  return bar;
+}
+
+/** One ministry, opened: what at home here means, the plan, then what I've learned. */
 export function openShot(groundId, { all = false, replace = false } = {}) {
   const showAll = all;
   openSheet(() => store.get().contexts.find((c) => c.id === groundId)?.name || '', () => {
@@ -318,13 +386,34 @@ export function openShot(groundId, { all = false, replace = false } = {}) {
     const check = latestCheck(state.checks, groundId);
     const model = CHURCH_MODELS.find((m) => m.id === ground.modelId);
     const stance = model ? byId(MODEL_STANCES, state.modelStances?.[model.id]?.stance || 'unknown') : null;
+    const plan = s.plan;
 
-    const list = h('div', { class: 'rows' });
+    /* the plan */
+    const planList = h('div', { class: 'rows' });
+    plan.list.forEach((g) => {
+      const overdue = !g.done && g.due && g.due < today();
+      planList.append(h('div', { class: `goal${g.done ? ' done' : ''}` },
+        h('button', {
+          class: 'tick', 'aria-label': g.done ? `Undo ${g.title}` : `Mark done: ${g.title}`,
+          onClick: () => completeGoal(g.id),
+        }, g.done ? '✓' : ''),
+        h('button', { class: 'goal-body', onClick: () => editGoal(g) },
+          h('div', { class: 'row spread' },
+            h('span', { class: 'grow' }, g.title),
+            h('span', { class: `tiny ${overdue ? 'tone-bad' : 'muted'}` },
+              g.done ? (g.doneAt ? fmtDate(g.doneAt) : 'done') : (g.due ? relDate(g.due, today()) : 'no date'))),
+          g.done && g.result
+            ? h('div', { class: 'small muted' }, g.result)
+            : (g.why ? h('div', { class: 'tiny muted' }, g.why) : null))));
+    });
+
+    /* what I've learned so far */
+    const marks = h('div', { class: 'rows' });
     rows(state, { all: showAll }).forEach((row) => {
       const v = cellValue(check, row);
       const lv = byId(row.levels, v) || { tone: 'unknown', label: 'Not answered' };
       const note = cellNote(check, row);
-      list.append(h('button', { class: 'card-tap', onClick: () => openCell(groundId, row) },
+      marks.append(h('button', { class: 'card-tap', onClick: () => openCell(groundId, row) },
         h('div', { class: 'row spread' },
           h('span', { class: 'grow' }, row.label),
           h('span', { class: `small tone-${lv.tone || 'unknown'}` },
@@ -335,18 +424,41 @@ export function openShot(groundId, { all = false, replace = false } = {}) {
     return frag(
       h('p', { class: `eyebrow tone-${s.tone}` }, s.word),
       h('p', { class: 'verdict', style: 'margin-top:2px' }, s.why),
+
+      h('button', { class: 'card card-tap', onClick: () => editHomeMeans(groundId) },
+        h('div', { class: 'eyebrow' }, 'At home here would mean'),
+        ground.homeMeans
+          ? h('p', { style: 'margin:6px 0 0' }, ground.homeMeans)
+          : h('p', { class: 'muted', style: 'margin:6px 0 0' },
+            'Not written yet. Say what belonging with these people would actually look like — '
+            + 'then the steps below have something to aim at.')),
+
       ground.myPart ? h('p', { class: 'small' }, h('strong', {}, 'My part: '), ground.myPart) : null,
       ground.output ? h('p', { class: 'small' }, h('strong', {}, 'What it produces: '), ground.output) : null,
       model ? h('p', { class: 'small muted' },
         `Runs on ${model.name.toLowerCase()}${stance && stance.id !== 'unknown' ? ` — you: ${stance.label.toLowerCase()}` : ''}`) : null,
 
-      h('div', { class: 'row wrap', style: 'margin:14px 0 6px' },
+      h('h3', { class: 'plain-head' }, plan.total ? `The plan — ${plan.done} of ${plan.total} done` : 'The plan'),
+      plan.total ? progressBar(plan) : null,
+      plan.total
+        ? planList
+        : h('p', { class: 'muted small' },
+          'Nothing set yet. These are the things that actually make someone at home somewhere — '
+          + 'eating in their houses, being corrected by them, leaving your son with them.'),
+
+      h('div', { class: 'row wrap', style: 'margin:14px 0 4px' },
+        h('button', { class: 'btn sm', onClick: () => editGoal(null, { groundId }) }, '+ A step'),
+        plan.total < GOAL_TEMPLATES.length
+          ? h('button', { class: 'btn sm ghost', onClick: () => useTemplates(groundId, showAll) }, 'Start with the ten')
+          : null),
+
+      h('h3', { class: 'plain-head' }, 'What I\'ve learned so far'),
+      h('div', { class: 'row wrap', style: 'margin-bottom:8px' },
         h('button', { class: `chip${showAll ? ' on' : ''}`, onClick: () => openShot(groundId, { all: !showAll, replace: true }) },
           showAll ? 'Everything' : 'What decides it'),
         h('button', { class: 'chip', onClick: () => { closeSheet(true); openGround(groundId); } }, 'Full detail'),
         h('button', { class: 'chip', onClick: () => editGround(ground) }, 'Edit')),
-
-      list,
+      marks,
     );
   }, { replace });
 }
@@ -392,20 +504,48 @@ export function render(state) {
   view.append(h('div', { class: 'ring-key' },
     RINGS.map((r) => h('span', { class: `key tone-${r.tone}` }, r.label))));
 
-  /* ---- closest first ---- */
-  const list = h('div', { class: 'rows' });
+  /* ---- closest first, each with what to actually do next ---- */
   shots.forEach(({ ground, s }) => {
-    list.append(h('button', { class: 'card-tap', onClick: () => openShot(ground.id) },
+    const next = nextGoal(state, ground.id);
+    const card = h('div', { class: 'card option' });
+    card.append(h('button', { class: 'option-head', onClick: () => openShot(ground.id) },
       h('div', { class: 'row spread' },
         h('strong', { class: 'grow' }, ground.name),
         h('span', { class: `small tone-${s.tone}` }, s.word)),
-      h('div', { class: 'small muted' }, s.why),
-      ground.myPart ? h('div', { class: 'tiny', style: 'margin-top:4px' }, `My part: ${ground.myPart}`) : null));
-  });
-  view.append(list);
+      ground.homeMeans
+        ? h('div', { class: 'tiny muted' }, `At home here: ${ground.homeMeans}`)
+        : h('div', { class: 'tiny tone-thin' }, 'You haven\'t said what being at home here would look like'),
+      s.plan.total ? progressBar(s.plan) : null,
+      h('div', { class: 'small muted' }, s.why)));
 
-  view.append(h('div', { class: 'row wrap', style: 'margin-top:12px' },
-    h('button', { class: 'chip', onClick: () => editGround(null, { kind: 'network' }) }, '+ Another option'),
+    if (next) {
+      card.append(h('div', { class: 'next' },
+        h('button', {
+          class: 'tick', 'aria-label': `Mark done: ${next.title}`,
+          onClick: () => completeGoal(next.id),
+        }, ''),
+        h('button', { class: 'goal-body', onClick: () => editGoal(next) },
+          h('div', { class: 'eyebrow' }, 'Next'),
+          h('div', { class: 'row spread' },
+            h('span', { class: 'grow' }, next.title),
+            h('span', { class: `tiny ${next.due && next.due < today() ? 'tone-bad' : 'muted'}` },
+              next.due ? relDate(next.due, today()) : 'no date')))));
+    } else if (s.plan.total) {
+      card.append(h('div', { class: 'next' },
+        h('button', { class: 'goal-body', onClick: () => editGoal(null, { groundId: ground.id }) },
+          h('div', { class: 'eyebrow tone-good' }, 'Every step done'),
+          h('div', { class: 'small' }, 'Set another, or decide.'))));
+    } else {
+      card.append(h('div', { class: 'next' },
+        h('button', { class: 'goal-body', onClick: () => openShot(ground.id) },
+          h('div', { class: 'eyebrow tone-thin' }, 'No plan yet'),
+          h('div', { class: 'small' }, 'Set the steps that would make you at home here.'))));
+    }
+    view.append(card);
+  });
+
+  view.append(h('div', { class: 'row wrap', style: 'margin-top:14px' },
+    h('button', { class: 'chip', onClick: () => editGround(null, { kind: 'network' }) }, '+ Another ministry'),
     h('button', { class: 'chip', onClick: editCalling }, state.calling?.place ? 'The calling' : 'Name the calling')));
 
   return view;

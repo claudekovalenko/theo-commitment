@@ -317,3 +317,55 @@ select { appearance: none; }
 .ring-key .key::before { content: '\25CF'; margin-right: 4px; }
 
 .mark { display: inline-block; width: 1.2em; font-weight: 700; }
+
+/* ---------- the plan: steps toward being at home with one of them ---------- */
+
+.option { padding: 0; overflow: hidden; }
+.option-head {
+  display: block; width: 100%; text-align: left;
+  background: none; border: 0; font: inherit; color: inherit; cursor: pointer;
+  padding: 13px 14px;
+}
+.option-head > * + * { margin-top: 5px; }
+
+.plan-bar {
+  display: block; height: 5px; border-radius: 3px;
+  background: color-mix(in srgb, var(--moss) 14%, transparent);
+  overflow: hidden; margin: 8px 0;
+}
+.plan-bar > span { display: block; height: 100%; background: var(--moss); border-radius: 3px; }
+
+.next {
+  display: flex; align-items: stretch; gap: 0;
+  border-top: 1px solid var(--line); background: var(--paper);
+}
+.goal, .next { text-align: left; }
+.goal { display: flex; align-items: stretch; gap: 0; }
+.goal + .goal { border-top: 1px solid var(--line); }
+
+.tick {
+  flex: 0 0 auto; width: 46px; display: grid; place-items: center;
+  background: none; border: 0; cursor: pointer;
+  font-size: 1rem; font-weight: 700; color: var(--moss);
+}
+.tick::before {
+  content: ''; width: 20px; height: 20px; border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--ink) 30%, transparent);
+  position: absolute;
+}
+.tick { position: relative; }
+.goal.done .tick::before, .next .tick:not(:empty)::before { border-color: var(--moss); background: var(--moss-soft); }
+
+.goal-body {
+  flex: 1 1 auto; min-width: 0; padding: 11px 14px 11px 0;
+  background: none; border: 0; font: inherit; color: inherit; text-align: left; cursor: pointer;
+}
+.next .goal-body { padding-left: 0; }
+.next > .goal-body:only-child { padding-left: 14px; }
+.goal.done .goal-body > .row .grow { text-decoration: line-through; color: var(--muted); }
+
+.plain-head {
+  font-size: .7rem; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--muted); font-family: inherit; font-weight: 700;
+  margin: 22px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line);
+}
