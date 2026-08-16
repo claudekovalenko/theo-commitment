@@ -4,38 +4,37 @@ A private, offline app for one question:
 
 > **Which ministry could I be planted with?**
 
-Not a scorecard, not a devotional. One screen where every option you're actually
-weighing sits side by side, marked against the things you said matter, so you
-can look at it until the answer is obvious.
+Not a pros-and-cons list. A **target** — the thing you're going for in the
+middle, and every option you could say yes to placed by how close it actually
+lands.
 
-## The board
+## The target
 
-The app opens on it. **Options across the top** — E3, Antioch, NPL, whatever
-else is real. **What matters down the side**, in the order that actually decides
-it:
+**The centre is what you're going for**, in one sentence you write yourself:
 
-1. **The two that decide it** — could I leave my kids with them unsupervised,
-   and would my son come back sharper or softer.
-2. **The lines I don't cross** — baptism, leadership and oversight, the role of
-   women.
-3. **What I won't build without** — the must-haves, in your words. One tap
-   switches to everything.
-4. **Us, and staying** — where my wife and I actually are, and whether we could
-   settle in with them completely.
+> A ministry I could be planted with — where I'd leave my kids unsupervised,
+> where my son comes back more on mission, that makes disciples and doesn't
+> cross my lines.
 
-Tap any cell: the option, the row, five plain answers, and a box for what you
-actually saw. Two taps and it's marked. Nothing has to be completed.
+Change it whenever it changes. Everything else is measured against it, so it
+matters more than anything below it.
 
-Under every column is **one word**, worked out in the order that decides it — a
-wall you fail beats everything, then the kid test, then how much you simply
-don't know yet:
+**Every option is a shot at that centre.** E3, Antioch, NPL, whatever else is
+real. Where each one lands is worked out from what you've marked, and distance
+is earned two ways — by answering well *and* by actually knowing. Something
+you've barely looked at can't sit near the middle, however good it sounds.
 
-> **E3 — No.** Fails baptism. That's a wall.
-> **Antioch — Maybe.** 3 still unknown. Nothing failing.
-> **NPL — Too early.** 9 of 14 you can't answer yet.
+Four rings, from the middle out: **This is it · Close · Wide · Barely on it.**
+And outside the rings altogether: anything that fails a wall, because that isn't
+a distance. *E3 — off the target. Fails baptism. That's a wall, not a distance.*
 
-Below the board the same read is spelled out per option, with what it runs on,
-where you stand on that model, and what your part in it would be.
+Under the drawing, the same thing in words, closest first. Tap any option to
+open it: where its shot landed, why, and every answer behind it — the two that
+decide it, your walls, your must-haves, your wife, and whether you could settle
+in completely. Tap any one of those to change it and write what you actually
+saw. Two taps per answer, and nothing has to be completed — what you haven't
+answered stays visibly unanswered, and it holds the shot out from the middle
+until you go and find out.
 
 ## The calling
 
@@ -279,7 +278,7 @@ the list.
 
 | | |
 | --- | --- |
-| **Weigh** | The board — every option, everything that matters, one screen |
+| **Target** | What I'm going for, and how close each option lands |
 | **What matters** | The rows: requirements, what you're still settling, your walls, the models |
 | **In the way** | Everything unsettled, and what would settle it |
 | **Word** | Scripture threads, your studies, and the discernment instrument |
@@ -343,7 +342,7 @@ js/model.js           vocabulary, survey math, verdicts
 js/seed.js            starter content
 js/ui.js              DOM helpers, sheet, form controls
 js/editors.js         every add/edit form, plus breaking ground
-js/views/board.js     the board — the screen the app is for
+js/views/aim.js       the target — the screen the app is for
 js/views/*.js         one file per tab, plus settings
 tools/make_icons.py   regenerates icons/ (no dependencies)
 tools/build_single.mjs  bundles dist/good-ground.html for single-page hosts

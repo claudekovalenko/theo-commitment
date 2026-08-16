@@ -4,23 +4,23 @@ import * as store from './store.js';
 import { $, h, clear, initSheet, closeSheet } from './ui.js';
 import { ROUTES, currentRoute, onRoute, go } from './router.js';
 import { openSettings } from './views/settings.js';
-import * as board from './views/board.js';
+import * as aim from './views/aim.js';
 import * as soil from './views/soil.js';
 import * as unsettled from './views/unsettled.js';
 import * as word from './views/word.js';
 import * as journal from './views/journal.js';
 
-const VIEWS = { board, soil, word, unsettled, journal };
+const VIEWS = { aim, soil, word, unsettled, journal };
 
 const ICONS = {
-  board: '<path d="M3.5 4.5h17v15h-17z"/><path d="M9.5 4.5v15M15 4.5v15"/><path d="M3.5 9.5h17"/>',
+  aim: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor"/>',
   soil: '<path d="M3.5 9h17"/><path d="M7 9v11M12 9v11M17 9v11"/><path d="M4 5.5c2.5-2 5-2 8 0s5.5 2 8 0"/>',
   word: '<path d="M4 4.5A2 2 0 0 1 6 3h5v17H6a2 2 0 0 0-2 1.5z"/><path d="M20 4.5A2 2 0 0 0 18 3h-5v17h5a2 2 0 0 1 2 1.5z"/><path d="M12 7v3M10.5 8.5h3"/>',
   unsettled: '<path d="M12 3.5 21 19H3z"/><path d="M12 10v4"/><circle cx="12" cy="16.6" r=".6" fill="currentColor"/>',
   journal: '<path d="M6 3h12v18H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M8.5 3v18"/>',
 };
 
-const LABELS = { board: 'Weigh', soil: 'What matters', unsettled: 'In the way', word: 'Word', journal: 'Log' };
+const LABELS = { aim: 'Target', soil: 'What matters', unsettled: 'In the way', word: 'Word', journal: 'Log' };
 
 /* ---------- render ---------- */
 

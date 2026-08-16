@@ -226,7 +226,7 @@ function migrate(data) {
     createdAt: new Date().toISOString(),
     domains: [], convictions: [], contexts: [], checks: [], blocks: [], notes: [], people: [],
     verses: [], discernments: [], modelStances: {}, barriers: [],
-    weighingSince: '', appliedSeeds: [],
+    aim: '', weighingSince: '', appliedSeeds: [],
     calling: { placeId: '', place: '', why: '', by: '' },
     settings: {
       autoLockMinutes: 15,
@@ -391,6 +391,12 @@ function applyLateSeeds(s) {
   // If the job is starting house churches, the model stops being something you
   // weigh from outside. Put the option on the board and make the house-church
   // question a conviction to settle, not a preference to hold loosely.
+  if (!done.has('the-aim') && !s.aim) {
+    s.aim = 'A ministry I could be planted with — where I\'d leave my kids unsupervised, '
+      + 'where my son comes back more on mission, that makes disciples and doesn\'t cross my lines.';
+    mark('the-aim');
+  }
+
   if (!done.has('npl-house-churches')) {
     if (!s.contexts.some((c) => /\bnpl\b/i.test(c.name || ''))) {
       s.contexts.push({

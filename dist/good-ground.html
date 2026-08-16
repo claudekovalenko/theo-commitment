@@ -308,58 +308,30 @@ select { appearance: none; }
   * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
 
-/* ---------- the board: every option in a column, everything that matters in a row ---------- */
+/* ---------- the target: what I'm going for, and how close each shot lands ---------- */
 
-.board-wrap { margin: 14px 0 4px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
-table.board { border-collapse: collapse; width: 100%; font-size: .84rem; }
+.aim { text-align: left; margin: 12px 0 6px; }
 
-table.board th, table.board td { padding: 0; vertical-align: middle; }
+.target-wrap { display: grid; place-items: center; margin: 10px 0 2px; }
+.target-svg { width: 100%; max-width: 380px; height: auto; overflow: visible; }
 
-table.board .rowhead {
-  position: sticky; left: 0; z-index: 2;
-  background: var(--card);
-  text-align: left; font-weight: 500; color: var(--ink);
-  padding: 9px 9px; min-width: 8.4rem; max-width: 11rem;
-  border-right: 1px solid var(--line);
-  line-height: 1.25;
-}
-table.board thead .rowhead { background: var(--card); }
-table.board thead th { border-bottom: 1px solid var(--line); }
+.target-svg .ring { fill: none; stroke: var(--line); stroke-width: 1; }
+.target-svg .ring-edge { fill: color-mix(in srgb, var(--moss) 5%, transparent); }
+.target-svg .ring-wide { fill: color-mix(in srgb, var(--moss) 9%, transparent); }
+.target-svg .ring-close { fill: color-mix(in srgb, var(--moss) 15%, transparent); }
+.target-svg .ring-bullseye { fill: color-mix(in srgb, var(--moss) 26%, transparent); stroke: color-mix(in srgb, var(--moss) 55%, transparent); }
+.target-svg .pin { fill: var(--moss); }
 
-.colhead {
-  display: flex; flex-direction: column; align-items: center; gap: 3px;
-  width: 100%; min-width: 4.2rem; padding: 9px 4px;
-  background: none; border: 0; font: inherit; color: var(--ink); cursor: pointer;
-}
-.colhead .name { font-weight: 650; font-size: .84rem; }
-.verdict-chip { font-size: .66rem; text-transform: uppercase; letter-spacing: .05em; font-weight: 700; }
+.target-svg .shot-dot { stroke: var(--paper); stroke-width: 2; fill: currentColor; }
+.target-svg .shot-label { font-size: 10.5px; font-weight: 650; fill: var(--ink); }
+.target-svg .shot.tone-unknown .shot-dot { fill: var(--paper); stroke: var(--muted); }
+.target-svg .shot.tone-unknown .shot-label { fill: var(--muted); }
 
-table.board tr.group th {
-  text-align: left; padding: 12px 10px 5px;
-  font-size: .66rem; text-transform: uppercase; letter-spacing: .08em;
-  color: var(--muted); background: var(--paper);
-  position: sticky; left: 0;
-}
-table.board tbody tr:not(.group) + tr:not(.group) th,
-table.board tbody tr:not(.group) + tr:not(.group) td { border-top: 1px solid var(--line); }
-
-.cell {
-  display: grid; place-items: center;
-  width: 100%; min-width: 4.2rem; min-height: 44px;
-  background: none; border: 0; cursor: pointer;
-  font-size: 1.15rem; font-weight: 700; line-height: 1;
-  color: var(--muted);
-}
-.cell:active { background: var(--moss-soft); }
-.cell.noted { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+.ring-key { display: flex; flex-wrap: wrap; gap: 4px 14px; justify-content: center; margin: 4px 0 16px; }
+.ring-key .key { font-size: .66rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
+.ring-key .key::before { content: '\25CF'; margin-right: 4px; }
 
 .mark { display: inline-block; width: 1.2em; font-weight: 700; }
-
-.plain-head {
-  font-size: .7rem; text-transform: uppercase; letter-spacing: .08em;
-  color: var(--muted); font-family: inherit; font-weight: 700;
-  margin: 22px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line);
-}
 
 </style>
 </head>
@@ -970,7 +942,8 @@ table.board tbody tr:not(.group) + tr:not(.group) td { border-top: 1px solid var
       seeded: true,
       // He's been carrying this question for about four years.
       weighingSince: new Date((/* @__PURE__ */ new Date()).getFullYear() - 4, 0, 1).toISOString().slice(0, 10),
-      appliedSeeds: ["antioch", "consistent-community", "weighing-since", "e3-fruit", "npl-house-churches"],
+      aim: "A ministry I could be planted with \u2014 where I'd leave my kids unsupervised, where my son comes back more on mission, that makes disciples and doesn't cross my lines.",
+      appliedSeeds: ["antioch", "consistent-community", "weighing-since", "e3-fruit", "npl-house-churches", "the-aim"],
       domains: DEFAULT_DOMAINS.map((d) => ({ ...d })),
       convictions,
       contexts: [here, e3, npl, antioch],
@@ -1250,9 +1223,6 @@ table.board tbody tr:not(.group) + tr:not(.group) td { border-top: 1px solid var
     listeners.forEach((l) => l(state));
     return state;
   }
-  function notify() {
-    listeners.forEach((l) => l(state));
-  }
   var listeners = /* @__PURE__ */ new Set();
   function subscribe(fn) {
     listeners.add(fn);
@@ -1302,6 +1272,7 @@ table.board tbody tr:not(.group) + tr:not(.group) td { border-top: 1px solid var
       discernments: [],
       modelStances: {},
       barriers: [],
+      aim: "",
       weighingSince: "",
       appliedSeeds: [],
       calling: { placeId: "", place: "", why: "", by: "" },
@@ -1382,12 +1353,12 @@ table.board tbody tr:not(.group) + tr:not(.group) td { border-top: 1px solid var
   function applyLateSeeds(s) {
     const done = new Set(s.appliedSeeds || []);
     const before = done.size;
-    const mark2 = (id) => {
+    const mark = (id) => {
       done.add(id);
     };
     if (!done.has("weighing-since") && !s.weighingSince) {
       s.weighingSince = new Date((/* @__PURE__ */ new Date()).getFullYear() - 4, 0, 1).toISOString().slice(0, 10);
-      mark2("weighing-since");
+      mark("weighing-since");
     }
     if (!done.has("consistent-community") && !s.convictions.some((c) => (c.title || "").toLowerCase() === "community that stays")) {
       s.convictions.push({
@@ -1402,7 +1373,7 @@ table.board tbody tr:not(.group) + tr:not(.group) td { border-top: 1px solid var
         seeded: true,
         createdAt: (/* @__PURE__ */ new Date()).toISOString()
       });
-      mark2("consistent-community");
+      mark("consistent-community");
     }
     if (!done.has("antioch") && !s.contexts.some((c) => (c.name || "").toLowerCase().includes("antioch"))) {
       s.contexts.push({
@@ -1418,7 +1389,7 @@ table.board tbody tr:not(.group) + tr:not(.group) td { border-top: 1px solid var
         seeded: true,
         createdAt: (/* @__PURE__ */ new Date()).toISOString()
       });
-      mark2("antioch");
+      mark("antioch");
     }
     if (!done.has("e3-fruit")) {
       const e3 = s.contexts.find((c) => /\be3\b/i.test(c.name || ""));
@@ -1453,8 +1424,12 @@ table.board tbody tr:not(.group) + tr:not(.group) td { border-top: 1px solid var
             createdAt: (/* @__PURE__ */ new Date()).toISOString()
           });
         });
-        mark2("e3-fruit");
+        mark("e3-fruit");
       }
+    }
+    if (!done.has("the-aim") && !s.aim) {
+      s.aim = "A ministry I could be planted with \u2014 where I'd leave my kids unsupervised, where my son comes back more on mission, that makes disciples and doesn't cross my lines.";
+      mark("the-aim");
     }
     if (!done.has("npl-house-churches")) {
       if (!s.contexts.some((c) => /\bnpl\b/i.test(c.name || ""))) {
@@ -1490,7 +1465,7 @@ table.board tbody tr:not(.group) + tr:not(.group) td { border-top: 1px solid var
           createdAt: (/* @__PURE__ */ new Date()).toISOString()
         });
       }
-      mark2("npl-house-churches");
+      mark("npl-house-churches");
     }
     s.appliedSeeds = [...done];
     return done.size !== before;
@@ -1679,13 +1654,14 @@ table.board tbody tr:not(.group) + tr:not(.group) td { border-top: 1px solid var
   }
 
   // js/router.js
-  var ROUTES = ["board", "soil", "unsettled", "word", "journal"];
+  var ROUTES = ["aim", "soil", "unsettled", "word", "journal"];
   var OLD = {
-    compass: "board",
-    target: "board",
-    where: "board",
-    land: "board",
-    plays: "board",
+    compass: "aim",
+    target: "aim",
+    board: "aim",
+    where: "aim",
+    land: "aim",
+    plays: "aim",
     convictions: "soil",
     do: "unsettled",
     log: "journal",
@@ -1695,7 +1671,7 @@ table.board tbody tr:not(.group) + tr:not(.group) td { border-top: 1px solid var
   function currentRoute() {
     const r = location.hash.replace(/^#\/?/, "");
     if (OLD[r]) return OLD[r];
-    return ROUTES.includes(r) ? r : "board";
+    return ROUTES.includes(r) ? r : "aim";
   }
   function onRoute(fn) {
     handler = fn;
@@ -3029,10 +3005,13 @@ table.board tbody tr:not(.group) + tr:not(.group) td { border-top: 1px solid var
     openSheet("Settings", build);
   }
 
-  // js/views/board.js
-  var board_exports = {};
-  __export(board_exports, {
+  // js/views/aim.js
+  var aim_exports = {};
+  __export(aim_exports, {
+    editAim: () => editAim,
+    openShot: () => openShot,
     render: () => render,
+    shot: () => shot,
     title: () => title
   });
 
@@ -3429,46 +3408,77 @@ table.board tbody tr:not(.group) + tr:not(.group) td { border-top: 1px solid var
     openSheet(() => get().contexts.find((c) => c.id === id)?.name || "Ground", build);
   }
 
-  // js/views/board.js
-  var title = "Where could I be planted?";
+  // js/views/aim.js
+  var title = "The target";
   var GLYPH = { good: "\u2713", ok: "~", thin: "!", bad: "\u2715", unknown: "\xB7" };
-  var showAll = false;
-  function options(state2) {
-    return state2.contexts.filter((c) => c.kind !== "place").sort((a, b) => {
-      const rank = (x) => x.stage === "built" ? 3 : x.stage === "ruled-out" ? -1 : x.stage === "running" ? 2 : 1;
-      return rank(b) - rank(a);
-    });
+  var RINGS = [
+    { id: "bullseye", at: 0.22, label: "This is it", tone: "good" },
+    { id: "close", at: 0.46, label: "Close", tone: "ok" },
+    { id: "wide", at: 0.7, label: "Wide", tone: "thin" },
+    { id: "edge", at: 0.94, label: "Barely on it", tone: "bad" }
+  ];
+  var DEFAULT_AIM = "A ministry I could be planted with \u2014 where I'd leave my kids unsupervised, where my son comes back more on mission, that makes disciples and doesn't cross my lines.";
+  function editAim() {
+    const state2 = get();
+    let text = state2.aim || "";
+    openSheet("What am I going for?", () => frag(
+      h(
+        "p",
+        { class: "small muted" },
+        "One sentence at the centre of the target. Not the job, not the city \u2014 the thing that would make you say yes. Everything else gets measured by how close it lands to this."
+      ),
+      field("The bullseye", area({
+        value: text,
+        style: "min-height:120px",
+        placeholder: DEFAULT_AIM,
+        onInput: (e) => {
+          text = e.target.value;
+        }
+      })),
+      h("button", {
+        class: "btn ghost block",
+        style: "margin-bottom:10px",
+        onClick: () => {
+          text = DEFAULT_AIM;
+          closeSheet();
+          update((st) => {
+            st.aim = DEFAULT_AIM;
+          });
+          toast("Set");
+        }
+      }, "Use the one built from my own words"),
+      h("button", {
+        class: "btn primary block",
+        onClick: () => {
+          if (!text.trim()) return toast("Write what you're going for");
+          update((st) => {
+            st.aim = text.trim();
+          });
+          closeSheet();
+          toast("Saved");
+        }
+      }, "Save")
+    ));
   }
-  function rows(state2) {
+  function options(state2) {
+    return state2.contexts.filter((c) => c.kind !== "place");
+  }
+  function rows(state2, { all = false } = {}) {
     const out = [
-      { group: "The two that decide it" },
-      { id: "kid", label: "I'd leave my kids with them, unsupervised", kind: "kid", levels: KID_LEVELS },
-      { id: "formation", label: "He'd come back sharper, not softer", kind: "formation", levels: FORMATION_LEVELS }
+      { id: "kid", label: "I'd leave my kids with them, unsupervised", kind: "kid", levels: KID_LEVELS, weight: 4 },
+      { id: "formation", label: "He'd come back sharper, not softer", kind: "formation", levels: FORMATION_LEVELS, weight: 4 }
     ];
-    if ((state2.barriers || []).length) {
-      out.push({ group: "The lines I don't cross" });
-      (state2.barriers || []).forEach((b) => out.push({
-        id: b.id,
-        label: b.title,
-        kind: "barrier",
-        levels: BARRIER_STATES,
-        hard: b.hard
-      }));
-    }
-    const reqs = state2.convictions.filter((c) => showAll ? true : c.weight === "core");
-    if (reqs.length) {
-      out.push({ group: showAll ? "Everything I said matters" : "What I won't build without" });
-      reqs.forEach((c) => out.push({
-        id: c.id,
-        label: c.title,
-        kind: "req",
-        levels: LEVELS,
-        req: c
-      }));
-    }
-    out.push({ group: "Us, and staying" });
-    out.push({ id: "us", label: "My wife and I are agreed", kind: "us", levels: US_LEVELS });
-    out.push({ id: "settle", label: "We could settle in with them completely", kind: "settle", levels: SETTLE_LEVELS });
+    (state2.barriers || []).forEach((b) => out.push({
+      id: b.id,
+      label: b.title,
+      kind: "barrier",
+      levels: BARRIER_STATES,
+      hard: b.hard,
+      weight: 3
+    }));
+    state2.convictions.filter((c) => all ? true : c.weight === "core").forEach((c) => out.push({ id: c.id, label: c.title, kind: "req", levels: LEVELS, req: c, weight: weightOf(c) }));
+    out.push({ id: "us", label: "My wife and I are agreed", kind: "us", levels: US_LEVELS, weight: 3 });
+    out.push({ id: "settle", label: "We could settle in with them completely", kind: "settle", levels: SETTLE_LEVELS, weight: 2 });
     return out;
   }
   function cellValue(check, row) {
@@ -3489,7 +3499,167 @@ table.board tbody tr:not(.group) + tr:not(.group) td { border-top: 1px solid var
     if (row.kind === "barrier") return check.barriers?.[row.id]?.note || "";
     return check.ratings?.[row.id]?.note || "";
   }
-  function mark(groundId, row, level, note) {
+  var UNANSWERED = /* @__PURE__ */ new Set(["unknown", "unclear", "na"]);
+  function worth(row, value) {
+    const lv = byId(row.levels, value);
+    if (!lv || UNANSWERED.has(value)) return null;
+    if (typeof lv.score === "number") return lv.score;
+    if (typeof lv.cap === "number") return lv.cap;
+    return { good: 1, ok: 0.7, thin: 0.35, bad: 0 }[lv.tone] ?? null;
+  }
+  function shot(state2, ground) {
+    const check = latestCheck(state2.checks, ground.id);
+    const rowList = rows(state2);
+    if (ground.stage === "ruled-out") {
+      return { dist: 1.3, tone: "bad", word: "Off the target", why: "You ruled them out.", check };
+    }
+    if (!check) {
+      return { dist: 1.3, tone: "unknown", word: "Not taken", why: "You haven't marked a single thing here.", check };
+    }
+    const walls = (state2.barriers || []).filter((b) => b.hard && check.barriers?.[b.id]?.state === "fails");
+    if (walls.length) {
+      return {
+        dist: 1.3,
+        tone: "bad",
+        word: "Off the target",
+        why: `Fails ${walls.map((b) => b.title.toLowerCase()).join(" and ")}. That's a wall, not a distance.`,
+        check
+      };
+    }
+    let got = 0;
+    let possible = 0;
+    let answered = 0;
+    rowList.forEach((r) => {
+      const w = worth(r, cellValue(check, r));
+      if (w === null) return;
+      answered += 1;
+      got += w * r.weight;
+      possible += r.weight;
+    });
+    const known = rowList.length ? answered / rowList.length : 0;
+    const fit = possible ? got / possible : 0;
+    const closeness = fit * (0.45 + 0.55 * known);
+    const dist = Math.max(0.05, Math.min(1.15, 1 - closeness));
+    const kid = check.kid?.level || "unknown";
+    const missing = rowList.length - answered;
+    let word = "Wide";
+    let why = "";
+    let out = dist;
+    if (kid === "no" || kid === "supervised" || check.formation?.level === "softer") {
+      out = Math.max(dist, RINGS[3].at);
+    }
+    if (kid === "no" || kid === "supervised") {
+      word = "Barely on it";
+      why = "You wouldn't leave your kids with them. Nothing else moves it in.";
+    } else if (check.formation?.level === "softer") {
+      word = "Barely on it";
+      why = "He'd come back softer. That pushes everything out.";
+    } else if (dist <= RINGS[0].at) {
+      word = "This is it";
+      why = missing ? `${missing} still unanswered, and none of it is failing.` : "Nothing in the way. This is a decision now.";
+    } else if (dist <= RINGS[1].at) {
+      word = "Close";
+      why = missing ? `${missing} of ${rowList.length} you still can't answer.` : "Close, but something is short.";
+    } else if (dist <= RINGS[2].at) {
+      word = "Wide";
+      why = missing > answered ? `You've only answered ${answered} of ${rowList.length}. Mostly you don't know them yet.` : "Real gaps, not just unknowns.";
+    } else {
+      word = "Barely on it";
+      why = missing > answered ? "Almost nothing answered yet." : "Too much of it is short.";
+    }
+    const tone = out <= RINGS[0].at ? "good" : out <= RINGS[1].at ? "ok" : out <= RINGS[2].at ? "thin" : "bad";
+    return { dist: out, tone, word, why, check, answered, missing, total: rowList.length };
+  }
+  function targetSvg(shots) {
+    const W = 340;
+    const H = 250;
+    const cx = W / 2;
+    const cy = H / 2;
+    const R = 96;
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    svg.setAttribute("class", "target-svg");
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", "The target: what I am going for, and how close each option lands.");
+    const el2 = (name, attrs) => {
+      const n2 = document.createElementNS("http://www.w3.org/2000/svg", name);
+      Object.entries(attrs).forEach(([k, v]) => n2.setAttribute(k, v));
+      svg.append(n2);
+      return n2;
+    };
+    [...RINGS].reverse().forEach((ring) => {
+      el2("circle", { cx, cy, r: R * ring.at, class: `ring ring-${ring.id}` });
+    });
+    el2("circle", { cx, cy, r: 3.2, class: "pin" });
+    const n = shots.length;
+    shots.forEach(({ ground, s }, i) => {
+      const angle = i / Math.max(1, n) * Math.PI * 2 - Math.PI / 2 + (n > 1 ? 0.35 : 0);
+      const r = R * Math.min(s.dist, 1.18);
+      const x = cx + Math.cos(angle) * r;
+      const y = cy + Math.sin(angle) * r;
+      const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.setAttribute("class", `shot tone-${s.tone}`);
+      svg.append(g);
+      const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      Object.entries({ cx: x, cy: y, r: 7, class: "shot-dot" }).forEach(([k, v]) => dot.setAttribute(k, v));
+      g.append(dot);
+      const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      const right = Math.cos(angle) >= 0;
+      Object.entries({
+        x: x + (right ? 12 : -12),
+        y: y + 4,
+        "text-anchor": right ? "start" : "end",
+        class: "shot-label"
+      }).forEach(([k, v]) => label.setAttribute(k, v));
+      label.textContent = ground.name;
+      g.append(label);
+      g.append((() => {
+        const t = document.createElementNS("http://www.w3.org/2000/svg", "title");
+        t.textContent = `${ground.name} \u2014 ${s.word}. ${s.why}`;
+        return t;
+      })());
+    });
+    return svg;
+  }
+  function openCell(groundId, row) {
+    const state2 = get();
+    const ground = state2.contexts.find((c) => c.id === groundId);
+    const check = latestCheck(state2.checks, groundId);
+    let note = cellNote(check, row);
+    const current = cellValue(check, row);
+    openSheet(ground.name, () => frag(
+      h("p", { class: "eyebrow" }, row.hard ? "A line I don't cross" : "Where they stand"),
+      h("h2", { style: "margin:2px 0 10px" }, row.label),
+      row.req?.practice ? h("p", { class: "small muted" }, row.req.practice) : null,
+      row.req?.scriptures ? h("p", { class: "small", style: "color:var(--moss)" }, row.req.scriptures) : null,
+      h(
+        "div",
+        { class: "stack", style: "margin:14px 0" },
+        row.levels.map((lv) => h(
+          "button",
+          {
+            class: `btn block${lv.id === current ? " primary" : ""}`,
+            onClick: () => {
+              markCell(groundId, row, lv.id, note);
+              closeSheet();
+              toast("Marked");
+            }
+          },
+          h("span", { class: `mark tone-${lv.tone || "unknown"}` }, GLYPH[lv.tone || "unknown"]),
+          ` ${lv.label}`
+        ))
+      ),
+      field("What you actually saw", area({
+        value: note,
+        placeholder: "The thing you'd tell your wife, not the thing you'd put in a report.",
+        onInput: (e) => {
+          note = e.target.value;
+        }
+      })),
+      h("p", { class: "tiny muted" }, "The note saves with whichever answer you pick.")
+    ));
+  }
+  function markCell(groundId, row, level, note) {
     update((st) => {
       let check = st.checks.filter((k) => k.contextId === groundId).sort((a, b) => a.date < b.date ? 1 : -1)[0];
       if (!check) {
@@ -3521,185 +3691,127 @@ table.board tbody tr:not(.group) + tr:not(.group) td { border-top: 1px solid var
       check.date = today();
     });
   }
-  function read(state2, ground) {
-    const check = latestCheck(state2.checks, ground.id);
-    if (ground.stage === "built") return { word: "Planted", tone: "good", why: "You committed to them." };
-    if (ground.stage === "ruled-out") return { word: "Out", tone: "bad", why: "You ruled them out." };
-    if (!check) return { word: "Blank", tone: "unknown", why: "Nothing marked yet." };
-    const rowList = rows(state2).filter((r) => !r.group);
-    const walls = (state2.barriers || []).filter((b) => b.hard && check.barriers?.[b.id]?.state === "fails");
-    if (walls.length) {
-      return { word: "No", tone: "bad", why: `Fails ${walls.map((b) => b.title.toLowerCase()).join(" and ")}. That's a wall.` };
-    }
-    const kid = check.kid?.level || "unknown";
-    if (kid === "no" || kid === "supervised") {
-      return { word: "No", tone: "bad", why: "You wouldn't leave your kids with them." };
-    }
-    if (check.formation?.level === "softer") {
-      return { word: "No", tone: "bad", why: "He'd come back softer." };
-    }
-    const unknown = rowList.filter((r) => {
-      const v = cellValue(check, r);
-      return v === "unknown" || v === "unclear" || v === "na";
-    });
-    const bad = rowList.filter((r) => ["conflict", "fails", "no", "apart", "softer"].includes(cellValue(check, r)));
-    if (bad.length) return { word: "Not this", tone: "bad", why: `${bad.length} hard no${bad.length > 1 ? "s" : ""}: ${bad.map((r) => r.label.toLowerCase()).slice(0, 2).join(", ")}.` };
-    if (unknown.length > rowList.length / 2) {
-      return { word: "Too early", tone: "unknown", why: `${unknown.length} of ${rowList.length} you can't answer yet.` };
-    }
-    if (unknown.length) return { word: "Maybe", tone: "thin", why: `${unknown.length} still unknown. Nothing failing.` };
-    return { word: "Yes", tone: "good", why: "Nothing in the way. This is a decision now." };
-  }
-  function openCell(ground, row) {
-    const state2 = get();
-    const check = latestCheck(state2.checks, ground.id);
-    let note = cellNote(check, row);
-    const current = cellValue(check, row);
-    openSheet(ground.name, () => frag(
-      h("p", { class: "eyebrow" }, row.hard ? "A line I don't cross" : "Where they stand"),
-      h("h2", { style: "margin:2px 0 10px" }, row.label),
-      row.req?.practice ? h("p", { class: "small muted" }, row.req.practice) : null,
-      row.req?.scriptures ? h("p", { class: "small", style: "color:var(--moss)" }, row.req.scriptures) : null,
-      h(
-        "div",
-        { class: "stack", style: "margin:14px 0" },
-        row.levels.map((lv) => h(
-          "button",
-          {
-            class: `btn block${lv.id === current ? " primary" : ""}`,
-            onClick: () => {
-              mark(ground.id, row, lv.id, note);
-              closeSheet();
-              toast("Marked");
-            }
-          },
-          h("span", { class: `mark tone-${lv.tone || "unknown"}` }, GLYPH[lv.tone || "unknown"]),
-          ` ${lv.label}`
-        ))
-      ),
-      field("What you actually saw", area({
-        value: note,
-        placeholder: "The thing you'd tell your wife, not the thing you'd put in a report.",
-        onInput: (e) => {
-          note = e.target.value;
-        }
-      })),
-      h("p", { class: "tiny muted" }, "The note is saved with whichever answer you pick.")
-    ));
-  }
-  function boardTable(state2, opts2) {
-    const table = h("table", { class: "board" });
-    const head = h("tr", {}, h("th", { class: "rowhead" }, ""));
-    opts2.forEach((g) => {
-      const r = read(state2, g);
-      head.append(h(
-        "th",
-        {},
-        h(
-          "button",
-          { class: "colhead", onClick: () => openGround(g.id) },
-          h("span", { class: "name" }, g.name),
-          h("span", { class: `verdict-chip tone-${r.tone}` }, r.word)
-        )
-      ));
-    });
-    table.append(h("thead", {}, head));
-    const body = h("tbody", {});
-    rows(state2).forEach((row) => {
-      if (row.group) {
-        body.append(h(
-          "tr",
-          { class: "group" },
-          h("th", { colspan: opts2.length + 1, scope: "colgroup" }, row.group)
-        ));
-        return;
-      }
-      const tr = h("tr", {}, h("th", { class: "rowhead", scope: "row" }, row.label));
-      opts2.forEach((g) => {
-        const check = latestCheck(state2.checks, g.id);
+  function openShot(groundId, { all = false, replace = false } = {}) {
+    const showAll = all;
+    openSheet(() => get().contexts.find((c) => c.id === groundId)?.name || "", () => {
+      const state2 = get();
+      const ground = state2.contexts.find((c) => c.id === groundId);
+      if (!ground) return h("p", { class: "muted" }, "Gone.");
+      const s = shot(state2, ground);
+      const check = latestCheck(state2.checks, groundId);
+      const model = CHURCH_MODELS.find((m) => m.id === ground.modelId);
+      const stance = model ? byId(MODEL_STANCES, state2.modelStances?.[model.id]?.stance || "unknown") : null;
+      const list = h("div", { class: "rows" });
+      rows(state2, { all: showAll }).forEach((row) => {
         const v = cellValue(check, row);
-        const lv = byId(row.levels, v) || { tone: "unknown", label: "Don't know" };
+        const lv = byId(row.levels, v) || { tone: "unknown", label: "Not answered" };
         const note = cellNote(check, row);
-        tr.append(h(
-          "td",
-          {},
-          h("button", {
-            class: `cell tone-${lv.tone || "unknown"}${note ? " noted" : ""}`,
-            title: `${g.name} \u2014 ${row.label}: ${lv.label}${note ? ` (${note})` : ""}`,
-            "aria-label": `${row.label}, ${g.name}: ${lv.label}. Tap to change.`,
-            onClick: () => openCell(g, row)
-          }, GLYPH[lv.tone || "unknown"])
+        list.append(h(
+          "button",
+          { class: "card-tap", onClick: () => openCell(groundId, row) },
+          h(
+            "div",
+            { class: "row spread" },
+            h("span", { class: "grow" }, row.label),
+            h(
+              "span",
+              { class: `small tone-${lv.tone || "unknown"}` },
+              `${GLYPH[lv.tone || "unknown"]} ${lv.label}`
+            )
+          ),
+          note ? h("div", { class: "tiny muted" }, note) : null
         ));
       });
-      body.append(tr);
-    });
-    table.append(body);
-    return h("div", { class: "scroll-x board-wrap" }, table);
+      return frag(
+        h("p", { class: `eyebrow tone-${s.tone}` }, s.word),
+        h("p", { class: "verdict", style: "margin-top:2px" }, s.why),
+        ground.myPart ? h("p", { class: "small" }, h("strong", {}, "My part: "), ground.myPart) : null,
+        ground.output ? h("p", { class: "small" }, h("strong", {}, "What it produces: "), ground.output) : null,
+        model ? h(
+          "p",
+          { class: "small muted" },
+          `Runs on ${model.name.toLowerCase()}${stance && stance.id !== "unknown" ? ` \u2014 you: ${stance.label.toLowerCase()}` : ""}`
+        ) : null,
+        h(
+          "div",
+          { class: "row wrap", style: "margin:14px 0 6px" },
+          h(
+            "button",
+            { class: `chip${showAll ? " on" : ""}`, onClick: () => openShot(groundId, { all: !showAll, replace: true }) },
+            showAll ? "Everything" : "What decides it"
+          ),
+          h("button", { class: "chip", onClick: () => {
+            closeSheet(true);
+            openGround(groundId);
+          } }, "Full detail"),
+          h("button", { class: "chip", onClick: () => editGround(ground) }, "Edit")
+        ),
+        list
+      );
+    }, { replace });
   }
   function render(state2) {
     const view3 = h("div", {});
     const opts2 = options(state2);
+    const shots = opts2.map((ground) => ({ ground, s: shot(state2, ground) })).sort((a, b) => a.s.dist - b.s.dist);
     view3.append(h("p", { class: "eyebrow" }, "God first, continually"));
     view3.append(h(
-      "h1",
-      { style: "margin:2px 0 6px" },
-      state2.calling?.place ? `Who could I be planted with in ${state2.calling.place}?` : "Who could I be planted with?"
-    ));
-    const bits = [];
-    if (state2.calling?.place) bits.push(`${state2.calling.place} is settled`);
-    if (state2.weighingSince) {
-      const y = Math.floor(Math.max(0, daysBetween(state2.weighingSince, today())) / 365);
-      bits.push(y >= 1 ? `open ${y} year${y > 1 ? "s" : ""}` : "open under a year");
-    }
-    view3.append(h(
-      "p",
-      { class: "muted small" },
-      bits.length ? `${bits.join(" \xB7 ")}. The only question left is who.` : "Name the ministries you're actually weighing."
+      "button",
+      { class: "card card-tap aim", onClick: editAim },
+      h("div", { class: "eyebrow" }, "What I'm going for"),
+      state2.aim ? h("p", { style: "margin:6px 0 0" }, state2.aim) : h(
+        "p",
+        { class: "muted", style: "margin:6px 0 0" },
+        "Not written down yet. One sentence \u2014 the thing that would make you say yes."
+      ),
+      (() => {
+        const bits = [];
+        if (state2.calling?.place) bits.push(`${state2.calling.place} is settled`);
+        if (state2.weighingSince) {
+          const y = Math.floor(Math.max(0, daysBetween(state2.weighingSince, today())) / 365);
+          bits.push(y >= 1 ? `open ${y} year${y > 1 ? "s" : ""}` : "open under a year");
+        }
+        return bits.length ? h("p", { class: "tiny muted", style: "margin:8px 0 0" }, bits.join(" \xB7 ")) : null;
+      })()
     ));
     if (!opts2.length) {
       view3.append(empty(
-        "No ministries on the board yet.",
+        "Nothing on the target yet.",
         "Add the first one",
         () => editGround(null, { kind: "network" })
       ));
       return view3;
     }
-    view3.append(boardTable(state2, opts2));
+    const wrap = h("div", { class: "target-wrap" });
+    wrap.append(targetSvg(shots));
+    view3.append(wrap);
     view3.append(h(
       "div",
-      { class: "row wrap", style: "margin:12px 0 4px" },
-      h(
-        "button",
-        { class: `chip${showAll ? " on" : ""}`, onClick: () => {
-          showAll = !showAll;
-          notify();
-        } },
-        showAll ? "Showing everything" : "Must-haves only"
-      ),
-      h("button", { class: "chip", onClick: () => editGround(null, { kind: "network" }) }, "+ Another option"),
-      h("button", { class: "chip", onClick: editCalling }, state2.calling?.place ? "The calling" : "Name the calling")
+      { class: "ring-key" },
+      RINGS.map((r) => h("span", { class: `key tone-${r.tone}` }, r.label))
     ));
-    view3.append(h("h2", { class: "plain-head" }, "Where each one stands"));
-    const readRows = h("div", { class: "rows" });
-    opts2.forEach((g) => {
-      const r = read(state2, g);
-      const model = CHURCH_MODELS.find((m) => m.id === g.modelId);
-      const stance = model ? byId(MODEL_STANCES, state2.modelStances?.[model.id]?.stance || "unknown") : null;
-      readRows.append(h(
+    const list = h("div", { class: "rows" });
+    shots.forEach(({ ground, s }) => {
+      list.append(h(
         "button",
-        { class: "card-tap", onClick: () => openGround(g.id) },
+        { class: "card-tap", onClick: () => openShot(ground.id) },
         h(
           "div",
           { class: "row spread" },
-          h("strong", { class: "grow" }, g.name),
-          h("span", { class: `small tone-${r.tone}` }, r.word)
+          h("strong", { class: "grow" }, ground.name),
+          h("span", { class: `small tone-${s.tone}` }, s.word)
         ),
-        h("div", { class: "small muted" }, r.why),
-        g.myPart ? h("div", { class: "tiny", style: "margin-top:4px" }, `My part: ${g.myPart}`) : null,
-        model ? h("div", { class: "tiny muted" }, `Runs on ${model.name.toLowerCase()}${stance && stance.id !== "unknown" ? ` \xB7 you: ${stance.label.toLowerCase()}` : ""}`) : null
+        h("div", { class: "small muted" }, s.why),
+        ground.myPart ? h("div", { class: "tiny", style: "margin-top:4px" }, `My part: ${ground.myPart}`) : null
       ));
     });
-    view3.append(readRows);
+    view3.append(list);
+    view3.append(h(
+      "div",
+      { class: "row wrap", style: "margin-top:12px" },
+      h("button", { class: "chip", onClick: () => editGround(null, { kind: "network" }) }, "+ Another option"),
+      h("button", { class: "chip", onClick: editCalling }, state2.calling?.place ? "The calling" : "Name the calling")
+    ));
     return view3;
   }
 
@@ -4820,15 +4932,15 @@ table.board tbody tr:not(.group) + tr:not(.group) td { border-top: 1px solid var
   var title5 = "Journal";
 
   // js/app.js
-  var VIEWS = { board: board_exports, soil: soil_exports, word: word_exports, unsettled: unsettled_exports, journal: journal_exports };
+  var VIEWS = { aim: aim_exports, soil: soil_exports, word: word_exports, unsettled: unsettled_exports, journal: journal_exports };
   var ICONS = {
-    board: '<path d="M3.5 4.5h17v15h-17z"/><path d="M9.5 4.5v15M15 4.5v15"/><path d="M3.5 9.5h17"/>',
+    aim: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor"/>',
     soil: '<path d="M3.5 9h17"/><path d="M7 9v11M12 9v11M17 9v11"/><path d="M4 5.5c2.5-2 5-2 8 0s5.5 2 8 0"/>',
     word: '<path d="M4 4.5A2 2 0 0 1 6 3h5v17H6a2 2 0 0 0-2 1.5z"/><path d="M20 4.5A2 2 0 0 0 18 3h-5v17h5a2 2 0 0 1 2 1.5z"/><path d="M12 7v3M10.5 8.5h3"/>',
     unsettled: '<path d="M12 3.5 21 19H3z"/><path d="M12 10v4"/><circle cx="12" cy="16.6" r=".6" fill="currentColor"/>',
     journal: '<path d="M6 3h12v18H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M8.5 3v18"/>'
   };
-  var LABELS = { board: "Weigh", soil: "What matters", unsettled: "In the way", word: "Word", journal: "Log" };
+  var LABELS = { aim: "Target", soil: "What matters", unsettled: "In the way", word: "Word", journal: "Log" };
   function renderTabs(active) {
     const nav = clear($("#tabs"));
     ROUTES.forEach((r) => {

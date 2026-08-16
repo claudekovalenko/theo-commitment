@@ -231,7 +231,9 @@ export function seedState() {
     seeded: true,
     // He's been carrying this question for about four years.
     weighingSince: new Date(new Date().getFullYear() - 4, 0, 1).toISOString().slice(0, 10),
-    appliedSeeds: ['antioch', 'consistent-community', 'weighing-since', 'e3-fruit', 'npl-house-churches'],
+    aim: 'A ministry I could be planted with — where I\'d leave my kids unsupervised, '
+      + 'where my son comes back more on mission, that makes disciples and doesn\'t cross my lines.',
+    appliedSeeds: ['antioch', 'consistent-community', 'weighing-since', 'e3-fruit', 'npl-house-churches', 'the-aim'],
     domains: DEFAULT_DOMAINS.map((d) => ({ ...d })),
     convictions,
     contexts: [here, e3, npl, antioch],
