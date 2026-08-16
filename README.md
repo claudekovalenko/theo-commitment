@@ -59,6 +59,38 @@ Underneath the plan, what you've learned so far — the two that decide it, your
 walls, your must-haves, your wife — each tappable to change and to write what you
 actually saw. That's evidence now, not the score.
 
+## Me and them, side by side
+
+The piece that ties the two halves together. A tick against a requirement says
+whether they satisfied you; it doesn't say **what they actually believe**. So
+every barrier and everything filed under theology and ministry gets two columns:
+
+| Me | E3 |
+| --- | --- |
+| Believers baptism by immersion, after a credible profession. | They baptise on profession, in homes, often the same week. No membership class, no elders present. |
+
+Theirs goes in **their words, not your summary of them** — and with who told
+you. If you can't write it down, you haven't asked properly yet, and the app
+says so.
+
+Each pair gets one verdict: **the same thing · close enough to work · genuinely
+different · opposed · haven't asked them.** The read across the top counts them:
+*"1 of 9 asked. 8 you still haven't put to them. The unasked ones are the work."*
+
+Two things fall out of it, and they're the point:
+
+- **A blank on your side shows up as a blank.** *Baptism — Me: not written down
+  yet.* You can't compare their position to nothing, so the gap sends you to
+  Settling.
+- **Anything you haven't asked becomes a step**, in one tap: *"Ask E3 where they
+  stand on the role of women"* lands straight in that ministry's plan with a
+  date.
+
+And being **opposed** moves the shot. Not a deduction — it pushes them to the
+outer ring, because doing more with people you're opposed to doesn't make you at
+home with them: *"You're opposed to them on 1 thing you hold. Steps don't close
+that."*
+
 ## The calling
 
 If the city is settled, you say so once — **Called to Los Angeles**, why, and by
@@ -366,6 +398,7 @@ js/seed.js            starter content
 js/ui.js              DOM helpers, sheet, form controls
 js/editors.js         every add/edit form, plus breaking ground
 js/goals.js           the ten steps toward being at home somewhere
+js/align.js           my theology beside theirs
 js/views/aim.js       the target — the screen the app is for
 js/views/*.js         one file per tab, plus settings
 tools/make_icons.py   regenerates icons/ (no dependencies)

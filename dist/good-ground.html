@@ -385,6 +385,16 @@ select { appearance: none; }
   margin: 22px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line);
 }
 
+/* ---------- my theology beside theirs ---------- */
+
+.belief .sides { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+.belief .side { min-width: 0; }
+.belief .side + .side {
+  padding-left: 10px;
+  border-left: 1px solid var(--line);
+}
+.belief .side .eyebrow { margin-bottom: 3px; }
+
 </style>
 </head>
 <body>
@@ -1821,6 +1831,77 @@ select { appearance: none; }
     { id: "unknown", label: "Haven't decided", tone: "unknown", weight: null }
   ];
 
+  // js/align.js
+  var ALIGN = [
+    { id: "same", label: "The same thing", tone: "good", short: "Same" },
+    { id: "close", label: "Close enough to work", tone: "ok", short: "Close" },
+    { id: "different", label: "Genuinely different", tone: "thin", short: "Different" },
+    { id: "opposed", label: "Opposed", tone: "bad", short: "Opposed" },
+    { id: "unknown", label: "Haven't asked them", tone: "unknown", short: "Not asked" }
+  ];
+  function beliefs(state2) {
+    const out = (state2.barriers || []).map((b) => ({
+      id: b.id,
+      kind: "barrier",
+      title: b.title,
+      mine: b.position || "",
+      watching: b.detail || "",
+      hard: b.hard
+    }));
+    state2.convictions.filter((c) => c.domainId === "ministry").forEach((c) => out.push({
+      id: c.id,
+      kind: "conviction",
+      title: c.title,
+      mine: c.settledStatement || c.summary || "",
+      watching: c.practice || "",
+      scriptures: c.scriptures || "",
+      forming: !c.settledStatement && (c.weight === "forming" || !!c.forming)
+    }));
+    return out;
+  }
+  var theirsOn = (check, id) => check?.theirs?.[id] || null;
+  function alignTally(state2, check) {
+    const list = beliefs(state2);
+    const counts = { same: 0, close: 0, different: 0, opposed: 0, unknown: 0 };
+    list.forEach((b) => {
+      const t = theirsOn(check, b.id);
+      counts[t?.align && counts[t.align] !== void 0 ? t.align : "unknown"] += 1;
+    });
+    return { list, counts, total: list.length, asked: list.length - counts.unknown };
+  }
+  function alignRead(t) {
+    if (!t.total) return { word: "Nothing to compare", tone: "unknown", why: "No barriers or theology written down yet." };
+    if (t.counts.opposed) {
+      return {
+        word: "Opposed",
+        tone: "bad",
+        why: `You're opposed on ${t.counts.opposed} of ${t.total}. That's not a gap you close by liking them.`
+      };
+    }
+    if (!t.asked) {
+      return {
+        word: "Never asked",
+        tone: "unknown",
+        why: `${t.total} things you hold, and you haven't asked them about any of it.`
+      };
+    }
+    if (t.counts.unknown) {
+      return {
+        word: `${t.asked} of ${t.total} asked`,
+        tone: "thin",
+        why: `${t.counts.unknown} you still haven't put to them. The unasked ones are the work.`
+      };
+    }
+    if (t.counts.different) {
+      return {
+        word: "Real differences",
+        tone: "thin",
+        why: `Lined up on ${t.counts.same + t.counts.close}, genuinely different on ${t.counts.different}. Name what those cost.`
+      };
+    }
+    return { word: "Lined up", tone: "good", why: "You asked about all of it and none of it divides you." };
+  }
+
   // js/editors.js
   var opts = (list) => list.map((c) => ({ id: c.id, label: c.title || c.name || c.label }));
   function saveBar(onSave, onDelete) {
@@ -2893,6 +2974,98 @@ select { appearance: none; }
       )
     ));
   }
+  function compareBelief(groundId, itemId) {
+    const state2 = get();
+    const ground = state2.contexts.find((c) => c.id === groundId);
+    const item = beliefs(state2).find((b) => b.id === itemId);
+    if (!item || !ground) return;
+    const check = latestCheck(state2.checks, groundId);
+    const held = theirsOn(check, itemId) || {};
+    let position = held.position || "";
+    let align = held.align || "unknown";
+    let source = held.source || "";
+    openSheet(item.title, () => frag(
+      h("p", { class: "eyebrow" }, item.hard ? "A line I don't cross" : "Theology & ministry"),
+      h(
+        "div",
+        { class: "card" },
+        h("div", { class: "eyebrow" }, "Where I stand"),
+        item.mine ? h("p", { style: "margin:6px 0 0" }, item.mine) : h(
+          "p",
+          { class: "tone-thin", style: "margin:6px 0 0" },
+          "You haven't written your own position on this yet. Settle it first \u2014 you can't compare theirs to a blank."
+        ),
+        item.forming ? h("p", { class: "tiny tone-thin", style: "margin:6px 0 0" }, "Still forming") : null,
+        item.scriptures ? h("p", { class: "tiny", style: "margin:6px 0 0; color:var(--moss)" }, item.scriptures) : null
+      ),
+      field(`Where ${ground.name} stands`, area({
+        value: position,
+        style: "min-height:130px",
+        placeholder: "In their words, as near as you can get them \u2014 not your summary of them. If you can't write it, you haven't asked properly yet.",
+        onInput: (e) => {
+          position = e.target.value;
+        }
+      })),
+      field("How I know", input({
+        value: source,
+        placeholder: "Who said it, or where you saw it practised.",
+        onInput: (e) => {
+          source = e.target.value;
+        }
+      })),
+      field(
+        "So where does that leave us?",
+        segmented(ALIGN, align, (v) => {
+          align = v;
+        }),
+        item.watching ? `What you said you'd watch for: ${item.watching}` : null
+      ),
+      h(
+        "div",
+        { class: "stack", style: "margin-top:18px" },
+        h("button", {
+          class: "btn primary block",
+          onClick: () => {
+            update((st) => {
+              let k = st.checks.filter((x) => x.contextId === groundId).sort((a, b) => a.date < b.date ? 1 : -1)[0];
+              if (!k) {
+                k = {
+                  id: uid(),
+                  contextId: groundId,
+                  date: today(),
+                  ratings: {},
+                  barriers: {},
+                  theirs: {},
+                  us: { level: "na", note: "" },
+                  kid: { level: "unknown", note: "" },
+                  formation: { level: "unknown", note: "" },
+                  home: "unknown",
+                  settle: "unknown",
+                  summary: ""
+                };
+                st.checks.push(k);
+              }
+              if (!k.theirs) k.theirs = {};
+              k.theirs[itemId] = { position, align, source, at: today() };
+            });
+            closeSheet();
+            toast("Saved");
+          }
+        }, "Save"),
+        align === "unknown" ? h("button", {
+          class: "btn ghost block",
+          onClick: () => {
+            closeSheet();
+            editGoal(null, {
+              groundId,
+              title: `Ask ${ground.name} where they stand on ${item.title.toLowerCase()}`,
+              why: item.watching || "You hold this. You don't know what they hold."
+            });
+          }
+        }, "Make it a step \u2014 go and ask them") : null
+      )
+    ));
+  }
 
   // js/views/settings.js
   function download(name, text) {
@@ -3188,6 +3361,7 @@ select { appearance: none; }
   __export(aim_exports, {
     editAim: () => editAim,
     editHomeMeans: () => editHomeMeans,
+    openAlign: () => openAlign,
     openShot: () => openShot,
     render: () => render,
     shot: () => shot,
@@ -3787,6 +3961,7 @@ select { appearance: none; }
     const kid = check?.kid?.level || "unknown";
     const softer = check?.formation?.level === "softer";
     const left = plan.total - plan.done;
+    const opposed = alignTally(state2, check).counts.opposed;
     let out = dist;
     let word;
     let why;
@@ -3794,6 +3969,10 @@ select { appearance: none; }
       out = Math.max(dist, RINGS[3].at);
       word = "Barely on it";
       why = "You wouldn't leave your kids with them. Nothing else moves it in.";
+    } else if (opposed) {
+      out = Math.max(dist, RINGS[3].at);
+      word = "Opposed";
+      why = `You're opposed to them on ${opposed} thing${opposed > 1 ? "s" : ""} you hold. Steps don't close that.`;
     } else if (softer) {
       out = Math.max(dist, RINGS[3].at);
       word = "Barely on it";
@@ -3997,6 +4176,61 @@ select { appearance: none; }
     bar.append(fill);
     return bar;
   }
+  function openAlign(groundId) {
+    openSheet(() => {
+      const g = get().contexts.find((c) => c.id === groundId);
+      return `Me and ${g?.name || "them"}`;
+    }, () => {
+      const state2 = get();
+      const ground = state2.contexts.find((c) => c.id === groundId);
+      if (!ground) return h("p", { class: "muted" }, "Gone.");
+      const check = latestCheck(state2.checks, groundId);
+      const t = alignTally(state2, check);
+      const r = alignRead(t);
+      const list = h("div", { class: "rows" });
+      t.list.forEach((b) => {
+        const held = theirsOn(check, b.id);
+        const a = byId(ALIGN, held?.align || "unknown");
+        list.append(h(
+          "button",
+          { class: "card-tap belief", onClick: () => compareBelief(groundId, b.id) },
+          h(
+            "div",
+            { class: "row spread" },
+            h("strong", { class: "grow" }, b.title),
+            h("span", { class: `small tone-${a.tone}` }, a.short)
+          ),
+          h(
+            "div",
+            { class: "sides" },
+            h(
+              "div",
+              { class: "side" },
+              h("div", { class: "eyebrow" }, "Me"),
+              b.mine ? h("div", { class: "small" }, b.mine) : h("div", { class: "small tone-thin" }, "Not written down yet")
+            ),
+            h(
+              "div",
+              { class: "side" },
+              h("div", { class: "eyebrow" }, ground.name),
+              held?.position ? h("div", { class: "small" }, held.position) : h("div", { class: "small tone-thin" }, "Never asked")
+            )
+          ),
+          held?.source ? h("div", { class: "tiny muted" }, `Heard from: ${held.source}`) : null
+        ));
+      });
+      return frag(
+        h("p", { class: `eyebrow tone-${r.tone}` }, r.word),
+        h("p", { class: "verdict", style: "margin-top:2px" }, r.why),
+        h(
+          "p",
+          { class: "small muted" },
+          "Their position in their words, not your summary of them. If you can't write it down, you haven't asked properly yet \u2014 and every one you can't answer can become a step."
+        ),
+        list
+      );
+    });
+  }
   function openShot(groundId, { all = false, replace = false } = {}) {
     const showAll = all;
     openSheet(() => get().contexts.find((c) => c.id === groundId)?.name || "", () => {
@@ -4077,6 +4311,30 @@ select { appearance: none; }
           { class: "small muted" },
           `Runs on ${model.name.toLowerCase()}${stance && stance.id !== "unknown" ? ` \u2014 you: ${stance.label.toLowerCase()}` : ""}`
         ) : null,
+        (() => {
+          const t = alignTally(state2, check);
+          const r = alignRead(t);
+          return h(
+            "button",
+            { class: "card card-tap", onClick: () => openAlign(groundId) },
+            h(
+              "div",
+              { class: "row spread" },
+              h("span", { class: "eyebrow" }, "My theology beside theirs"),
+              h("span", { class: `small tone-${r.tone}` }, r.word)
+            ),
+            h("p", { class: "small muted", style: "margin:6px 0 0" }, r.why),
+            t.total ? h(
+              "div",
+              { class: "row wrap", style: "margin-top:8px; gap:4px 12px" },
+              ALIGN.filter((a) => t.counts[a.id]).map((a) => h(
+                "span",
+                { class: `tiny tone-${a.tone}` },
+                `${t.counts[a.id]} ${a.short.toLowerCase()}`
+              ))
+            ) : null
+          );
+        })(),
         h("h3", { class: "plain-head" }, plan.total ? `The plan \u2014 ${plan.done} of ${plan.total} done` : "The plan"),
         plan.total ? progressBar(plan) : null,
         plan.total ? planList : h(

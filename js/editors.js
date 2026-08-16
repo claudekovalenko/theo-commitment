@@ -5,9 +5,10 @@ import { uid, today } from './store.js';
 import {
   WEIGHTS, LEVELS, NOTE_KINDS, KINDS, STAGES, PEOPLE_STAGES, US_LEVELS, HORIZONS,
   KID_LEVELS, FORMATION_LEVELS, HOME_LEVELS, SETTLE_LEVELS, PLACE_MODES, BARRIER_STATES,
-  byId, survey, verdict,
+  byId, survey, verdict, latestCheck,
 } from './model.js';
 import { CHURCH_MODELS, MODEL_STANCES } from './models.js';
+import { ALIGN, beliefs, theirsOn } from './align.js';
 import {
   h, frag, field, input, area, segmented, chipPicker, openSheet, closeSheet,
   confirmSheet, toast,
@@ -844,5 +845,87 @@ export function completeGoal(id) {
         },
       }, 'Mark it done'),
       h('button', { class: 'btn ghost block', onClick: () => closeSheet() }, 'Not yet')),
+  ));
+}
+
+/* ---------- my theology beside theirs ---------- */
+
+/**
+ * One belief, both sides. Mine on the left in my own words; theirs written down
+ * as they'd say it, not as I'd summarise it — and where I heard it from.
+ */
+export function compareBelief(groundId, itemId) {
+  const state = store.get();
+  const ground = state.contexts.find((c) => c.id === groundId);
+  const item = beliefs(state).find((b) => b.id === itemId);
+  if (!item || !ground) return;
+  const check = latestCheck(state.checks, groundId);
+  const held = theirsOn(check, itemId) || {};
+
+  let position = held.position || '';
+  let align = held.align || 'unknown';
+  let source = held.source || '';
+
+  openSheet(item.title, () => frag(
+    h('p', { class: 'eyebrow' }, item.hard ? 'A line I don\'t cross' : 'Theology & ministry'),
+
+    h('div', { class: 'card' },
+      h('div', { class: 'eyebrow' }, 'Where I stand'),
+      item.mine
+        ? h('p', { style: 'margin:6px 0 0' }, item.mine)
+        : h('p', { class: 'tone-thin', style: 'margin:6px 0 0' },
+          'You haven\'t written your own position on this yet. Settle it first — you can\'t '
+          + 'compare theirs to a blank.'),
+      item.forming ? h('p', { class: 'tiny tone-thin', style: 'margin:6px 0 0' }, 'Still forming') : null,
+      item.scriptures ? h('p', { class: 'tiny', style: 'margin:6px 0 0; color:var(--moss)' }, item.scriptures) : null),
+
+    field(`Where ${ground.name} stands`, area({
+      value: position, style: 'min-height:130px',
+      placeholder: 'In their words, as near as you can get them — not your summary of them. '
+        + 'If you can\'t write it, you haven\'t asked properly yet.',
+      onInput: (e) => { position = e.target.value; },
+    })),
+    field('How I know', input({
+      value: source, placeholder: 'Who said it, or where you saw it practised.',
+      onInput: (e) => { source = e.target.value; },
+    })),
+    field('So where does that leave us?', segmented(ALIGN, align, (v) => { align = v; }),
+      item.watching ? `What you said you'd watch for: ${item.watching}` : null),
+
+    h('div', { class: 'stack', style: 'margin-top:18px' },
+      h('button', {
+        class: 'btn primary block',
+        onClick: () => {
+          store.update((st) => {
+            let k = st.checks.filter((x) => x.contextId === groundId)
+              .sort((a, b) => (a.date < b.date ? 1 : -1))[0];
+            if (!k) {
+              k = {
+                id: uid(), contextId: groundId, date: today(), ratings: {}, barriers: {}, theirs: {},
+                us: { level: 'na', note: '' }, kid: { level: 'unknown', note: '' },
+                formation: { level: 'unknown', note: '' }, home: 'unknown', settle: 'unknown', summary: '',
+              };
+              st.checks.push(k);
+            }
+            if (!k.theirs) k.theirs = {};
+            k.theirs[itemId] = { position, align, source, at: today() };
+          });
+          closeSheet();
+          toast('Saved');
+        },
+      }, 'Save'),
+      align === 'unknown'
+        ? h('button', {
+          class: 'btn ghost block',
+          onClick: () => {
+            closeSheet();
+            editGoal(null, {
+              groundId,
+              title: `Ask ${ground.name} where they stand on ${item.title.toLowerCase()}`,
+              why: item.watching || 'You hold this. You don\'t know what they hold.',
+            });
+          },
+        }, 'Make it a step — go and ask them')
+        : null),
   ));
 }

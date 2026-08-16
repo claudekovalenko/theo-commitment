@@ -369,3 +369,13 @@ select { appearance: none; }
   color: var(--muted); font-family: inherit; font-weight: 700;
   margin: 22px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line);
 }
+
+/* ---------- my theology beside theirs ---------- */
+
+.belief .sides { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+.belief .side { min-width: 0; }
+.belief .side + .side {
+  padding-left: 10px;
+  border-left: 1px solid var(--line);
+}
+.belief .side .eyebrow { margin-bottom: 3px; }

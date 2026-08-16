@@ -13,7 +13,8 @@ import {
 import {
   h, frag, empty, openSheet, closeSheet, field, area, toast, daysBetween, relDate, fmtDate,
 } from './../ui.js';
-import { editGround, editCalling, editGoal, completeGoal } from './../editors.js';
+import { editGround, editCalling, editGoal, completeGoal, compareBelief } from './../editors.js';
+import { ALIGN, beliefs, theirsOn, alignTally, alignRead } from './../align.js';
 import { GOAL_TEMPLATES, goalsFor, progressFor, nextGoal } from './../goals.js';
 import { CHURCH_MODELS, MODEL_STANCES } from './../models.js';
 import { openGround } from './land.js';
@@ -170,6 +171,7 @@ export function shot(state, ground) {
   const kid = check?.kid?.level || 'unknown';
   const softer = check?.formation?.level === 'softer';
   const left = plan.total - plan.done;
+  const opposed = alignTally(state, check).counts.opposed;
   let out = dist;
   let word;
   let why;
@@ -180,6 +182,11 @@ export function shot(state, ground) {
     out = Math.max(dist, RINGS[3].at);
     word = 'Barely on it';
     why = 'You wouldn\'t leave your kids with them. Nothing else moves it in.';
+  } else if (opposed) {
+    // Doing more with people you're opposed to doesn't make you at home with them.
+    out = Math.max(dist, RINGS[3].at);
+    word = 'Opposed';
+    why = `You're opposed to them on ${opposed} thing${opposed > 1 ? 's' : ''} you hold. Steps don't close that.`;
   } else if (softer) {
     out = Math.max(dist, RINGS[3].at);
     word = 'Barely on it';
@@ -375,6 +382,52 @@ function progressBar(plan) {
   return bar;
 }
 
+/** My theology beside theirs, line by line. The gap is the point. */
+export function openAlign(groundId) {
+  openSheet(() => {
+    const g = store.get().contexts.find((c) => c.id === groundId);
+    return `Me and ${g?.name || 'them'}`;
+  }, () => {
+    const state = store.get();
+    const ground = state.contexts.find((c) => c.id === groundId);
+    if (!ground) return h('p', { class: 'muted' }, 'Gone.');
+    const check = latestCheck(state.checks, groundId);
+    const t = alignTally(state, check);
+    const r = alignRead(t);
+
+    const list = h('div', { class: 'rows' });
+    t.list.forEach((b) => {
+      const held = theirsOn(check, b.id);
+      const a = byId(ALIGN, held?.align || 'unknown');
+      list.append(h('button', { class: 'card-tap belief', onClick: () => compareBelief(groundId, b.id) },
+        h('div', { class: 'row spread' },
+          h('strong', { class: 'grow' }, b.title),
+          h('span', { class: `small tone-${a.tone}` }, a.short)),
+        h('div', { class: 'sides' },
+          h('div', { class: 'side' },
+            h('div', { class: 'eyebrow' }, 'Me'),
+            b.mine
+              ? h('div', { class: 'small' }, b.mine)
+              : h('div', { class: 'small tone-thin' }, 'Not written down yet')),
+          h('div', { class: 'side' },
+            h('div', { class: 'eyebrow' }, ground.name),
+            held?.position
+              ? h('div', { class: 'small' }, held.position)
+              : h('div', { class: 'small tone-thin' }, 'Never asked'))),
+        held?.source ? h('div', { class: 'tiny muted' }, `Heard from: ${held.source}`) : null));
+    });
+
+    return frag(
+      h('p', { class: `eyebrow tone-${r.tone}` }, r.word),
+      h('p', { class: 'verdict', style: 'margin-top:2px' }, r.why),
+      h('p', { class: 'small muted' },
+        'Their position in their words, not your summary of them. If you can\'t write it down, '
+        + 'you haven\'t asked properly yet — and every one you can\'t answer can become a step.'),
+      list,
+    );
+  });
+}
+
 /** One ministry, opened: what at home here means, the plan, then what I've learned. */
 export function openShot(groundId, { all = false, replace = false } = {}) {
   const showAll = all;
@@ -437,6 +490,21 @@ export function openShot(groundId, { all = false, replace = false } = {}) {
       ground.output ? h('p', { class: 'small' }, h('strong', {}, 'What it produces: '), ground.output) : null,
       model ? h('p', { class: 'small muted' },
         `Runs on ${model.name.toLowerCase()}${stance && stance.id !== 'unknown' ? ` — you: ${stance.label.toLowerCase()}` : ''}`) : null,
+
+      (() => {
+        const t = alignTally(state, check);
+        const r = alignRead(t);
+        return h('button', { class: 'card card-tap', onClick: () => openAlign(groundId) },
+          h('div', { class: 'row spread' },
+            h('span', { class: 'eyebrow' }, 'My theology beside theirs'),
+            h('span', { class: `small tone-${r.tone}` }, r.word)),
+          h('p', { class: 'small muted', style: 'margin:6px 0 0' }, r.why),
+          t.total
+            ? h('div', { class: 'row wrap', style: 'margin-top:8px; gap:4px 12px' },
+              ALIGN.filter((a) => t.counts[a.id]).map((a) => h('span', { class: `tiny tone-${a.tone}` },
+                `${t.counts[a.id]} ${a.short.toLowerCase()}`)))
+            : null);
+      })(),
 
       h('h3', { class: 'plain-head' }, plan.total ? `The plan — ${plan.done} of ${plan.total} done` : 'The plan'),
       plan.total ? progressBar(plan) : null,
