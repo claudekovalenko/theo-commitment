@@ -308,6 +308,59 @@ select { appearance: none; }
   * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
 
+/* ---------- the board: every option in a column, everything that matters in a row ---------- */
+
+.board-wrap { margin: 14px 0 4px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+table.board { border-collapse: collapse; width: 100%; font-size: .84rem; }
+
+table.board th, table.board td { padding: 0; vertical-align: middle; }
+
+table.board .rowhead {
+  position: sticky; left: 0; z-index: 2;
+  background: var(--card);
+  text-align: left; font-weight: 500; color: var(--ink);
+  padding: 9px 9px; min-width: 8.4rem; max-width: 11rem;
+  border-right: 1px solid var(--line);
+  line-height: 1.25;
+}
+table.board thead .rowhead { background: var(--card); }
+table.board thead th { border-bottom: 1px solid var(--line); }
+
+.colhead {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  width: 100%; min-width: 4.2rem; padding: 9px 4px;
+  background: none; border: 0; font: inherit; color: var(--ink); cursor: pointer;
+}
+.colhead .name { font-weight: 650; font-size: .84rem; }
+.verdict-chip { font-size: .66rem; text-transform: uppercase; letter-spacing: .05em; font-weight: 700; }
+
+table.board tr.group th {
+  text-align: left; padding: 12px 10px 5px;
+  font-size: .66rem; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--muted); background: var(--paper);
+  position: sticky; left: 0;
+}
+table.board tbody tr:not(.group) + tr:not(.group) th,
+table.board tbody tr:not(.group) + tr:not(.group) td { border-top: 1px solid var(--line); }
+
+.cell {
+  display: grid; place-items: center;
+  width: 100%; min-width: 4.2rem; min-height: 44px;
+  background: none; border: 0; cursor: pointer;
+  font-size: 1.15rem; font-weight: 700; line-height: 1;
+  color: var(--muted);
+}
+.cell:active { background: var(--moss-soft); }
+.cell.noted { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+
+.mark { display: inline-block; width: 1.2em; font-weight: 700; }
+
+.plain-head {
+  font-size: .7rem; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--muted); font-family: inherit; font-weight: 700;
+  margin: 22px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line);
+}
+
 </style>
 </head>
 <body>
@@ -426,11 +479,11 @@ select { appearance: none; }
     { id: "preference", label: "Nice to have", weight: 0.5, help: "I hold it with an open hand." }
   ];
   var LEVELS = [
-    { id: "aligned", label: "Yes", score: 1, help: "The ground has it." },
-    { id: "mostly", label: "Mostly", score: 0.72, help: "Close enough to work with." },
-    { id: "tension", label: "Thin", score: 0.3, help: "Real friction. I feel it." },
-    { id: "conflict", label: "No", score: 0, help: "It isn't here and won't be." },
-    { id: "unknown", label: "Unsurveyed", score: null, help: "I haven't looked hard enough to say." }
+    { id: "aligned", label: "Yes", score: 1, tone: "good", help: "They have it." },
+    { id: "mostly", label: "Mostly", score: 0.72, tone: "ok", help: "Close enough to work with." },
+    { id: "tension", label: "Thin", score: 0.3, tone: "thin", help: "Real friction. I feel it." },
+    { id: "conflict", label: "No", score: 0, tone: "bad", help: "It isn't there and won't be." },
+    { id: "unknown", label: "Don't know", score: null, tone: "unknown", help: "I haven't seen enough to say." }
   ];
   var US_LEVELS = [
     { id: "together", label: "We're agreed", tone: "good" },
@@ -525,12 +578,6 @@ select { appearance: none; }
   function latestCheck(checks, groundId) {
     return checks.filter((k) => k.contextId === groundId).sort((a, b) => a.date < b.date ? 1 : -1)[0];
   }
-  var callingPlace = (state2) => state2.contexts.find((c) => c.id === state2.calling?.placeId) || null;
-  var withinCalling = (state2) => {
-    const place = callingPlace(state2);
-    if (!place) return state2.contexts.filter((c) => c.kind !== "place");
-    return state2.contexts.filter((c) => c.kind !== "place" && (c.placeId === place.id || !c.placeId));
-  };
   var impliedPlace = (grounds, g) => {
     if (!g) return null;
     if (g.kind === "place") return g;
@@ -671,18 +718,12 @@ select { appearance: none; }
     if (b) parts.push(`${b} thing${b > 1 ? "s" : ""} unsettled`);
     return `${parts.join(" and ")} between you and a yes.`;
   }
-  function rankGrounds(state2) {
-    return state2.contexts.filter((g) => g.kind === "place").map((ground) => ({ ground, s: survey(state2, ground) })).sort((a, b) => {
-      const rank = (x) => x.ground.stage === "built" ? 3 : x.ground.stage === "ruled-out" ? -1 : x.s.ready ? 2 : 1;
-      return rank(b) - rank(a) || b.s.depth - a.s.depth;
-    });
-  }
 
   // js/seed.js
-  var conviction = (domainId, title7, weight, summary, scriptures, practice, forming = "") => ({
+  var conviction = (domainId, title6, weight, summary, scriptures, practice, forming = "") => ({
     id: uid(),
     domainId,
-    title: title7,
+    title: title6,
     weight,
     summary,
     scriptures,
@@ -1209,6 +1250,9 @@ select { appearance: none; }
     listeners.forEach((l) => l(state));
     return state;
   }
+  function notify() {
+    listeners.forEach((l) => l(state));
+  }
   var listeners = /* @__PURE__ */ new Set();
   function subscribe(fn) {
     listeners.add(fn);
@@ -1338,12 +1382,12 @@ select { appearance: none; }
   function applyLateSeeds(s) {
     const done = new Set(s.appliedSeeds || []);
     const before = done.size;
-    const mark = (id) => {
+    const mark2 = (id) => {
       done.add(id);
     };
     if (!done.has("weighing-since") && !s.weighingSince) {
       s.weighingSince = new Date((/* @__PURE__ */ new Date()).getFullYear() - 4, 0, 1).toISOString().slice(0, 10);
-      mark("weighing-since");
+      mark2("weighing-since");
     }
     if (!done.has("consistent-community") && !s.convictions.some((c) => (c.title || "").toLowerCase() === "community that stays")) {
       s.convictions.push({
@@ -1358,7 +1402,7 @@ select { appearance: none; }
         seeded: true,
         createdAt: (/* @__PURE__ */ new Date()).toISOString()
       });
-      mark("consistent-community");
+      mark2("consistent-community");
     }
     if (!done.has("antioch") && !s.contexts.some((c) => (c.name || "").toLowerCase().includes("antioch"))) {
       s.contexts.push({
@@ -1374,7 +1418,7 @@ select { appearance: none; }
         seeded: true,
         createdAt: (/* @__PURE__ */ new Date()).toISOString()
       });
-      mark("antioch");
+      mark2("antioch");
     }
     if (!done.has("e3-fruit")) {
       const e3 = s.contexts.find((c) => /\be3\b/i.test(c.name || ""));
@@ -1394,12 +1438,12 @@ select { appearance: none; }
             "Am I against the house church model, or against the ones I've seen?",
             "One sentence I'd say out loud, and the specific thing that would change my mind."
           ]
-        ].forEach(([title7, wouldSettle]) => {
-          if (s.blocks.some((b) => b.title === title7)) return;
+        ].forEach(([title6, wouldSettle]) => {
+          if (s.blocks.some((b) => b.title === title6)) return;
           s.blocks.push({
             id: uid(),
             groundId: e3.id,
-            title: title7,
+            title: title6,
             wouldSettle,
             who: "",
             due: "",
@@ -1409,7 +1453,7 @@ select { appearance: none; }
             createdAt: (/* @__PURE__ */ new Date()).toISOString()
           });
         });
-        mark("e3-fruit");
+        mark2("e3-fruit");
       }
     }
     if (!done.has("npl-house-churches")) {
@@ -1446,7 +1490,7 @@ select { appearance: none; }
           createdAt: (/* @__PURE__ */ new Date()).toISOString()
         });
       }
-      mark("npl-house-churches");
+      mark2("npl-house-churches");
     }
     s.appliedSeeds = [...done];
     return done.size !== before;
@@ -1491,9 +1535,9 @@ select { appearance: none; }
     }, 2200);
   }
   var stack = [];
-  function openSheet(title7, build, { replace = false } = {}) {
+  function openSheet(title6, build, { replace = false } = {}) {
     if (replace) stack.pop();
-    stack.push({ title: title7, build });
+    stack.push({ title: title6, build });
     renderSheet();
   }
   function closeSheet(all = false) {
@@ -1524,9 +1568,9 @@ select { appearance: none; }
       if (e.key === "Escape" && stack.length) closeSheet();
     });
   }
-  function confirmSheet({ title: title7, message, confirmLabel = "Confirm", danger = false }) {
+  function confirmSheet({ title: title6, message, confirmLabel = "Confirm", danger = false }) {
     return new Promise((resolve) => {
-      openSheet(title7, () => {
+      openSheet(title6, () => {
         const done = (v) => {
           closeSheet();
           resolve(v);
@@ -1565,10 +1609,10 @@ select { appearance: none; }
   function area(props = {}) {
     return h("textarea", props);
   }
-  function segmented(options, value, onChange) {
+  function segmented(options2, value, onChange) {
     const wrap = h("div", { class: "seg" });
     const paint = (v) => [...wrap.children].forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.id === v)));
-    options.forEach((o) => wrap.append(h("button", {
+    options2.forEach((o) => wrap.append(h("button", {
       type: "button",
       dataset: { id: o.id },
       title: o.help || "",
@@ -1580,10 +1624,10 @@ select { appearance: none; }
     paint(value);
     return wrap;
   }
-  function chipPicker(options, selected, onChange) {
+  function chipPicker(options2, selected, onChange) {
     const chosen = new Set(selected);
     const wrap = h("div", { class: "row wrap" });
-    options.forEach((o) => {
+    options2.forEach((o) => {
       const b = h("button", { type: "button", class: `chip${chosen.has(o.id) ? " on" : ""}` }, o.label);
       b.addEventListener("click", () => {
         if (chosen.has(o.id)) chosen.delete(o.id);
@@ -1593,7 +1637,7 @@ select { appearance: none; }
       });
       wrap.append(b);
     });
-    return options.length ? wrap : h("p", { class: "small muted" }, "Nothing to tag yet.");
+    return options2.length ? wrap : h("p", { class: "small muted" }, "Nothing to tag yet.");
   }
   function empty(text, actionLabel, onAction) {
     return h(
@@ -1603,11 +1647,11 @@ select { appearance: none; }
       actionLabel ? h("button", { class: "btn sm", onClick: onAction }, actionLabel) : null
     );
   }
-  function section(title7, actionLabel, onAction) {
+  function section(title6, actionLabel, onAction) {
     return h(
       "div",
       { class: "section" },
-      h("h2", {}, title7),
+      h("h2", {}, title6),
       actionLabel ? h("button", { class: "icon-btn", onClick: onAction }, actionLabel) : null
     );
   }
@@ -1635,13 +1679,23 @@ select { appearance: none; }
   }
 
   // js/router.js
-  var ROUTES = ["target", "land", "soil", "word", "unsettled", "journal"];
-  var OLD = { compass: "target", where: "land", plays: "land", convictions: "soil", do: "unsettled", log: "journal", people: "journal" };
+  var ROUTES = ["board", "soil", "unsettled", "word", "journal"];
+  var OLD = {
+    compass: "board",
+    target: "board",
+    where: "board",
+    land: "board",
+    plays: "board",
+    convictions: "soil",
+    do: "unsettled",
+    log: "journal",
+    people: "journal"
+  };
   var handler = null;
   function currentRoute() {
     const r = location.hash.replace(/^#\/?/, "");
     if (OLD[r]) return OLD[r];
-    return ROUTES.includes(r) ? r : "target";
+    return ROUTES.includes(r) ? r : "board";
   }
   function onRoute(fn) {
     handler = fn;
@@ -2229,19 +2283,19 @@ select { appearance: none; }
           s.gate ? h("p", { class: "tiny tone-thin", style: "margin:8px 0 0" }, s.gate) : null
         );
       };
-      const rows = h("div", { class: "stack" });
+      const rows2 = h("div", { class: "stack" });
       const paintRows = () => {
-        rows.replaceChildren();
+        rows2.replaceChildren();
         state2.domains.forEach((domain) => {
           if (only && only !== domain.id) return;
           const own = state2.convictions.filter((c) => c.domainId === domain.id);
           if (!own.length) return;
           const head = h("div", { class: "section" }, h("h2", {}, domain.label));
           head.style.borderBottomColor = domain.color;
-          rows.append(head);
+          rows2.append(head);
           own.forEach((c) => {
             const rating = check.ratings[c.id] || (check.ratings[c.id] = { level: "unknown", note: "" });
-            rows.append(h(
+            rows2.append(h(
               "div",
               { class: "card" },
               h(
@@ -2380,7 +2434,7 @@ select { appearance: none; }
         barriers2,
         gate,
         filter,
-        rows,
+        rows2,
         h(
           "div",
           { class: "card", style: "margin-top:18px" },
@@ -2483,62 +2537,6 @@ select { appearance: none; }
       }, existing ? () => confirmDelete("block", (s) => {
         s.blocks = s.blocks.filter((x) => x.id !== draft.id);
       }) : null)
-    ));
-  }
-  function captureHesitation(ground) {
-    let text = "";
-    let makeBlock = true;
-    openSheet("Why not yet?", () => frag(
-      h(
-        "p",
-        { class: "small muted" },
-        `You've looked at ${ground.name} and haven't said yes. Name the actual reason \u2014 even if it's "I don't know, it just doesn't feel right."`
-      ),
-      field("What's stopping you?", area({ style: "min-height:120px", onInput: (e) => {
-        text = e.target.value;
-      } })),
-      h(
-        "label",
-        { class: "check", style: "margin-bottom:16px" },
-        h("input", { type: "checkbox", checked: true, onChange: (e) => {
-          makeBlock = e.target.checked;
-        } }),
-        h("span", { class: "small" }, "Add it to what's in the way, so it has to get settled")
-      ),
-      h("button", {
-        class: "btn primary block",
-        onClick: () => {
-          if (!text.trim()) return toast("Write it down first");
-          update((s) => {
-            s.notes.push({
-              id: uid(),
-              date: today(),
-              kind: "hesitation",
-              title: `Hesitated on ${ground.name}`,
-              body: text,
-              convictionIds: [],
-              contextIds: [ground.id],
-              source: "",
-              createdAt: (/* @__PURE__ */ new Date()).toISOString()
-            });
-            if (makeBlock) {
-              s.blocks.push({
-                id: uid(),
-                groundId: ground.id,
-                title: text.split("\n")[0].slice(0, 80),
-                wouldSettle: "",
-                who: "",
-                due: "",
-                hard: false,
-                status: "open",
-                createdAt: (/* @__PURE__ */ new Date()).toISOString()
-              });
-            }
-          });
-          closeSheet();
-          toast("Written down");
-        }
-      }, "Write it down")
     ));
   }
   function breakGround(ground) {
@@ -3031,11 +3029,11 @@ select { appearance: none; }
     openSheet("Settings", build);
   }
 
-  // js/views/target.js
-  var target_exports = {};
-  __export(target_exports, {
-    render: () => render3,
-    title: () => title3
+  // js/views/board.js
+  var board_exports = {};
+  __export(board_exports, {
+    render: () => render,
+    title: () => title
   });
 
   // js/views/parts.js
@@ -3177,40 +3175,6 @@ select { appearance: none; }
   }
 
   // js/views/land.js
-  var land_exports = {};
-  __export(land_exports, {
-    openGround: () => openGround,
-    render: () => render,
-    title: () => title
-  });
-  function compareTable(state2, rows) {
-    const table = h("table", { class: "grid" });
-    const head = h("tr", {}, h("th", {}, "Ground"));
-    state2.domains.forEach((d) => {
-      const th = h("th", { class: "tnum" }, d.short || d.label);
-      th.style.color = d.color;
-      head.append(th);
-    });
-    head.append(h("th", { class: "tnum" }, "Rooted"));
-    table.append(h("thead", {}, head));
-    const body = h("tbody", {});
-    rows.forEach(({ ground, s }) => {
-      const tr = h("tr", {}, h("th", { scope: "row" }, ground.name));
-      state2.domains.forEach((d) => {
-        const cell = s.byArea.find((x) => x.domain.id === d.id);
-        const td = h("td", { class: "tnum" }, cell?.rated ? `${Math.round(cell.fit * 100)}` : "\u2013");
-        if (cell?.rated) {
-          td.style.background = `color-mix(in srgb, ${d.color} ${Math.round(cell.fit * 42)}%, transparent)`;
-          if (cell.missingMusts.length) td.classList.add("cell-alert");
-        }
-        tr.append(td);
-      });
-      tr.append(h("td", { class: "tnum strong" }, `${Math.round(s.depth * 100)}`));
-      body.append(tr);
-    });
-    table.append(body);
-    return h("div", { class: "scroll-x" }, table);
-  }
   function openGround(id) {
     const build = () => {
       const state2 = get();
@@ -3464,147 +3428,280 @@ select { appearance: none; }
     };
     openSheet(() => get().contexts.find((c) => c.id === id)?.name || "Ground", build);
   }
-  function groundRow(state2, ground, s) {
-    const hz = ground.kind === "place" ? byId(HORIZONS, ground.horizon) || HORIZONS[0] : byId(KINDS, ground.kind) || { label: "" };
-    const brings = state2.contexts.filter((c) => c.placeId === ground.id);
-    return h(
-      "button",
-      { class: "card card-tap", onClick: () => openGround(ground.id) },
+
+  // js/views/board.js
+  var title = "Where could I be planted?";
+  var GLYPH = { good: "\u2713", ok: "~", thin: "!", bad: "\u2715", unknown: "\xB7" };
+  var showAll = false;
+  function options(state2) {
+    return state2.contexts.filter((c) => c.kind !== "place").sort((a, b) => {
+      const rank = (x) => x.stage === "built" ? 3 : x.stage === "ruled-out" ? -1 : x.stage === "running" ? 2 : 1;
+      return rank(b) - rank(a);
+    });
+  }
+  function rows(state2) {
+    const out = [
+      { group: "The two that decide it" },
+      { id: "kid", label: "I'd leave my kids with them, unsupervised", kind: "kid", levels: KID_LEVELS },
+      { id: "formation", label: "He'd come back sharper, not softer", kind: "formation", levels: FORMATION_LEVELS }
+    ];
+    if ((state2.barriers || []).length) {
+      out.push({ group: "The lines I don't cross" });
+      (state2.barriers || []).forEach((b) => out.push({
+        id: b.id,
+        label: b.title,
+        kind: "barrier",
+        levels: BARRIER_STATES,
+        hard: b.hard
+      }));
+    }
+    const reqs = state2.convictions.filter((c) => showAll ? true : c.weight === "core");
+    if (reqs.length) {
+      out.push({ group: showAll ? "Everything I said matters" : "What I won't build without" });
+      reqs.forEach((c) => out.push({
+        id: c.id,
+        label: c.title,
+        kind: "req",
+        levels: LEVELS,
+        req: c
+      }));
+    }
+    out.push({ group: "Us, and staying" });
+    out.push({ id: "us", label: "My wife and I are agreed", kind: "us", levels: US_LEVELS });
+    out.push({ id: "settle", label: "We could settle in with them completely", kind: "settle", levels: SETTLE_LEVELS });
+    return out;
+  }
+  function cellValue(check, row) {
+    if (!check) return null;
+    if (row.kind === "kid") return check.kid?.level || "unknown";
+    if (row.kind === "formation") return check.formation?.level || "unknown";
+    if (row.kind === "us") return check.us?.level || "na";
+    if (row.kind === "settle") return check.settle || "unknown";
+    if (row.kind === "barrier") return check.barriers?.[row.id]?.state || "unclear";
+    return check.ratings?.[row.id]?.level || "unknown";
+  }
+  function cellNote(check, row) {
+    if (!check) return "";
+    if (row.kind === "kid") return check.kid?.note || "";
+    if (row.kind === "formation") return check.formation?.note || "";
+    if (row.kind === "us") return check.us?.note || "";
+    if (row.kind === "settle") return check.settleNote || "";
+    if (row.kind === "barrier") return check.barriers?.[row.id]?.note || "";
+    return check.ratings?.[row.id]?.note || "";
+  }
+  function mark(groundId, row, level, note) {
+    update((st) => {
+      let check = st.checks.filter((k) => k.contextId === groundId).sort((a, b) => a.date < b.date ? 1 : -1)[0];
+      if (!check) {
+        check = {
+          id: uid(),
+          contextId: groundId,
+          date: today(),
+          ratings: {},
+          barriers: {},
+          us: { level: "na", note: "" },
+          kid: { level: "unknown", note: "" },
+          formation: { level: "unknown", note: "" },
+          home: "unknown",
+          settle: "unknown",
+          summary: ""
+        };
+        st.checks.push(check);
+      }
+      if (!check.barriers) check.barriers = {};
+      if (!check.ratings) check.ratings = {};
+      if (row.kind === "kid") check.kid = { level, note };
+      else if (row.kind === "formation") check.formation = { level, note };
+      else if (row.kind === "us") check.us = { level, note };
+      else if (row.kind === "settle") {
+        check.settle = level;
+        check.settleNote = note;
+      } else if (row.kind === "barrier") check.barriers[row.id] = { state: level, note };
+      else check.ratings[row.id] = { level, note };
+      check.date = today();
+    });
+  }
+  function read(state2, ground) {
+    const check = latestCheck(state2.checks, ground.id);
+    if (ground.stage === "built") return { word: "Planted", tone: "good", why: "You committed to them." };
+    if (ground.stage === "ruled-out") return { word: "Out", tone: "bad", why: "You ruled them out." };
+    if (!check) return { word: "Blank", tone: "unknown", why: "Nothing marked yet." };
+    const rowList = rows(state2).filter((r) => !r.group);
+    const walls = (state2.barriers || []).filter((b) => b.hard && check.barriers?.[b.id]?.state === "fails");
+    if (walls.length) {
+      return { word: "No", tone: "bad", why: `Fails ${walls.map((b) => b.title.toLowerCase()).join(" and ")}. That's a wall.` };
+    }
+    const kid = check.kid?.level || "unknown";
+    if (kid === "no" || kid === "supervised") {
+      return { word: "No", tone: "bad", why: "You wouldn't leave your kids with them." };
+    }
+    if (check.formation?.level === "softer") {
+      return { word: "No", tone: "bad", why: "He'd come back softer." };
+    }
+    const unknown = rowList.filter((r) => {
+      const v = cellValue(check, r);
+      return v === "unknown" || v === "unclear" || v === "na";
+    });
+    const bad = rowList.filter((r) => ["conflict", "fails", "no", "apart", "softer"].includes(cellValue(check, r)));
+    if (bad.length) return { word: "Not this", tone: "bad", why: `${bad.length} hard no${bad.length > 1 ? "s" : ""}: ${bad.map((r) => r.label.toLowerCase()).slice(0, 2).join(", ")}.` };
+    if (unknown.length > rowList.length / 2) {
+      return { word: "Too early", tone: "unknown", why: `${unknown.length} of ${rowList.length} you can't answer yet.` };
+    }
+    if (unknown.length) return { word: "Maybe", tone: "thin", why: `${unknown.length} still unknown. Nothing failing.` };
+    return { word: "Yes", tone: "good", why: "Nothing in the way. This is a decision now." };
+  }
+  function openCell(ground, row) {
+    const state2 = get();
+    const check = latestCheck(state2.checks, ground.id);
+    let note = cellNote(check, row);
+    const current = cellValue(check, row);
+    openSheet(ground.name, () => frag(
+      h("p", { class: "eyebrow" }, row.hard ? "A line I don't cross" : "Where they stand"),
+      h("h2", { style: "margin:2px 0 10px" }, row.label),
+      row.req?.practice ? h("p", { class: "small muted" }, row.req.practice) : null,
+      row.req?.scriptures ? h("p", { class: "small", style: "color:var(--moss)" }, row.req.scriptures) : null,
       h(
         "div",
-        { class: "row spread" },
+        { class: "stack", style: "margin:14px 0" },
+        row.levels.map((lv) => h(
+          "button",
+          {
+            class: `btn block${lv.id === current ? " primary" : ""}`,
+            onClick: () => {
+              mark(ground.id, row, lv.id, note);
+              closeSheet();
+              toast("Marked");
+            }
+          },
+          h("span", { class: `mark tone-${lv.tone || "unknown"}` }, GLYPH[lv.tone || "unknown"]),
+          ` ${lv.label}`
+        ))
+      ),
+      field("What you actually saw", area({
+        value: note,
+        placeholder: "The thing you'd tell your wife, not the thing you'd put in a report.",
+        onInput: (e) => {
+          note = e.target.value;
+        }
+      })),
+      h("p", { class: "tiny muted" }, "The note is saved with whichever answer you pick.")
+    ));
+  }
+  function boardTable(state2, opts2) {
+    const table = h("table", { class: "board" });
+    const head = h("tr", {}, h("th", { class: "rowhead" }, ""));
+    opts2.forEach((g) => {
+      const r = read(state2, g);
+      head.append(h(
+        "th",
+        {},
         h(
-          "div",
-          { class: "grow" },
-          h("strong", {}, ground.name),
-          h(
-            "div",
-            { class: "tiny muted" },
-            [byId(STAGES, s.stage)?.label, hz.label].filter(Boolean).join(" \xB7 ")
-          )
-        ),
-        h(
-          "div",
-          { style: "text-align:right" },
-          h("div", { class: "tnum", style: "font-weight:600" }, `${Math.round(s.depth * 100)}%`),
-          h("div", { class: "tiny muted" }, "rooted")
+          "button",
+          { class: "colhead", onClick: () => openGround(g.id) },
+          h("span", { class: "name" }, g.name),
+          h("span", { class: `verdict-chip tone-${r.tone}` }, r.word)
         )
-      ),
-      h(
-        "div",
-        { class: "bar", style: "margin-top:10px" },
-        h("i", { style: `width:${Math.round(s.depth * 100)}%; background: var(--soil)` })
-      ),
-      h("div", { class: "small muted", style: "margin-top:10px" }, verdict(s)),
-      s.check ? h("div", { class: `tiny tone-${s.kid.tone}`, style: "margin-top:4px" }, `Kids unsupervised: ${s.kid.label.toLowerCase()}`) : null,
-      brings.length ? h("div", { class: "tiny muted", style: "margin-top:6px" }, `Would put us here: ${brings.map((b) => b.name).join(", ")}`) : null
-    );
+      ));
+    });
+    table.append(h("thead", {}, head));
+    const body = h("tbody", {});
+    rows(state2).forEach((row) => {
+      if (row.group) {
+        body.append(h(
+          "tr",
+          { class: "group" },
+          h("th", { colspan: opts2.length + 1, scope: "colgroup" }, row.group)
+        ));
+        return;
+      }
+      const tr = h("tr", {}, h("th", { class: "rowhead", scope: "row" }, row.label));
+      opts2.forEach((g) => {
+        const check = latestCheck(state2.checks, g.id);
+        const v = cellValue(check, row);
+        const lv = byId(row.levels, v) || { tone: "unknown", label: "Don't know" };
+        const note = cellNote(check, row);
+        tr.append(h(
+          "td",
+          {},
+          h("button", {
+            class: `cell tone-${lv.tone || "unknown"}${note ? " noted" : ""}`,
+            title: `${g.name} \u2014 ${row.label}: ${lv.label}${note ? ` (${note})` : ""}`,
+            "aria-label": `${row.label}, ${g.name}: ${lv.label}. Tap to change.`,
+            onClick: () => openCell(g, row)
+          }, GLYPH[lv.tone || "unknown"])
+        ));
+      });
+      body.append(tr);
+    });
+    table.append(body);
+    return h("div", { class: "scroll-x board-wrap" }, table);
   }
   function render(state2) {
     const view3 = h("div", {});
-    const place = callingPlace(state2);
-    if (place) {
-      view3.append(
-        h("h1", {}, `Who in ${place.name}?`),
-        h(
-          "p",
-          { class: "muted small" },
-          "The city is settled. What's open is the people \u2014 which church, which households, which network you'd actually build with."
-        )
-      );
-    } else {
-      view3.append(
-        h("h1", {}, "The land"),
-        h("p", { class: "muted small" }, "Every piece of ground you're weighing, and how deep you could root in each.")
-      );
+    const opts2 = options(state2);
+    view3.append(h("p", { class: "eyebrow" }, "God first, continually"));
+    view3.append(h(
+      "h1",
+      { style: "margin:2px 0 6px" },
+      state2.calling?.place ? `Who could I be planted with in ${state2.calling.place}?` : "Who could I be planted with?"
+    ));
+    const bits = [];
+    if (state2.calling?.place) bits.push(`${state2.calling.place} is settled`);
+    if (state2.weighingSince) {
+      const y = Math.floor(Math.max(0, daysBetween(state2.weighingSince, today())) / 365);
+      bits.push(y >= 1 ? `open ${y} year${y > 1 ? "s" : ""}` : "open under a year");
     }
-    const inside = withinCalling(state2).map((ground) => ({ ground, s: survey(state2, ground) })).sort((a, b) => b.s.depth - a.s.depth);
-    if (place) {
-      view3.append(section(`In ${place.name}`, "Add", () => editGround(null, { kind: "community" })));
-      if (!inside.length) {
-        view3.append(empty("Nobody named there yet. Start with one church or one family.", "Add a community", () => editGround(null, { kind: "community" })));
-      } else {
-        inside.forEach(({ ground, s }) => view3.append(groundRow(state2, ground, s)));
-      }
-      const surveyed2 = inside.filter((r) => r.s.check);
-      if (surveyed2.length > 1) {
-        view3.append(section("Side by side"));
-        view3.append(h(
-          "div",
-          { class: "card" },
-          compareTable(state2, surveyed2),
-          h("p", { class: "tiny muted", style: "margin:10px 0 0" }, "Per cent of each area they actually hold. Last column is how deep you could root.")
-        ));
-      }
-      view3.append(section("The city itself", "Edit the calling", editCalling));
-      view3.append(groundRow(state2, place, survey(state2, place)));
-      const elsewhere = state2.contexts.filter((c) => c.kind === "place" && c.id !== place.id);
-      if (elsewhere.length) {
-        view3.append(section("Elsewhere"));
-        view3.append(h("p", { class: "tiny muted" }, "Kept for comparison. You said the city is settled."));
-        const rows = h("div", { class: "rows" });
-        elsewhere.forEach((g) => rows.append(h(
-          "button",
-          { class: "card-tap", onClick: () => openGround(g.id) },
-          h(
-            "div",
-            { class: "row spread" },
-            h("strong", {}, g.name),
-            h("span", { class: "tiny muted tnum" }, `${Math.round(survey(state2, g).depth * 100)}% rooted`)
-          )
-        )));
-        view3.append(rows);
-      }
+    view3.append(h(
+      "p",
+      { class: "muted small" },
+      bits.length ? `${bits.join(" \xB7 ")}. The only question left is who.` : "Name the ministries you're actually weighing."
+    ));
+    if (!opts2.length) {
+      view3.append(empty(
+        "No ministries on the board yet.",
+        "Add the first one",
+        () => editGround(null, { kind: "network" })
+      ));
       return view3;
     }
-    const ranked = rankGrounds(state2);
-    view3.append(section("Places", "Add", () => editGround(null, { kind: "place" })));
-    if (!ranked.length) {
-      view3.append(empty("No land yet. Start with where you are.", "Add a place", () => editGround(null, { kind: "place" })));
-    } else {
-      ranked.forEach(({ ground, s }) => view3.append(groundRow(state2, ground, s)));
-    }
-    const surveyed = ranked.filter((r) => r.s.check);
-    if (surveyed.length > 1) {
-      view3.append(section("Side by side"));
-      view3.append(h(
-        "div",
-        { class: "card" },
-        compareTable(state2, surveyed),
-        h("p", { class: "tiny muted", style: "margin:10px 0 0" }, "Per cent of each area the ground actually holds. Last column is how deep you could root.")
+    view3.append(boardTable(state2, opts2));
+    view3.append(h(
+      "div",
+      { class: "row wrap", style: "margin:12px 0 4px" },
+      h(
+        "button",
+        { class: `chip${showAll ? " on" : ""}`, onClick: () => {
+          showAll = !showAll;
+          notify();
+        } },
+        showAll ? "Showing everything" : "Must-haves only"
+      ),
+      h("button", { class: "chip", onClick: () => editGround(null, { kind: "network" }) }, "+ Another option"),
+      h("button", { class: "chip", onClick: editCalling }, state2.calling?.place ? "The calling" : "Name the calling")
+    ));
+    view3.append(h("h2", { class: "plain-head" }, "Where each one stands"));
+    const readRows = h("div", { class: "rows" });
+    opts2.forEach((g) => {
+      const r = read(state2, g);
+      const model = CHURCH_MODELS.find((m) => m.id === g.modelId);
+      const stance = model ? byId(MODEL_STANCES, state2.modelStances?.[model.id]?.stance || "unknown") : null;
+      readRows.append(h(
+        "button",
+        { class: "card-tap", onClick: () => openGround(g.id) },
+        h(
+          "div",
+          { class: "row spread" },
+          h("strong", { class: "grow" }, g.name),
+          h("span", { class: `small tone-${r.tone}` }, r.word)
+        ),
+        h("div", { class: "small muted" }, r.why),
+        g.myPart ? h("div", { class: "tiny", style: "margin-top:4px" }, `My part: ${g.myPart}`) : null,
+        model ? h("div", { class: "tiny muted" }, `Runs on ${model.name.toLowerCase()}${stance && stance.id !== "unknown" ? ` \xB7 you: ${stance.label.toLowerCase()}` : ""}`) : null
       ));
-    }
-    view3.append(section("Churches, networks, roles", "Add", () => editGround(null, { kind: "church" })));
-    const others = state2.contexts.filter((c) => c.kind !== "place");
-    if (!others.length) {
-      view3.append(h("p", { class: "small muted" }, "Anything that would move you goes here, tied to the ground it would put you on."));
-    } else {
-      const rows = h("div", { class: "rows" });
-      others.forEach((c) => {
-        const p = impliedPlace(state2.contexts, c);
-        const rootless = byId(KINDS, c.kind)?.rootless;
-        const mode = byId(PLACE_MODES, c.placeMode || "unknown");
-        rows.append(h(
-          "button",
-          { class: "card-tap", onClick: () => openGround(c.id) },
-          h(
-            "div",
-            { class: "row spread" },
-            h("strong", {}, c.name),
-            h("span", { class: "tiny muted" }, byId(KINDS, c.kind)?.label || "")
-          ),
-          h(
-            "div",
-            { class: `tiny ${p || rootless ? "muted" : "tone-thin"}` },
-            rootless ? mode.label : p ? `Would put us in ${p.name}` : "No ground attached yet"
-          )
-        ));
-      });
-      view3.append(rows);
-    }
+    });
+    view3.append(readRows);
     return view3;
   }
-  var title = "The land";
 
   // js/views/soil.js
   var soil_exports = {};
@@ -3634,13 +3731,13 @@ select { appearance: none; }
       view3.append(empty("None named yet.", "Add a barrier", () => editBarrier()));
       return;
     }
-    const rows = h("div", { class: "rows" });
+    const rows2 = h("div", { class: "rows" });
     list.forEach((b) => {
       const failing = state2.contexts.filter((c) => {
         const check = latestCheck(state2.checks, c.id);
         return check?.barriers?.[b.id]?.state === "fails";
       });
-      rows.append(h(
+      rows2.append(h(
         "button",
         { class: "card-tap", onClick: () => editBarrier(b) },
         h(
@@ -3653,7 +3750,7 @@ select { appearance: none; }
         failing.length ? h("div", { class: "tiny tone-bad", style: "margin-top:4px" }, `Fails here: ${failing.map((c) => c.name).join(", ")}`) : null
       ));
     });
-    view3.append(rows);
+    view3.append(rows2);
     view3.append(h("button", { class: "btn block", style: "margin-top:18px", onClick: () => editBarrier() }, "Add a barrier"));
   }
   function settling(state2, view3) {
@@ -3678,8 +3775,8 @@ select { appearance: none; }
     ));
     if (open2) {
       view3.append(section("Still open in me"));
-      const rows = h("div", { class: "rows" });
-      unsettledBarriers.forEach((b) => rows.append(h(
+      const rows2 = h("div", { class: "rows" });
+      unsettledBarriers.forEach((b) => rows2.append(h(
         "button",
         { class: "card-tap", onClick: () => settleIt("barrier", b.id) },
         h(
@@ -3690,7 +3787,7 @@ select { appearance: none; }
         ),
         h("div", { class: "tiny tone-thin" }, "A line you don't cross, with no position written on it")
       )));
-      unsettledReqs.forEach((c) => rows.append(h(
+      unsettledReqs.forEach((c) => rows2.append(h(
         "button",
         { class: "card-tap", onClick: () => settleIt("requirement", c.id) },
         h(
@@ -3701,12 +3798,12 @@ select { appearance: none; }
         ),
         c.forming ? h("div", { class: "small muted" }, c.forming) : h("div", { class: "tiny tone-thin" }, "Marked still forming")
       )));
-      view3.append(rows);
+      view3.append(rows2);
     }
     if (done) {
       view3.append(section("Settled"));
-      const rows = h("div", { class: "rows" });
-      settledBarriers.forEach((b) => rows.append(h(
+      const rows2 = h("div", { class: "rows" });
+      settledBarriers.forEach((b) => rows2.append(h(
         "button",
         { class: "card-tap", onClick: () => settleIt("barrier", b.id) },
         h(
@@ -3717,7 +3814,7 @@ select { appearance: none; }
         ),
         h("div", { class: "small muted" }, b.position)
       )));
-      settledReqs.forEach((c) => rows.append(h(
+      settledReqs.forEach((c) => rows2.append(h(
         "button",
         { class: "card-tap", onClick: () => settleIt("requirement", c.id) },
         h(
@@ -3728,7 +3825,7 @@ select { appearance: none; }
         ),
         h("div", { class: "small muted" }, c.settledStatement)
       )));
-      view3.append(rows);
+      view3.append(rows2);
     }
   }
   function openModel(id) {
@@ -3803,12 +3900,12 @@ select { appearance: none; }
     const sorted = [...CHURCH_MODELS].sort((a, b) => order.indexOf(stanceOf(a.id).id) - order.indexOf(stanceOf(b.id).id));
     const decided = CHURCH_MODELS.filter((m) => stanceOf(m.id).id !== "unknown").length;
     view3.append(h("p", { class: "tiny muted" }, `${decided} of ${CHURCH_MODELS.length} marked.`));
-    const rows = h("div", { class: "rows" });
+    const rows2 = h("div", { class: "rows" });
     sorted.forEach((m) => {
       const st = stanceOf(m.id);
       const note = state2.modelStances?.[m.id]?.note;
       const on = state2.contexts.filter((c) => c.modelId === m.id);
-      rows.append(h(
+      rows2.append(h(
         "button",
         { class: "card-tap", onClick: () => openModel(m.id) },
         h(
@@ -3822,7 +3919,7 @@ select { appearance: none; }
         on.length ? h("div", { class: "tiny", style: "margin-top:4px" }, `\u2192 ${on.map((c) => c.name).join(", ")}`) : null
       ));
     });
-    view3.append(rows);
+    view3.append(rows2);
   }
   function openRequirement(id) {
     const build = () => {
@@ -3934,8 +4031,8 @@ select { appearance: none; }
         view3.append(h("p", { class: "small muted" }, "Nothing here yet."));
         return;
       }
-      const rows = h("div", { class: "rows" });
-      group.forEach((c) => rows.append(h(
+      const rows2 = h("div", { class: "rows" });
+      group.forEach((c) => rows2.append(h(
         "button",
         { class: "card-tap", onClick: () => openRequirement(c.id) },
         h(
@@ -3947,7 +4044,7 @@ select { appearance: none; }
         c.summary ? h("div", { class: "small muted" }, c.summary) : null,
         c.settledStatement ? h("div", { class: "tiny tone-good", style: "margin-top:4px" }, `settled${c.settledAt ? ` ${relDate(c.settledAt, today()).toLowerCase()}` : ""}`) : c.forming ? h("div", { class: "tiny muted", style: "margin-top:4px" }, "still working this one out") : null
       )));
-      view3.append(rows);
+      view3.append(rows2);
     });
     view3.append(h(
       "div",
@@ -3959,503 +4056,11 @@ select { appearance: none; }
   }
   var title2 = "The soil";
 
-  // js/views/target.js
-  var focusId = null;
-  function candidates(state2) {
-    const inside = withinCalling(state2);
-    const pool = state2.calling?.placeId && inside.length ? inside : state2.contexts.filter((c) => c.kind === "place");
-    return pool.map((ground) => ({ ground, s: survey(state2, ground) })).sort((a, b) => {
-      const rank = (x) => x.ground.stage === "built" ? 3 : x.ground.stage === "ruled-out" ? -1 : x.s.ready ? 2 : 1;
-      return rank(b) - rank(a) || b.s.depth - a.s.depth;
-    });
-  }
-  function pick(state2) {
-    const ranked = candidates(state2);
-    if (focusId) {
-      const found = ranked.find((r) => r.ground.id === focusId);
-      if (found) return found;
-    }
-    return ranked.find((r) => r.ground.stage === "built") || ranked[0] || null;
-  }
-  function render3(state2) {
-    const view3 = h("div", {});
-    const target = pick(state2);
-    if (!target) {
-      const called = state2.calling?.place;
-      view3.append(
-        h("h1", {}, called ? `Who in ${called}?` : "Where is the land?"),
-        h(
-          "p",
-          { class: "muted" },
-          called ? "The city is settled. Name the churches and household networks there you're actually looking at \u2014 then walk them." : "Put down the first place you'd actually consider building on \u2014 where you are now counts."
-        ),
-        empty(
-          called ? "Nobody named yet." : "No ground yet.",
-          called ? "Add a community" : "Add a place",
-          () => editGround(null, { kind: called ? "community" : "place" })
-        )
-      );
-      return view3;
-    }
-    const { ground, s } = target;
-    const staked = ground.stage === "built";
-    view3.append(h("p", { class: "eyebrow" }, "God first, continually"));
-    const calling = state2.calling || {};
-    if (!calling.place) {
-      view3.append(h(
-        "div",
-        { class: "card", style: "margin:12px 0 18px" },
-        h("h3", { style: "margin:0" }, "Where are you called?"),
-        h(
-          "p",
-          { class: "small muted", style: "margin:6px 0 12px" },
-          "If that's settled, say so once and the app will stop asking. The question becomes who you'd build with there."
-        ),
-        h("button", { class: "btn sm", onClick: editCalling }, "Name it")
-      ));
-    } else {
-      view3.append(h(
-        "button",
-        { class: "card card-tap", style: "margin:12px 0 18px", onClick: editCalling },
-        h(
-          "div",
-          { class: "row spread" },
-          h(
-            "div",
-            {},
-            h("div", { class: "eyebrow" }, "Called to"),
-            h("h2", { style: "margin:2px 0 0" }, calling.place)
-          ),
-          calling.by ? h("span", { class: "tiny muted" }, calling.by) : null
-        ),
-        calling.why ? h("p", { class: "small muted", style: "margin:8px 0 0" }, calling.why) : null,
-        h("p", { class: "tiny muted", style: "margin:8px 0 0" }, "Settled. Not re-decided every time you get nervous.")
-      ));
-    }
-    if (state2.weighingSince) {
-      const years = Math.floor(Math.max(0, daysBetween(state2.weighingSince, today())) / 365);
-      const decided = state2.contexts.filter((c) => c.stage === "built" || c.stage === "ruled-out").length;
-      const hesitations2 = state2.notes.filter((n) => n.kind === "hesitation").length;
-      view3.append(h(
-        "button",
-        { class: "card card-tap", style: "margin-bottom:18px", onClick: editCalling },
-        h("div", { class: "eyebrow" }, "How long this has been open"),
-        h(
-          "div",
-          { class: "row spread", style: "margin-top:4px" },
-          h("strong", {}, years >= 1 ? `${years} year${years > 1 ? "s" : ""}` : "Under a year"),
-          h(
-            "span",
-            { class: "tiny muted" },
-            [`${decided} decided`, hesitations2 ? `${hesitations2} hesitations written` : null].filter(Boolean).join(" \xB7 ")
-          )
-        ),
-        h(
-          "p",
-          { class: "tiny muted", style: "margin:8px 0 0" },
-          decided ? "Some of it is settled. Keep going." : "Nothing ruled in or out yet. The length of that is itself worth looking at."
-        )
-      ));
-    }
-    {
-      const openInMe = state2.convictions.filter((c) => !c.settledStatement && (c.weight === "forming" || c.forming)).length + (state2.barriers || []).filter((b) => !b.position).length;
-      const settledInMe = state2.convictions.filter((c) => c.settledStatement).length + (state2.barriers || []).filter((b) => b.position && b.settledAt).length;
-      if (openInMe || settledInMe) {
-        view3.append(h(
-          "button",
-          { class: "card card-tap", style: "margin-bottom:18px", onClick: () => showSoilTab("settling") },
-          h("div", { class: "eyebrow" }, "Settled in myself"),
-          h(
-            "div",
-            { class: "row spread", style: "margin-top:4px" },
-            h("strong", {}, openInMe ? `${openInMe} still open in me` : `${settledInMe} settled`),
-            settledInMe && openInMe ? h("span", { class: "tiny muted" }, `${settledInMe} settled`) : null
-          ),
-          h(
-            "p",
-            { class: "tiny muted", style: "margin:8px 0 0" },
-            openInMe ? "Some of the waiting isn't about them. Settle one and date it." : "Everything you marked as forming has a position written on it now."
-          )
-        ));
-      }
-    }
-    view3.append(h(
-      "div",
-      { class: "row spread", style: "align-items:flex-end" },
-      h(
-        "div",
-        {},
-        h(
-          "div",
-          { class: "eyebrow" },
-          staked ? ground.kind === "place" ? "Building here" : "Committed to them" : ground.stage === "running" ? "Running with them, not settled" : state2.calling?.place && ground.kind !== "place" ? `Who I'd build with in ${state2.calling.place}` : "The ground in front of me"
-        ),
-        h("h1", { style: "margin:2px 0 0" }, ground.name)
-      ),
-      h("button", { class: "icon-btn", onClick: () => openGround(ground.id) }, "Open")
-    ));
-    view3.append(h(
-      "div",
-      { style: "margin:14px 0 10px" },
-      plot(s.depth, {
-        staked,
-        label: staked ? `${ground.kind === "place" ? "Stake in the ground" : "Committed"} ${relDate(ground.stakedAt || today(), today()).toLowerCase()}` : `${Math.round(s.depth * 100)}% rooted \xB7 ${Math.round(s.surveyed * 100)}% walked`
-      })
-    ));
-    view3.append(h("p", { class: "verdict" }, verdict(s)));
-    const model = CHURCH_MODELS.find((m) => m.id === ground.modelId);
-    if (model) {
-      const stance = byId(MODEL_STANCES, state2.modelStances?.[model.id]?.stance || "unknown");
-      view3.append(h(
-        "button",
-        { class: "card card-tap", style: "margin-top:12px", onClick: () => go("soil") },
-        h(
-          "div",
-          { class: "row spread" },
-          h("span", { class: "small" }, model.name),
-          h("span", { class: `small tone-${stance.tone}` }, stance.label)
-        ),
-        h("div", { class: "tiny muted", style: "margin-top:4px" }, model.asks)
-      ));
-    }
-    if (s.fruit) {
-      const outModel = CHURCH_MODELS.find((m) => m.id === s.fruit.modelId);
-      const outStance = s.fruit.stanceId ? byId(MODEL_STANCES, s.fruit.stanceId) : null;
-      view3.append(h(
-        "div",
-        { class: "card", style: "margin-top:12px" },
-        h("div", { class: "eyebrow" }, "What it actually produces here"),
-        h("p", { class: "small", style: "margin:6px 0 0" }, s.fruit.text),
-        outModel ? h(
-          "div",
-          { class: "row spread", style: "margin-top:8px" },
-          h("span", { class: "tiny muted" }, `That fruit is ${outModel.name.toLowerCase()}`),
-          outStance ? h("span", { class: `tiny tone-${outStance.tone}` }, outStance.label) : null
-        ) : null,
-        s.fruitTension ? h(
-          "p",
-          { class: "verdict", style: "margin:10px 0 0; font-size:14px" },
-          "You'd be building the thing you're not sure about. That's the question, not a footnote."
-        ) : null,
-        s.fruitTension && outModel ? h("button", { class: "icon-btn", style: "margin-top:8px", onClick: () => openModel(outModel.id) }, "Look at that model") : null
-      ));
-    }
-    if (s.myPart) {
-      const workModel = CHURCH_MODELS.find((m) => m.id === s.myPart.modelId);
-      const workStance = s.myPart.stanceId ? byId(MODEL_STANCES, s.myPart.stanceId) : null;
-      view3.append(h(
-        "div",
-        { class: "card", style: "margin-top:12px" },
-        h("div", { class: "eyebrow" }, "What I'd actually be doing"),
-        h("p", { class: "small", style: "margin:6px 0 0" }, s.myPart.text),
-        workModel ? h(
-          "div",
-          { class: "row spread", style: "margin-top:8px" },
-          h("span", { class: "tiny muted" }, `That work is ${workModel.name.toLowerCase()}`),
-          workStance ? h("span", { class: `tiny tone-${workStance.tone}` }, workStance.label) : null
-        ) : null,
-        s.workTension ? h(
-          "p",
-          { class: "verdict", style: "margin:10px 0 0; font-size:14px" },
-          "This isn't a reservation about them any more. It's the job description."
-        ) : null,
-        s.workTension && workModel ? h("button", { class: "icon-btn", style: "margin-top:8px", onClick: () => showSoilTab("settling") }, "Settle where I stand on it") : null
-      ));
-    }
-    if (s.check && s.barriers.length) {
-      view3.append(h(
-        "div",
-        { class: "card", style: "margin-top:12px" },
-        h("div", { class: "eyebrow" }, "The lines I don't cross"),
-        h("div", { class: "rows" }, s.barriers.map((b) => h(
-          "div",
-          {},
-          h(
-            "div",
-            { class: "row spread" },
-            h("span", { class: "small" }, b.barrier.title),
-            h("span", { class: `small tone-${b.state.tone}` }, b.state.label)
-          ),
-          b.note ? h("div", { class: "tiny muted" }, b.note) : null
-        )))
-      ));
-    }
-    if (s.check) {
-      const home = byId(HOME_LEVELS, s.home?.id || "unknown");
-      view3.append(h(
-        "div",
-        { class: "card", style: "margin-top:12px" },
-        h("div", { class: "eyebrow" }, "The test that decides it"),
-        h(
-          "div",
-          { class: "row spread", style: "margin-top:8px" },
-          h("span", { class: "small" }, "Kids here, unsupervised"),
-          h("span", { class: `small tone-${s.kid.tone}` }, s.kid.label)
-        ),
-        s.kidNote ? h("div", { class: "tiny muted" }, s.kidNote) : null,
-        h(
-          "div",
-          { class: "row spread", style: "margin-top:8px" },
-          h("span", { class: "small" }, "He'd come back"),
-          h("span", { class: `small tone-${s.formation.tone}` }, s.formation.label)
-        ),
-        s.formationNote ? h("div", { class: "tiny muted" }, s.formationNote) : null,
-        ground.kind === "place" ? h(
-          "div",
-          { class: "row spread", style: "margin-top:8px" },
-          h("span", { class: "small" }, "Would we buy a home here"),
-          h("span", { class: `small tone-${home.tone}` }, home.label)
-        ) : h(
-          "div",
-          { class: "row spread", style: "margin-top:8px" },
-          h("span", { class: "small" }, "Could we settle in completely"),
-          h("span", { class: `small tone-${s.settle.tone}` }, s.settle.label)
-        ),
-        s.gate ? h("p", { class: "tiny tone-thin", style: "margin:10px 0 0" }, s.gate) : null,
-        h("button", { class: "icon-btn", style: "margin-top:12px", onClick: () => walkTheLand(ground.id, s.check) }, "Change my answer")
-      ));
-    }
-    view3.append(section("Spiritual family here", "Add", () => editPerson(null, { groundId: ground.id })));
-    if (!s.household.length) {
-      if (!state2.settings?.hushed?.family) {
-        view3.append(h(
-          "p",
-          { class: "muted small" },
-          "No one named yet. Intertwined is people you could call at 11pm \u2014 if you can't name them, the ground isn't ready."
-        ));
-        view3.append(h("button", {
-          class: "icon-btn",
-          onClick: () => update((st) => {
-            st.settings.hushed = { ...st.settings.hushed || {}, family: true };
-          })
-        }, "Stop telling me"));
-      }
-    } else {
-      const rows = h("div", { class: "rows" });
-      s.household.forEach((p) => rows.append(h(
-        "button",
-        { class: "card-tap", onClick: () => editPerson(p) },
-        h(
-          "div",
-          { class: "row spread" },
-          h("strong", {}, p.name),
-          h("span", { class: "tiny muted" }, p.lastMet ? `last met ${relDate(p.lastMet, today()).toLowerCase()}` : "never logged")
-        ),
-        p.nextStep ? h("div", { class: "tiny muted" }, p.nextStep) : null
-      )));
-      view3.append(rows);
-    }
-    if (staked && (ground.stakeNote || ground.stakeCost)) {
-      view3.append(h(
-        "div",
-        { class: "card" },
-        ground.stakeNote ? h("p", { class: "small", style: "font-style:italic; margin:0" }, `"${ground.stakeNote}"`) : null,
-        ground.stakeCost ? h("p", { class: "tiny muted", style: "margin:8px 0 0" }, `What died for it: ${ground.stakeCost}`) : null
-      ));
-    }
-    const verse = state2.settings?.verse;
-    if (verse?.text) {
-      view3.append(h(
-        "blockquote",
-        { class: "verse" },
-        h("p", {}, verse.text),
-        verse.ref ? h("cite", {}, verse.ref) : null
-      ));
-    }
-    if (!staked && ground.stage !== "ruled-out") {
-      view3.append(h(
-        "div",
-        { class: "stack", style: "margin:16px 0 4px" },
-        !s.check ? h("button", { class: "btn primary block", onClick: () => walkTheLand(ground.id) }, "Walk the land") : s.gatedBy ? h("button", {
-          class: "btn primary block",
-          onClick: () => editBlock(null, { groundId: ground.id, hard: true, title: s.gatedBy })
-        }, "Name what would have to change") : h(
-          "button",
-          { class: "btn primary block", onClick: () => breakGround(ground) },
-          ground.kind === "place" ? s.inTheWay.length ? "I'm ready to build here" : "Break ground here" : s.inTheWay.length ? "I'm ready to commit to them" : "Commit to them"
-        ),
-        h("button", { class: "btn ghost block", onClick: () => captureHesitation(ground) }, "Not yet \u2014 here's why"),
-        s.gatedBy ? h("button", { class: "btn ghost block small", onClick: () => breakGround(ground) }, "Decide anyway") : null
-      ));
-    }
-    if (!staked) {
-      view3.append(section("Between me and yes", s.inTheWay.length ? "All" : "Add", () => s.inTheWay.length ? go("unsettled") : editBlock(null, { groundId: ground.id })));
-      if (!s.inTheWay.length) {
-        view3.append(h(
-          "p",
-          { class: "muted small" },
-          s.check ? "Nothing. You have your answer \u2014 the rest is nerve." : "Walk the land first and this list fills itself in."
-        ));
-      } else {
-        const rows = h("div", { class: "rows" });
-        s.inTheWay.slice(0, 6).forEach((item) => {
-          if (item.kind === "block") {
-            const b = item.block;
-            rows.append(h(
-              "div",
-              { class: "check" },
-              h("input", {
-                type: "checkbox",
-                onChange: () => {
-                  update((st) => {
-                    const t = st.blocks.find((x) => x.id === b.id);
-                    t.status = "settled";
-                    t.settledAt = today();
-                  });
-                  toast("Settled");
-                }
-              }),
-              h(
-                "button",
-                { class: "card-tap grow", onClick: () => editBlock(b) },
-                h("div", {}, b.title),
-                h(
-                  "div",
-                  { class: "tiny muted" },
-                  [b.hard ? "Can't decide without it" : null, b.who, b.due ? relDate(b.due, today()) : null].filter(Boolean).join(" \xB7 ") || "No plan to settle it yet"
-                )
-              )
-            ));
-          } else if (item.kind === "gate") {
-            rows.append(h(
-              "button",
-              { class: "card-tap", onClick: () => walkTheLand(ground.id, s.check) },
-              h(
-                "div",
-                { class: "row spread" },
-                h("span", { class: "grow tone-bad" }, item.label),
-                h("span", { class: "tiny muted" }, "the gate")
-              )
-            ));
-          } else {
-            rows.append(h(
-              "button",
-              { class: "card-tap", onClick: () => walkTheLand(ground.id, s.check) },
-              h(
-                "div",
-                { class: "row spread" },
-                h("span", { class: "grow" }, item.label),
-                h("span", { class: "tiny muted" }, "unsurveyed")
-              )
-            ));
-          }
-        });
-        view3.append(rows);
-      }
-    }
-    view3.append(section("The soil", s.check ? "Walk it again" : "Walk the land", () => walkTheLand(ground.id, s.check)));
-    if (!s.check) {
-      view3.append(h("p", { class: "muted small" }, "Nothing surveyed yet. An hour with this list is worth a month of wondering."));
-    } else {
-      view3.append(areaBars(s));
-      view3.append(h("div", { class: "card", style: "margin-top:14px" }, usLine(s.check)));
-      if (s.missingMusts.length) {
-        view3.append(h(
-          "div",
-          { class: "card", style: "margin-top:12px" },
-          h("strong", { class: "tone-bad" }, "Missing must-haves"),
-          h("div", { class: "rows" }, s.missingMusts.map((m) => h(
-            "div",
-            {},
-            h("div", {}, m.req.title),
-            m.rating?.note ? h("div", { class: "tiny muted" }, m.rating.note) : null
-          )))
-        ));
-      }
-    }
-    const others = candidates(state2).filter((r) => r.ground.id !== ground.id).filter((r) => r.ground.stage !== "ruled-out");
-    view3.append(section(
-      state2.calling?.place ? "The other options" : "Other ground",
-      others.length ? "Compare" : "Add one",
-      () => others.length ? go("land") : editGround(null, { kind: ground.kind === "place" ? "place" : "community" })
-    ));
-    if (!others.length && !state2.settings?.hushed?.oneOption) {
-      view3.append(h(
-        "div",
-        { class: "card" },
-        h("strong", {}, `${ground.name} is the only thing on the table.`),
-        h(
-          "p",
-          { class: "small muted", style: "margin:6px 0 12px" },
-          "One option isn't a decision \u2014 it's a yes or a no with nothing to weigh it against. Name two or three you'd genuinely consider, even the ones you've half dismissed."
-        ),
-        h("button", {
-          class: "btn sm",
-          onClick: () => editGround(null, { kind: ground.kind === "place" ? "place" : "community" })
-        }, "Name another option"),
-        h("button", {
-          class: "icon-btn",
-          style: "margin-left:8px",
-          onClick: () => update((st) => {
-            st.settings.hushed = { ...st.settings.hushed || {}, oneOption: true };
-          })
-        }, "Stop telling me")
-      ));
-    } else {
-      const rows = h("div", { class: "rows" });
-      others.forEach(({ ground: g, s: gs }) => {
-        const what = g.kind === "place" ? byId(HORIZONS, g.horizon) || HORIZONS[0] : byId(KINDS, g.kind);
-        rows.append(h(
-          "button",
-          {
-            class: "card-tap",
-            onClick: () => {
-              focusId = g.id;
-              go("target");
-            }
-          },
-          h(
-            "div",
-            { class: "row spread" },
-            h("strong", {}, g.name),
-            h("span", { class: "tiny muted tnum" }, `${Math.round(gs.depth * 100)}% rooted`)
-          ),
-          h(
-            "div",
-            { class: "tiny muted" },
-            [
-              what?.label,
-              gs.check ? `kids: ${gs.kid.label.toLowerCase()}` : "not walked",
-              gs.inTheWay.length ? `${gs.inTheWay.length} in the way` : "nothing in the way"
-            ].filter(Boolean).join(" \xB7 ")
-          )
-        ));
-      });
-      view3.append(rows);
-      view3.append(h("button", {
-        class: "btn ghost block",
-        style: "margin-top:12px",
-        onClick: () => editGround(null, { kind: ground.kind === "place" ? "place" : "community" })
-      }, "Name another option"));
-    }
-    const hesitations = state2.notes.filter((n) => n.kind === "hesitation").sort((a, b) => a.date < b.date ? 1 : -1);
-    if (hesitations.length) {
-      view3.append(section("Why I keep not deciding", "All", () => go("journal")));
-      const rows = h("div", { class: "rows" });
-      hesitations.slice(0, 3).forEach((n) => rows.append(h(
-        "button",
-        { class: "card-tap", onClick: () => editNote(n) },
-        h("div", { class: "tiny muted" }, relDate(n.date, today())),
-        h("div", { class: "small" }, n.body.slice(0, 120))
-      )));
-      view3.append(rows);
-      if (hesitations.length > 2) {
-        view3.append(h(
-          "p",
-          { class: "tiny muted", style: "margin-top:10px" },
-          `You've written this down ${hesitations.length} times. If it's the same reason each time, that's not hesitation \u2014 that's an answer.`
-        ));
-      }
-    }
-    return view3;
-  }
-  var title3 = "Good Ground";
-
   // js/views/unsettled.js
   var unsettled_exports = {};
   __export(unsettled_exports, {
-    render: () => render4,
-    title: () => title4
+    render: () => render3,
+    title: () => title3
   });
   function blockRow(state2, b) {
     const ground = state2.contexts.find((g) => g.id === b.groundId);
@@ -4494,7 +4099,7 @@ select { appearance: none; }
       )
     );
   }
-  function render4(state2) {
+  function render3(state2) {
     const view3 = h("div", {});
     const open2 = state2.blocks.filter((b) => b.status === "open");
     const settled = state2.blocks.filter((b) => b.status === "settled").sort((a, b) => (a.settledAt || "") < (b.settledAt || "") ? 1 : -1);
@@ -4519,8 +4124,8 @@ select { appearance: none; }
     const gaps = state2.contexts.filter((g) => g.kind === "place" && g.stage !== "ruled-out").map((g) => ({ g, s: survey(state2, g) })).filter((x) => x.s.check && x.s.unsurveyed.length);
     if (gaps.length) {
       view3.append(section("Still unsurveyed"));
-      const rows = h("div", { class: "rows" });
-      gaps.forEach(({ g, s }) => rows.append(h(
+      const rows2 = h("div", { class: "rows" });
+      gaps.forEach(({ g, s }) => rows2.append(h(
         "button",
         { class: "card-tap", onClick: () => walkTheLand(g.id, s.check) },
         h(
@@ -4531,7 +4136,7 @@ select { appearance: none; }
         ),
         h("div", { class: "tiny muted truncate" }, s.unsurveyed.slice(0, 3).map((u) => u.req.title).join(", "))
       )));
-      view3.append(rows);
+      view3.append(rows2);
     }
     if (!open2.length && !gaps.length) {
       view3.append(empty("Nothing in the way. That means the next move is a decision, not more research.", "Add something anyway", () => editBlock()));
@@ -4543,15 +4148,15 @@ select { appearance: none; }
     view3.append(h("button", { class: "btn primary block", style: "margin-top:20px", onClick: () => editBlock() }, "Add something in the way"));
     return view3;
   }
-  var title4 = "In the way";
+  var title3 = "In the way";
 
   // js/views/word.js
   var word_exports = {};
   __export(word_exports, {
-    render: () => render5,
+    render: () => render4,
     runDiscernment: () => runDiscernment,
     studyVerse: () => studyVerse,
-    title: () => title5
+    title: () => title4
   });
 
   // js/scripture.js
@@ -4801,7 +4406,7 @@ select { appearance: none; }
         const unasked = counts.unasked || 0;
         tally2.textContent = unasked ? `${DISCERN_ITEMS.length - unasked} of ${DISCERN_ITEMS.length} asked. The unasked ones are the work.` : `All ${DISCERN_ITEMS.length} asked${counts.against ? ` \u2014 and ${counts.against} came back against.` : "."}`;
       };
-      const rows = DISCERN_ITEMS.map((it) => {
+      const rows2 = DISCERN_ITEMS.map((it) => {
         const cell = run.items[it.id] || (run.items[it.id] = { state: "unasked", note: "" });
         return h(
           "div",
@@ -4834,7 +4439,7 @@ select { appearance: none; }
         field("Date", h("input", { type: "date", value: run.date, onInput: (e) => {
           run.date = e.target.value || today();
         } })),
-        h("div", { class: "stack" }, rows),
+        h("div", { class: "stack" }, rows2),
         h(
           "div",
           { style: "margin-top:16px" },
@@ -4883,10 +4488,10 @@ select { appearance: none; }
         { class: "muted small" },
         "Ten threads for the question you're actually asking. References and a note on why each belongs \u2014 you bring the text and the work."
       ));
-      const rows2 = h("div", { class: "rows" });
+      const rows3 = h("div", { class: "rows" });
       THREADS.forEach((t) => {
         const studied = t.verses.filter((v) => studyFor(state2, v.ref)).length;
-        rows2.append(h(
+        rows3.append(h(
           "button",
           { class: "card-tap", onClick: () => {
             view.threadId = t.id;
@@ -4901,7 +4506,7 @@ select { appearance: none; }
           h("div", { class: "tiny muted" }, t.blurb)
         ));
       });
-      root.append(rows2);
+      root.append(rows3);
       return;
     }
     root.append(h("button", { class: "icon-btn", onClick: () => {
@@ -4910,10 +4515,10 @@ select { appearance: none; }
     } }, "\u2190 All threads"));
     root.append(h("h1", { style: "margin-top:12px" }, thread.title));
     root.append(h("p", { class: "muted small" }, thread.blurb));
-    const rows = h("div", { class: "rows" });
+    const rows2 = h("div", { class: "rows" });
     thread.verses.forEach((v) => {
       const study = studyFor(state2, v.ref);
-      rows.append(h(
+      rows2.append(h(
         "button",
         { class: "card-tap", onClick: () => studyVerse(v.ref, v.note) },
         h(
@@ -4926,7 +4531,7 @@ select { appearance: none; }
         study?.doing ? h("div", { class: "small", style: "margin-top:6px" }, `\u2192 ${study.doing}`) : null
       ));
     });
-    root.append(rows);
+    root.append(rows2);
   }
   function studies(state2, root) {
     if (!state2.verses.length) {
@@ -4937,9 +4542,9 @@ select { appearance: none; }
       return;
     }
     root.append(h("p", { class: "muted small" }, "Everything you've worked through, newest first."));
-    const rows = h("div", { class: "rows" });
+    const rows2 = h("div", { class: "rows" });
     [...state2.verses].sort((a, b) => a.date < b.date ? 1 : -1).forEach((v) => {
-      rows.append(h(
+      rows2.append(h(
         "button",
         { class: "card-tap", onClick: () => studyVerse(v.ref) },
         h(
@@ -4952,7 +4557,7 @@ select { appearance: none; }
         v.doing ? h("div", { class: "small", style: "margin-top:4px" }, `\u2192 ${v.doing}`) : null
       ));
     });
-    root.append(rows);
+    root.append(rows2);
   }
   function discernment(state2, root) {
     root.append(h(
@@ -4966,10 +4571,10 @@ select { appearance: none; }
       return;
     }
     root.append(section("Run it on"));
-    const pick2 = h("div", { class: "rows" });
+    const pick = h("div", { class: "rows" });
     grounds.forEach((g) => {
       const runs = state2.discernments.filter((d) => d.groundId === g.id).sort((a, b) => a.date < b.date ? 1 : -1);
-      pick2.append(h(
+      pick.append(h(
         "button",
         { class: "card-tap", onClick: () => runDiscernment(g.id, runs[0]) },
         h(
@@ -4981,16 +4586,16 @@ select { appearance: none; }
         runs[0]?.summary ? h("div", { class: "tiny muted truncate" }, runs[0].summary) : null
       ));
     });
-    root.append(pick2);
+    root.append(pick);
     const all = [...state2.discernments].sort((a, b) => a.date < b.date ? 1 : -1);
     if (all.length) {
       root.append(section("Every run"));
-      const rows = h("div", { class: "rows" });
+      const rows2 = h("div", { class: "rows" });
       all.forEach((d) => {
         const g = grounds.find((x) => x.id === d.groundId);
         const asked = DISCERN_ITEMS.filter((it) => (d.items[it.id]?.state || "unasked") !== "unasked").length;
         const against = DISCERN_ITEMS.filter((it) => d.items[it.id]?.state === "against").length;
-        rows.append(h(
+        rows2.append(h(
           "button",
           { class: "card-tap", onClick: () => runDiscernment(d.groundId, d) },
           h(
@@ -5006,18 +4611,18 @@ select { appearance: none; }
           d.summary ? h("div", { class: "tiny muted truncate" }, d.summary) : null
         ));
       });
-      root.append(rows);
+      root.append(rows2);
     }
   }
   var rerender = () => {
   };
   var go2 = () => rerender();
-  function render5(state2) {
+  function render4(state2) {
     const root = h("div", {});
     rerender = () => {
       const parent = root.parentNode;
       if (!parent) return;
-      parent.replaceChild(render5(get()), root);
+      parent.replaceChild(render4(get()), root);
     };
     const tabs = h("div", { class: "row wrap", style: "margin-bottom:16px" });
     [["library", "Threads"], ["studies", "My studies"], ["discern", "Discernment"]].forEach(([id, label]) => {
@@ -5040,14 +4645,14 @@ select { appearance: none; }
     }, "Write a journal entry from this"));
     return root;
   }
-  var title5 = "The Word";
+  var title4 = "The Word";
 
   // js/views/journal.js
   var journal_exports = {};
   __export(journal_exports, {
     openNote: () => openNote,
-    render: () => render6,
-    title: () => title6
+    render: () => render5,
+    title: () => title5
   });
   var view2 = { tab: "entries", kind: null, q: "" };
   function openNote(id) {
@@ -5112,15 +4717,15 @@ select { appearance: none; }
     paintChips();
     function paint() {
       const q = view2.q.trim().toLowerCase();
-      const rows = state2.notes.filter((n) => !view2.kind || n.kind === view2.kind).filter((n) => !q || `${n.title} ${n.body} ${n.source}`.toLowerCase().includes(q)).sort((a, b) => a.date < b.date ? 1 : -1);
+      const rows2 = state2.notes.filter((n) => !view2.kind || n.kind === view2.kind).filter((n) => !q || `${n.title} ${n.body} ${n.source}`.toLowerCase().includes(q)).sort((a, b) => a.date < b.date ? 1 : -1);
       list.replaceChildren();
-      if (!rows.length) {
+      if (!rows2.length) {
         list.append(empty(state2.notes.length ? "Nothing matches." : "Empty. Write the first honest thing.", "New entry", () => editNote()));
         return;
       }
       let month = null;
       let bucket = null;
-      rows.forEach((n) => {
+      rows2.forEach((n) => {
         const m = n.date.slice(0, 7);
         if (m !== month) {
           month = m;
@@ -5162,10 +4767,10 @@ select { appearance: none; }
       const group = state2.people.filter((p) => p.stage === stage.id);
       if (!group.length) return;
       root.append(section(stage.label));
-      const rows = h("div", { class: "rows" });
+      const rows2 = h("div", { class: "rows" });
       group.forEach((p) => {
         const cold = p.lastMet ? daysBetween(p.lastMet, today()) : null;
-        rows.append(h(
+        rows2.append(h(
           "div",
           {},
           h(
@@ -5191,11 +4796,11 @@ select { appearance: none; }
           }, "Met today")
         ));
       });
-      root.append(rows);
+      root.append(rows2);
     });
     root.append(h("button", { class: "btn block", style: "margin-top:20px", onClick: () => editPerson() }, "Add someone"));
   }
-  function render6(state2) {
+  function render5(state2) {
     const root = h("div", {});
     const tabs = h("div", { class: "row", style: "margin-bottom:16px" });
     [["entries", "Entries"], ["people", "People"]].forEach(([id, label]) => {
@@ -5212,19 +4817,18 @@ select { appearance: none; }
     else people(state2, root);
     return root;
   }
-  var title6 = "Journal";
+  var title5 = "Journal";
 
   // js/app.js
-  var VIEWS = { target: target_exports, land: land_exports, soil: soil_exports, word: word_exports, unsettled: unsettled_exports, journal: journal_exports };
+  var VIEWS = { board: board_exports, soil: soil_exports, word: word_exports, unsettled: unsettled_exports, journal: journal_exports };
   var ICONS = {
-    target: '<path d="M3.5 13h17"/><path d="M12 13v-5"/><circle cx="12" cy="5.5" r="2.8"/><path d="M12 13c0 4-3 5-4.5 7M12 13c0 4 3 5 4.5 7M12 13v7.5"/>',
-    land: '<path d="M2.5 17.5 9 6l6.5 11.5z"/><path d="M13 17.5 17 10l4.5 7.5z"/><path d="M2 20.5h20"/>',
+    board: '<path d="M3.5 4.5h17v15h-17z"/><path d="M9.5 4.5v15M15 4.5v15"/><path d="M3.5 9.5h17"/>',
     soil: '<path d="M3.5 9h17"/><path d="M7 9v11M12 9v11M17 9v11"/><path d="M4 5.5c2.5-2 5-2 8 0s5.5 2 8 0"/>',
     word: '<path d="M4 4.5A2 2 0 0 1 6 3h5v17H6a2 2 0 0 0-2 1.5z"/><path d="M20 4.5A2 2 0 0 0 18 3h-5v17h5a2 2 0 0 1 2 1.5z"/><path d="M12 7v3M10.5 8.5h3"/>',
     unsettled: '<path d="M12 3.5 21 19H3z"/><path d="M12 10v4"/><circle cx="12" cy="16.6" r=".6" fill="currentColor"/>',
     journal: '<path d="M6 3h12v18H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M8.5 3v18"/>'
   };
-  var LABELS = { target: "Ground", land: "Land", soil: "Soil", word: "Word", unsettled: "In the way", journal: "Journal" };
+  var LABELS = { board: "Weigh", soil: "What matters", unsettled: "In the way", word: "Word", journal: "Log" };
   function renderTabs(active) {
     const nav = clear($("#tabs"));
     ROUTES.forEach((r) => {
@@ -5235,7 +4839,7 @@ select { appearance: none; }
     });
   }
   var rendering = false;
-  function render7() {
+  function render6() {
     if (!isUnlocked() || rendering) return;
     rendering = true;
     const route = currentRoute();
@@ -5298,7 +4902,7 @@ select { appearance: none; }
     $("#shell").hidden = false;
     $("#btn-lock").hidden = !isEncrypted();
     touch();
-    render7();
+    render6();
     if (!isPersistent()) warnNotSaving();
   }
   function warnNotSaving() {
@@ -5321,9 +4925,9 @@ select { appearance: none; }
     });
     wireLock();
     watchIdle();
-    onRoute(render7);
+    onRoute(render6);
     subscribe(() => {
-      render7();
+      render6();
       $("#btn-lock").hidden = !isEncrypted();
     });
     $("#btn-settings").addEventListener("click", openSettings);

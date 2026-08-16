@@ -171,6 +171,11 @@ export function update(fn) {
   return state;
 }
 
+/** Re-render without changing anything — for view state that isn't saved. */
+export function notify() {
+  listeners.forEach((l) => l(state));
+}
+
 const listeners = new Set();
 export function subscribe(fn) {
   listeners.add(fn);

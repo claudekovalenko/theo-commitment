@@ -2,11 +2,40 @@
 
 A private, offline app for one question:
 
-> **Is this ground I could build on?**
+> **Which ministry could I be planted with?**
 
-Not a compass, not a scorecard. You already know roughly what you want. What
-you keep not doing is saying *we're building here* — so this app treats that
-hesitation as the thing to work on, and turns it into a finite list.
+Not a scorecard, not a devotional. One screen where every option you're actually
+weighing sits side by side, marked against the things you said matter, so you
+can look at it until the answer is obvious.
+
+## The board
+
+The app opens on it. **Options across the top** — E3, Antioch, NPL, whatever
+else is real. **What matters down the side**, in the order that actually decides
+it:
+
+1. **The two that decide it** — could I leave my kids with them unsupervised,
+   and would my son come back sharper or softer.
+2. **The lines I don't cross** — baptism, leadership and oversight, the role of
+   women.
+3. **What I won't build without** — the must-haves, in your words. One tap
+   switches to everything.
+4. **Us, and staying** — where my wife and I actually are, and whether we could
+   settle in with them completely.
+
+Tap any cell: the option, the row, five plain answers, and a box for what you
+actually saw. Two taps and it's marked. Nothing has to be completed.
+
+Under every column is **one word**, worked out in the order that decides it — a
+wall you fail beats everything, then the kid test, then how much you simply
+don't know yet:
+
+> **E3 — No.** Fails baptism. That's a wall.
+> **Antioch — Maybe.** 3 still unknown. Nothing failing.
+> **NPL — Too early.** 9 of 14 you can't answer yet.
+
+Below the board the same read is spelled out per option, with what it runs on,
+where you stand on that model, and what your part in it would be.
 
 ## The calling
 
@@ -250,12 +279,11 @@ the list.
 
 | | |
 | --- | --- |
-| **Ground** | The one place in front of you, and what stands between you and yes |
-| **Land** | Every piece of ground, ranked and compared area by area |
-| **Soil** | What the ground has to hold, what you're still settling, and the models |
-| **Word** | Scripture threads, your studies, and the discernment instrument |
+| **Weigh** | The board — every option, everything that matters, one screen |
+| **What matters** | The rows: requirements, what you're still settling, your walls, the models |
 | **In the way** | Everything unsettled, and what would settle it |
-| **Journal** | What you're learning, and the people you're walking with |
+| **Word** | Scripture threads, your studies, and the discernment instrument |
+| **Log** | What you're learning, and the people you're walking with |
 
 ## Where your entries live
 
@@ -315,7 +343,7 @@ js/model.js           vocabulary, survey math, verdicts
 js/seed.js            starter content
 js/ui.js              DOM helpers, sheet, form controls
 js/editors.js         every add/edit form, plus breaking ground
-js/views/parts.js     the root drawing and area bars
+js/views/board.js     the board — the screen the app is for
 js/views/*.js         one file per tab, plus settings
 tools/make_icons.py   regenerates icons/ (no dependencies)
 tools/build_single.mjs  bundles dist/good-ground.html for single-page hosts

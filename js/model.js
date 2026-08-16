@@ -52,11 +52,11 @@ export const WEIGHTS = [
 ];
 
 export const LEVELS = [
-  { id: 'aligned', label: 'Yes', score: 1, help: 'The ground has it.' },
-  { id: 'mostly', label: 'Mostly', score: 0.72, help: 'Close enough to work with.' },
-  { id: 'tension', label: 'Thin', score: 0.3, help: 'Real friction. I feel it.' },
-  { id: 'conflict', label: 'No', score: 0, help: "It isn't here and won't be." },
-  { id: 'unknown', label: 'Unsurveyed', score: null, help: "I haven't looked hard enough to say." },
+  { id: 'aligned', label: 'Yes', score: 1, tone: 'good', help: 'They have it.' },
+  { id: 'mostly', label: 'Mostly', score: 0.72, tone: 'ok', help: 'Close enough to work with.' },
+  { id: 'tension', label: 'Thin', score: 0.3, tone: 'thin', help: 'Real friction. I feel it.' },
+  { id: 'conflict', label: 'No', score: 0, tone: 'bad', help: "It isn't there and won't be." },
+  { id: 'unknown', label: 'Don\'t know', score: null, tone: 'unknown', help: "I haven't seen enough to say." },
 ];
 
 export const US_LEVELS = [

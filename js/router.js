@@ -1,14 +1,17 @@
-export const ROUTES = ['target', 'land', 'soil', 'word', 'unsettled', 'journal'];
+export const ROUTES = ['board', 'soil', 'unsettled', 'word', 'journal'];
 
 // what these tabs were called in earlier versions
-const OLD = { compass: 'target', where: 'land', plays: 'land', convictions: 'soil', do: 'unsettled', log: 'journal', people: 'journal' };
+const OLD = {
+  compass: 'board', target: 'board', where: 'board', land: 'board', plays: 'board',
+  convictions: 'soil', do: 'unsettled', log: 'journal', people: 'journal',
+};
 
 let handler = null;
 
 export function currentRoute() {
   const r = location.hash.replace(/^#\/?/, '');
   if (OLD[r]) return OLD[r];
-  return ROUTES.includes(r) ? r : 'target';
+  return ROUTES.includes(r) ? r : 'board';
 }
 
 export function onRoute(fn) {

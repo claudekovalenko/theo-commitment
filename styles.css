@@ -292,3 +292,56 @@ select { appearance: none; }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* ---------- the board: every option in a column, everything that matters in a row ---------- */
+
+.board-wrap { margin: 14px 0 4px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); }
+table.board { border-collapse: collapse; width: 100%; font-size: .84rem; }
+
+table.board th, table.board td { padding: 0; vertical-align: middle; }
+
+table.board .rowhead {
+  position: sticky; left: 0; z-index: 2;
+  background: var(--card);
+  text-align: left; font-weight: 500; color: var(--ink);
+  padding: 9px 9px; min-width: 8.4rem; max-width: 11rem;
+  border-right: 1px solid var(--line);
+  line-height: 1.25;
+}
+table.board thead .rowhead { background: var(--card); }
+table.board thead th { border-bottom: 1px solid var(--line); }
+
+.colhead {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  width: 100%; min-width: 4.2rem; padding: 9px 4px;
+  background: none; border: 0; font: inherit; color: var(--ink); cursor: pointer;
+}
+.colhead .name { font-weight: 650; font-size: .84rem; }
+.verdict-chip { font-size: .66rem; text-transform: uppercase; letter-spacing: .05em; font-weight: 700; }
+
+table.board tr.group th {
+  text-align: left; padding: 12px 10px 5px;
+  font-size: .66rem; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--muted); background: var(--paper);
+  position: sticky; left: 0;
+}
+table.board tbody tr:not(.group) + tr:not(.group) th,
+table.board tbody tr:not(.group) + tr:not(.group) td { border-top: 1px solid var(--line); }
+
+.cell {
+  display: grid; place-items: center;
+  width: 100%; min-width: 4.2rem; min-height: 44px;
+  background: none; border: 0; cursor: pointer;
+  font-size: 1.15rem; font-weight: 700; line-height: 1;
+  color: var(--muted);
+}
+.cell:active { background: var(--moss-soft); }
+.cell.noted { text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; }
+
+.mark { display: inline-block; width: 1.2em; font-weight: 700; }
+
+.plain-head {
+  font-size: .7rem; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--muted); font-family: inherit; font-weight: 700;
+  margin: 22px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line);
+}
