@@ -379,3 +379,12 @@ select { appearance: none; }
   border-left: 1px solid var(--line);
 }
 .belief .side .eyebrow { margin-bottom: 3px; }
+
+/* the alignment bar: what lines up with me, at a glance */
+.align-bar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin: 8px 0 0; gap: 1px; }
+.align-bar > span { display: block; min-width: 3px; }
+.align-bar .seg-good { background: var(--moss); }
+.align-bar .seg-ok { background: color-mix(in srgb, var(--moss) 55%, var(--paper)); }
+.align-bar .seg-thin { background: var(--amber); }
+.align-bar .seg-bad { background: var(--rust); }
+.align-bar .seg-unknown { background: color-mix(in srgb, var(--ink) 12%, transparent); }

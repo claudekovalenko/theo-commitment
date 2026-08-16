@@ -17,10 +17,19 @@ starts filled in from your own words and you can rewrite it any time:
 > where my son comes back more on mission, that makes disciples and doesn't
 > cross my lines.
 
-**Every ministry is a shot at that centre**, and where it lands is driven by
-what you've actually *done*, not by how well it scores. Four rings out from the
-middle: **At home here · Close · Started · Barely begun.** Outside the rings
-altogether goes anything that fails a wall, because that isn't a distance.
+**Every ministry is a shot at that centre**, and where it lands is one thing:
+**how much of what I hold lines up with what they hold.** Four rings out from
+the middle — **Lines up with me · Close · Real differences · Far off** — and
+outside the rings altogether goes anything that fails a wall, because that isn't
+a distance.
+
+Knowing counts. Half-asked can't sit near the middle, and a ministry you've
+never put a question to sits right out at the edge: *"9 things you hold, and you
+haven't put one of them to these people."*
+
+Two things don't average in. **Opposed on anything you hold** pushes a shot
+straight to the outer ring, and so does failing the kid test or coming back
+softer. Those aren't distances you close by doing more.
 
 ## The plan
 
@@ -334,7 +343,7 @@ the list.
 | | |
 | --- | --- |
 | **Target** | What I'm going for, each ministry's plan, and the next step |
-| **What matters** | The rows: requirements, what you're still settling, your walls, the models |
+| **Convictions** | What I hold, what I'm still settling, my walls, and the models |
 | **In the way** | Everything unsettled, and what would settle it |
 | **Word** | Scripture threads, your studies, and the discernment instrument |
 | **Log** | What you're learning, and the people you're walking with |

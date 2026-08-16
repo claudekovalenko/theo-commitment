@@ -25,10 +25,10 @@ const GLYPH = { good: '✓', ok: '~', thin: '!', bad: '✕', unknown: '·' };
 
 /** The rings, from the centre out. Where a shot lands is the whole answer. */
 const RINGS = [
-  { id: 'bullseye', at: 0.22, label: 'At home here', tone: 'good' },
+  { id: 'bullseye', at: 0.22, label: 'Lines up with me', tone: 'good' },
   { id: 'close', at: 0.46, label: 'Close', tone: 'ok' },
-  { id: 'wide', at: 0.70, label: 'Started', tone: 'thin' },
-  { id: 'edge', at: 0.94, label: 'Barely begun', tone: 'bad' },
+  { id: 'wide', at: 0.70, label: 'Real differences', tone: 'thin' },
+  { id: 'edge', at: 0.94, label: 'Far off', tone: 'bad' },
 ];
 
 /* ---------- what I'm going for ---------- */
@@ -123,94 +123,88 @@ function worth(row, value) {
  * target altogether. Distance is earned two ways — by answering well and by
  * actually knowing. A place you haven't looked at can't land near the middle.
  */
+const ALIGN_WORTH = { same: 1, close: 0.75, different: 0.3, opposed: 0 };
+
 export function shot(state, ground) {
   const check = latestCheck(state.checks, ground.id);
-  const rowList = rows(state);
   const plan = progressFor(state, ground.id);
+  const t = alignTally(state, check);
 
   if (ground.stage === 'built') {
-    return { dist: 0.05, tone: 'good', word: 'Planted', why: 'You committed to them.', check, plan };
+    return { dist: 0.05, tone: 'good', word: 'Planted', why: 'You committed to them.', check, plan, t };
   }
   if (ground.stage === 'ruled-out') {
-    return { dist: 1.3, tone: 'bad', word: 'Off the target', why: 'You ruled them out.', check, plan };
+    return { dist: 1.3, tone: 'bad', word: 'Off the target', why: 'You ruled them out.', check, plan, t };
   }
 
-  // A wall is not a distance. Nothing you do moves it.
+  // A wall is not a distance. Nothing closes it.
   const walls = (state.barriers || []).filter((b) => b.hard && check?.barriers?.[b.id]?.state === 'fails');
   if (walls.length) {
     return {
-      dist: 1.3, tone: 'bad', word: 'Off the target', plan, check,
+      dist: 1.3, tone: 'bad', word: 'Off the target', plan, check, t,
       why: `Fails ${walls.map((b) => b.title.toLowerCase()).join(' and ')}. That's a wall, not a distance.`,
     };
   }
 
-  // No plan is its own answer: you can't get closer to being at home with people
-  // by thinking about them.
-  if (!plan.total) {
+  if (!t.asked) {
     return {
-      dist: 1.22, tone: 'unknown', word: 'No plan yet', plan, check,
-      why: 'Nothing set to actually do here. Being at home somewhere doesn\'t happen by weighing it.',
+      dist: 1.22, tone: 'unknown', word: 'Never asked', plan, check, t,
+      why: `${t.total} things you hold, and you haven't put one of them to these people.`,
     };
   }
 
-  // Distance is what you've done. What you've learned only nudges it.
-  let fitGot = 0;
-  let fitPossible = 0;
-  let answered = 0;
-  rowList.forEach((r) => {
-    const w = worth(r, cellValue(check, r));
-    if (w === null) return;
-    answered += 1;
-    fitGot += w * r.weight;
-    fitPossible += r.weight;
+  // How close they sit is how much of what I hold lines up with what they hold.
+  // Knowing counts: half-asked can't sit near the middle.
+  let got = 0;
+  t.list.forEach((b) => {
+    const a = theirsOn(check, b.id)?.align;
+    if (a && ALIGN_WORTH[a] !== undefined) got += ALIGN_WORTH[a];
   });
-  const fit = fitPossible ? fitGot / fitPossible : 0.5;
-  const closeness = plan.ratio * 0.8 + fit * 0.2;
-  const dist = Math.max(0.05, Math.min(1.15, 1 - closeness));
+  const lined = got / t.asked;
+  const known = t.total ? t.asked / t.total : 0;
+  const dist = Math.max(0.05, Math.min(1.15, 1 - lined * (0.4 + 0.6 * known)));
 
   const kid = check?.kid?.level || 'unknown';
   const softer = check?.formation?.level === 'softer';
-  const left = plan.total - plan.done;
-  const opposed = alignTally(state, check).counts.opposed;
   let out = dist;
   let word;
   let why;
 
-  // The gate doesn't average in. Fail it and the shot is pushed out no matter
-  // how much of the plan you got through.
-  if (kid === 'no' || kid === 'supervised') {
-    out = Math.max(dist, RINGS[3].at);
-    word = 'Barely on it';
-    why = 'You wouldn\'t leave your kids with them. Nothing else moves it in.';
-  } else if (opposed) {
-    // Doing more with people you're opposed to doesn't make you at home with them.
+  // Two things don't average in — they push the shot out on their own.
+  if (t.counts.opposed) {
     out = Math.max(dist, RINGS[3].at);
     word = 'Opposed';
-    why = `You're opposed to them on ${opposed} thing${opposed > 1 ? 's' : ''} you hold. Steps don't close that.`;
+    why = `Opposed on ${t.counts.opposed} of ${t.total}. That isn't a distance you close by liking them.`;
+  } else if (kid === 'no' || kid === 'supervised') {
+    out = Math.max(dist, RINGS[3].at);
+    word = 'Far off';
+    why = 'You wouldn\'t leave your kids with them. Nothing else moves it in.';
   } else if (softer) {
     out = Math.max(dist, RINGS[3].at);
-    word = 'Barely on it';
+    word = 'Far off';
     why = 'He\'d come back softer. That pushes everything out.';
   } else if (out <= RINGS[0].at) {
-    word = 'At home here';
-    why = left
-      ? `${plan.done} of ${plan.total} done. ${left} left, and none of it is failing.`
-      : 'You did everything you said would make you at home here. That\'s a decision now, not a discovery.';
+    word = 'Lines up with me';
+    why = t.counts.unknown
+      ? `Lined up on ${t.counts.same + t.counts.close} of ${t.asked} asked. ${t.counts.unknown} left to put to them.`
+      : 'You asked about all of it and none of it divides you.';
   } else if (out <= RINGS[1].at) {
     word = 'Close';
-    why = `${plan.done} of ${plan.total} done. ${left} still to do.`;
+    why = t.counts.different
+      ? `Lined up on ${t.counts.same + t.counts.close}, genuinely different on ${t.counts.different}.`
+      : `${t.asked} of ${t.total} asked, and it holds so far.`;
   } else if (out <= RINGS[2].at) {
-    word = 'Started';
-    why = plan.done
-      ? `${plan.done} of ${plan.total} done. Started, not close.`
-      : `${plan.total} steps set, none taken yet.`;
+    word = 'Real differences';
+    why = t.counts.different
+      ? `Different on ${t.counts.different} of ${t.asked} asked. Name what those cost.`
+      : `Only ${t.asked} of ${t.total} asked. Mostly you don't know what they hold.`;
   } else {
-    word = 'Barely begun';
-    why = plan.done ? `Only ${plan.done} of ${plan.total} done.` : `${plan.total} steps set, none taken yet.`;
+    word = 'Far off';
+    why = `${t.asked} of ${t.total} asked, and little of it lines up.`;
   }
 
   const tone = out <= RINGS[0].at ? 'good' : out <= RINGS[1].at ? 'ok' : out <= RINGS[2].at ? 'thin' : 'bad';
-  return { dist: out, tone, word, why, check, plan, answered, total: rowList.length };
+  return { dist: out, tone, word, why, check, plan, t };
 }
 
 /* ---------- drawing it ---------- */
@@ -372,6 +366,24 @@ function useTemplates(groundId, showAll) {
   // The sheet is built once, so re-open it in place to show what just landed.
   openShot(groundId, { all: showAll, replace: true });
   toast('Ten steps added');
+}
+
+/** What lines up and what doesn't, in one bar. The whole question, coloured. */
+function alignStrip(t) {
+  const wrap = h('div', {});
+  const bar = h('div', { class: 'align-bar' });
+  ALIGN.forEach((a) => {
+    const n = t.counts[a.id];
+    if (!n) return;
+    const seg = h('span', { class: `seg-${a.tone}`, title: `${n} ${a.short.toLowerCase()}` });
+    seg.style.flex = String(n);
+    bar.append(seg);
+  });
+  wrap.append(bar);
+  wrap.append(h('div', { class: 'row wrap', style: 'gap:2px 12px; margin-top:5px' },
+    ALIGN.filter((a) => t.counts[a.id]).map((a) => h('span', { class: `tiny tone-${a.tone}` },
+      `${t.counts[a.id]} ${a.short.toLowerCase()}`))));
+  return wrap;
 }
 
 function progressBar(plan) {
@@ -580,11 +592,11 @@ export function render(state) {
       h('div', { class: 'row spread' },
         h('strong', { class: 'grow' }, ground.name),
         h('span', { class: `small tone-${s.tone}` }, s.word)),
+      h('div', { class: 'small muted' }, s.why),
+      s.t.total ? alignStrip(s.t) : null,
       ground.homeMeans
         ? h('div', { class: 'tiny muted' }, `At home here: ${ground.homeMeans}`)
-        : h('div', { class: 'tiny tone-thin' }, 'You haven\'t said what being at home here would look like'),
-      s.plan.total ? progressBar(s.plan) : null,
-      h('div', { class: 'small muted' }, s.why)));
+        : null));
 
     if (next) {
       card.append(h('div', { class: 'next' },
