@@ -99,6 +99,45 @@ lining up on paper is beside the point: you'd be signing up to be someone else.
 
 Every entry is copied into the Log, so four years of these read as one story.
 
+## Reading it back — what keeps coming up
+
+Four years of entries is only worth having if something reads across them. **Log
+→ What keeps coming up** does that, on the device, with no guessing about
+meaning — it counts what you actually keep saying and always shows the entries
+behind a claim so you can disagree with it.
+
+It reads everything written in your own voice: the times back from them, why you
+hesitated, and what happened when you took a step.
+
+**Them, or everywhere?** The question you can't answer from inside one ministry.
+
+> **It's them, not everywhere.** Not yourself with E3 and NPL — but you were with
+> Antioch. That's a difference in the room, not in you.
+
+If it turns out to be all of them, it says that instead: *"When it happens
+everywhere, the thing to look at is what you keep holding back, not who you were
+with."*
+
+**Words I keep using** — phrases that turn up in more than one *entry*, not
+repeats inside one paragraph. Pairs beat the words inside them, so *"house
+church"* counts for more than either half. Anything that shows up under more
+than one ministry is flagged, because that's the tell:
+
+| | |
+| --- | --- |
+| **conviction** · 3 entries | Comes up with E3 and NPL |
+| **oversight** · 3 entries | Comes up with E3 and NPL |
+| **conviction oversight** · 2 entries | Comes up with E3 and NPL |
+
+Tap one and every entry containing it is read back together with the phrase lit
+up in place — so *"I held back my conviction about house church oversight"* and
+*"I never said my conviction about oversight out loud"* sit side by side, three
+months apart, in two different ministries.
+
+It counts words; it doesn't understand them. A sentence like *"nothing held back
+for once"* still counts as *held*. That's why the entries are always shown — the
+list points, you read.
+
 ## Me and them, side by side
 
 The piece that ties the two halves together. A tick against a requirement says
@@ -377,7 +416,7 @@ the list.
 | **Convictions** | What I hold, what I'm still settling, my walls, and the models |
 | **In the way** | Everything unsettled, and what would settle it |
 | **Word** | Scripture threads, your studies, and the discernment instrument |
-| **Log** | What you're learning, and the people you're walking with |
+| **Log** | What you're learning, what keeps coming up, and the people you're walking with |
 
 ## Where your entries live
 
@@ -440,6 +479,7 @@ js/editors.js         every add/edit form, plus breaking ground
 js/goals.js           the ten steps toward being at home somewhere
 js/align.js           my theology beside theirs
 js/returns.js         who I was when I came back
+js/patterns.js        reading the entries back, on-device
 js/views/aim.js       the target — the screen the app is for
 js/views/*.js         one file per tab, plus settings
 tools/make_icons.py   regenerates icons/ (no dependencies)

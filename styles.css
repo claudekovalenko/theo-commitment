@@ -388,3 +388,6 @@ select { appearance: none; }
 .align-bar .seg-thin { background: var(--amber); }
 .align-bar .seg-bad { background: var(--rust); }
 .align-bar .seg-unknown { background: color-mix(in srgb, var(--ink) 12%, transparent); }
+
+/* reading entries back: the phrase that matched, lit in place */
+mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inherit; padding: 0 1px; border-radius: 2px; }

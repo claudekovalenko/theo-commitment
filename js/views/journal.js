@@ -4,7 +4,9 @@ import * as store from './../store.js';
 import { today } from './../store.js';
 import { NOTE_KINDS, PEOPLE_STAGES, byId } from './../model.js';
 import { h, frag, empty, section, openSheet, closeSheet, relDate, fmtDate, fmtMonth, toast, daysBetween } from './../ui.js';
-import { editNote, editPerson, editBlock } from './../editors.js';
+import { editNote, editPerson, editBlock, logReturn } from './../editors.js';
+import { SELF_LEVELS, CHRIST_LEVELS, returnRead, returnsFor } from './../returns.js';
+import { corpus, recurring, acrossMinistries, selfSpread } from './../patterns.js';
 import { go } from './../router.js';
 
 const view = { tab: 'entries', kind: null, q: '' };
@@ -121,10 +123,108 @@ function people(state, root) {
   root.append(h('button', { class: 'btn block', style: 'margin-top:20px', onClick: () => editPerson() }, 'Add someone'));
 }
 
+/** One entry from the corpus, with the phrase that matched it lit up. */
+function corpusRow(e, phrase) {
+  const body = h('div', { class: 'small' });
+  if (phrase) {
+    const rx = new RegExp(`(${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'ig');
+    String(e.text).split(rx).forEach((bit, i) => {
+      body.append(i % 2 ? h('mark', {}, bit) : document.createTextNode(bit));
+    });
+  } else {
+    body.textContent = e.text;
+  }
+  return h('div', { class: 'card' },
+    h('div', { class: 'row spread' },
+      h('span', { class: 'eyebrow' }, [e.ground, e.kind].filter(Boolean).join(' · ')),
+      h('span', { class: 'tiny muted' }, e.date ? fmtDate(e.date) : '')),
+    e.what ? h('div', { class: 'tiny muted' }, e.what) : null,
+    body);
+}
+
+/**
+ * Everything I've written in my own words, read back to me: what I keep
+ * saying, and whether it follows me from one of these to the next.
+ */
+function pattern(state, root) {
+  const entries = corpus(state);
+  const across = acrossMinistries(state);
+  const spread = selfSpread(state);
+
+  root.append(h('h1', {}, 'What keeps coming up'),
+    h('p', { class: 'muted small' },
+      'Read back from what you actually wrote — the times back from them, the hesitations, '
+      + 'and what happened when you took a step. Nothing here leaves this device, and every '
+      + 'line shows the entries behind it so you can disagree with it.'));
+
+  if (!entries.length) {
+    root.append(empty('Nothing written down yet.',
+      'Write a time back from one of them', () => go('aim')));
+    return;
+  }
+
+  /* ---- is it them, or is it every room ---- */
+  if (across.word) {
+    root.append(h('div', { class: 'card', style: 'margin-top:14px' },
+      h('div', { class: 'eyebrow' }, 'Them, or everywhere?'),
+      h('h3', { style: 'margin:4px 0 6px' }, across.word),
+      h('p', { class: 'small muted', style: 'margin:0' }, across.why),
+      h('div', { class: 'rows', style: 'margin-top:10px' },
+        across.per.map((p) => h('div', { class: 'row spread' },
+          h('span', { class: 'small' }, p.ground.name),
+          h('span', { class: `small tone-${p.everOff ? (p.allOff ? 'bad' : 'thin') : 'good'}` },
+            `${p.off} of ${p.total} not myself`))))));
+  }
+
+  if (spread.total) {
+    root.append(h('div', { class: 'card' },
+      h('div', { class: 'eyebrow' }, `Across all ${spread.total} times back`),
+      h('div', { class: 'rows', style: 'margin-top:6px' },
+        SELF_LEVELS.filter((l) => spread.counts[l.id]).map((l) => h('div', { class: 'row spread' },
+          h('span', { class: 'small' }, l.label),
+          h('span', { class: `small tone-${l.tone}` }, String(spread.counts[l.id])))))));
+  }
+
+  /* ---- what I keep saying ---- */
+  const phrases = recurring(entries);
+  root.append(h('h2', { class: 'plain-head' }, 'Words I keep using'));
+  if (!phrases.length) {
+    root.append(h('p', { class: 'muted small' },
+      `${entries.length} ${entries.length === 1 ? 'entry' : 'entries'} so far, and nothing repeats yet. `
+      + 'Patterns need a few more.'));
+  } else {
+    root.append(h('p', { class: 'muted small' },
+      'Counted across separate entries, not repeats inside one. Tap to read them together.'));
+    const rows = h('div', { class: 'rows' });
+    phrases.forEach((p) => {
+      rows.append(h('button', {
+        class: 'card-tap',
+        onClick: () => openSheet(`"${p.phrase}"`, () => frag(
+          h('p', { class: 'small muted' },
+            `In ${p.count} separate entries${p.grounds.length > 1 ? `, across ${p.grounds.join(' and ')}` : (p.grounds[0] ? `, all about ${p.grounds[0]}` : '')}.`),
+          p.entries.map((e) => corpusRow(e, p.phrase)),
+        )),
+      },
+      h('div', { class: 'row spread' },
+        h('strong', { class: 'grow' }, p.phrase),
+        h('span', { class: 'small muted' }, `${p.count} entries`)),
+      p.grounds.length
+        ? h('div', { class: `tiny ${p.grounds.length > 1 ? 'tone-bad' : 'muted'}` },
+          p.grounds.length > 1 ? `Comes up with ${p.grounds.join(' and ')}` : p.grounds[0])
+        : null));
+    });
+    root.append(rows);
+  }
+
+  /* ---- everything, in my own words ---- */
+  root.append(h('h2', { class: 'plain-head' }, `In my own words — ${entries.length}`));
+  entries.forEach((e) => root.append(corpusRow(e, null)));
+}
+
 export function render(state) {
   const root = h('div', {});
   const tabs = h('div', { class: 'row', style: 'margin-bottom:16px' });
-  [['entries', 'Entries'], ['people', 'People']].forEach(([id, label]) => {
+  [['entries', 'Entries'], ['pattern', 'What keeps coming up'], ['people', 'People']].forEach(([id, label]) => {
     tabs.append(h('button', {
       class: `chip${view.tab === id ? ' on' : ''}`,
       onClick: () => { view.tab = id; go('journal'); },
@@ -132,7 +232,9 @@ export function render(state) {
   });
   root.append(tabs);
 
-  if (view.tab === 'entries') entries(state, root); else people(state, root);
+  if (view.tab === 'entries') entries(state, root);
+  else if (view.tab === 'pattern') pattern(state, root);
+  else people(state, root);
   return root;
 }
 
