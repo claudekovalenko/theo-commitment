@@ -9,6 +9,7 @@ import {
 } from './model.js';
 import { CHURCH_MODELS, MODEL_STANCES } from './models.js';
 import { ALIGN, beliefs, theirsOn } from './align.js';
+import { SELF_LEVELS, CHRIST_LEVELS } from './returns.js';
 import {
   h, frag, field, input, area, segmented, chipPicker, openSheet, closeSheet,
   confirmSheet, toast,
@@ -927,5 +928,72 @@ export function compareBelief(groundId, itemId) {
           },
         }, 'Make it a step — go and ask them')
         : null),
+  ));
+}
+
+/* ---------- who I was when I came back ---------- */
+
+export function logReturn(groundId, existing) {
+  const state = store.get();
+  const ground = state.contexts.find((c) => c.id === groundId);
+  if (!ground) return;
+  const r = existing || {
+    id: uid(), groundId, date: today(), self: '', christ: '', heldBack: '', performed: '', what: '',
+  };
+  const draft = { ...r };
+
+  openSheet(`Back from ${ground.name}`, () => frag(
+    h('p', { class: 'small muted' },
+      'You ask this about your son every time — whether he\'d come back sharper or softer. '
+      + 'This is the same question about you, and you\'re the only one who can answer it.'),
+
+    field('What was it?', input({
+      value: draft.what || '', placeholder: 'A weekend, a month with them, a gathering.',
+      onInput: (e) => { draft.what = e.target.value; },
+    })),
+    field('When', h('input', { type: 'date', value: draft.date, onInput: (e) => { draft.date = e.target.value || today(); } })),
+
+    field('Was I myself?', segmented(SELF_LEVELS, draft.self, (v) => { draft.self = v; }),
+      'Not whether you enjoyed it. Whether the man who came back was the one who went.'),
+    field('And which direction was I formed?', segmented(CHRIST_LEVELS, draft.christ, (v) => { draft.christ = v; }),
+      'The same test you set for your son.'),
+
+    field('What did I hold back?', area({
+      value: draft.heldBack, placeholder: 'The conviction you didn\'t say. The question you swallowed. Name it — '
+        + 'it\'s usually the same one each time.',
+      onInput: (e) => { draft.heldBack = e.target.value; },
+    })),
+    field('What did I have to perform?', area({
+      value: draft.performed, placeholder: 'The part of it you were acting rather than meaning.',
+      onInput: (e) => { draft.performed = e.target.value; },
+    })),
+
+    saveBar(() => {
+      if (!draft.self) return toast('Say whether you were yourself');
+      store.update((st) => {
+        if (!st.returns) st.returns = [];
+        const i = st.returns.findIndex((x) => x.id === draft.id);
+        if (i < 0) st.returns.push({ ...draft, createdAt: new Date().toISOString() });
+        else st.returns[i] = { ...st.returns[i], ...draft };
+        if (i < 0) {
+          st.notes.push({
+            id: uid(), date: draft.date, kind: 'observation',
+            title: `Back from ${ground.name}${draft.what ? ` — ${draft.what}` : ''}`,
+            body: [
+              byId(SELF_LEVELS, draft.self)?.label,
+              draft.christ ? byId(CHRIST_LEVELS, draft.christ)?.label : '',
+              draft.heldBack ? `Held back: ${draft.heldBack}` : '',
+              draft.performed ? `Performed: ${draft.performed}` : '',
+            ].filter(Boolean).join('\n'),
+            convictionIds: [], contextIds: [groundId], source: '',
+            createdAt: new Date().toISOString(),
+          });
+        }
+      });
+      closeSheet();
+      toast('Written down');
+    }, existing ? () => confirmDelete('entry', (st) => {
+      st.returns = st.returns.filter((x) => x.id !== draft.id);
+    }) : null),
   ));
 }

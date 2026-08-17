@@ -193,7 +193,7 @@ export function importJSON(text, { merge }) {
   if (!merge) {
     state = incoming;
   } else {
-    for (const list of ['domains', 'convictions', 'contexts', 'checks', 'blocks', 'notes', 'people', 'verses', 'discernments', 'barriers', 'goals']) {
+    for (const list of ['domains', 'convictions', 'contexts', 'checks', 'blocks', 'notes', 'people', 'verses', 'discernments', 'barriers', 'goals', 'returns']) {
       const have = new Set(state[list].map((r) => r.id));
       state[list].push(...(incoming[list] || []).filter((r) => !have.has(r.id)));
     }
@@ -225,7 +225,7 @@ function migrate(data) {
     version: 3,
     createdAt: new Date().toISOString(),
     domains: [], convictions: [], contexts: [], checks: [], blocks: [], notes: [], people: [],
-    verses: [], discernments: [], modelStances: {}, barriers: [], goals: [],
+    verses: [], discernments: [], modelStances: {}, barriers: [], goals: [], returns: [],
     aim: '', weighingSince: '', appliedSeeds: [],
     calling: { placeId: '', place: '', why: '', by: '' },
     settings: {

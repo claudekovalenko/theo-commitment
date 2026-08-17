@@ -239,6 +239,7 @@ export function seedState() {
     contexts: [here, e3, npl, antioch],
     checks: [],
     goals: [],
+    returns: [],
     blocks: [
       {
         id: uid(),

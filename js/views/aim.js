@@ -13,7 +13,10 @@ import {
 import {
   h, frag, empty, openSheet, closeSheet, field, area, toast, daysBetween, relDate, fmtDate,
 } from './../ui.js';
-import { editGround, editCalling, editGoal, completeGoal, compareBelief } from './../editors.js';
+import {
+  editGround, editCalling, editGoal, completeGoal, compareBelief, logReturn,
+} from './../editors.js';
+import { SELF_LEVELS, CHRIST_LEVELS, returnsFor, returnRead } from './../returns.js';
 import { ALIGN, beliefs, theirsOn, alignTally, alignRead } from './../align.js';
 import { GOAL_TEMPLATES, goalsFor, progressFor, nextGoal } from './../goals.js';
 import { CHURCH_MODELS, MODEL_STANCES } from './../models.js';
@@ -131,10 +134,10 @@ export function shot(state, ground) {
   const t = alignTally(state, check);
 
   if (ground.stage === 'built') {
-    return { dist: 0.05, tone: 'good', word: 'Planted', why: 'You committed to them.', check, plan, t };
+    return { dist: 0.05, tone: 'good', word: 'Planted', why: 'You committed to them.', check, plan, t, back: returnRead(returnsFor(state, ground.id)) };
   }
   if (ground.stage === 'ruled-out') {
-    return { dist: 1.3, tone: 'bad', word: 'Off the target', why: 'You ruled them out.', check, plan, t };
+    return { dist: 1.3, tone: 'bad', word: 'Off the target', why: 'You ruled them out.', check, plan, t, back: returnRead(returnsFor(state, ground.id)) };
   }
 
   // A wall is not a distance. Nothing closes it.
@@ -142,13 +145,21 @@ export function shot(state, ground) {
   if (walls.length) {
     return {
       dist: 1.3, tone: 'bad', word: 'Off the target', plan, check, t,
+      back: returnRead(returnsFor(state, ground.id)),
       why: `Fails ${walls.map((b) => b.title.toLowerCase()).join(' and ')}. That's a wall, not a distance.`,
     };
   }
 
+  // Nothing below this outranks it. If I come back from them less myself, the
+  // doctrine lining up is beside the point — I'd be signing up to be someone else.
+  const backEarly = returnRead(returnsFor(state, ground.id));
+  if (backEarly.pattern) {
+    return { dist: RINGS[3].at, tone: 'bad', word: backEarly.word, why: backEarly.why, check, plan, t, back: backEarly };
+  }
+
   if (!t.asked) {
     return {
-      dist: 1.22, tone: 'unknown', word: 'Never asked', plan, check, t,
+      dist: 1.22, tone: 'unknown', word: 'Never asked', plan, check, t, back: backEarly,
       why: `${t.total} things you hold, and you haven't put one of them to these people.`,
     };
   }
@@ -166,11 +177,12 @@ export function shot(state, ground) {
 
   const kid = check?.kid?.level || 'unknown';
   const softer = check?.formation?.level === 'softer';
+  const back = backEarly;
   let out = dist;
   let word;
   let why;
 
-  // Two things don't average in — they push the shot out on their own.
+  // Two more that don't average in — they push the shot out on their own.
   if (t.counts.opposed) {
     out = Math.max(dist, RINGS[3].at);
     word = 'Opposed';
@@ -204,7 +216,7 @@ export function shot(state, ground) {
   }
 
   const tone = out <= RINGS[0].at ? 'good' : out <= RINGS[1].at ? 'ok' : out <= RINGS[2].at ? 'thin' : 'bad';
-  return { dist: out, tone, word, why, check, plan, t };
+  return { dist: out, tone, word, why, check, plan, t, back };
 }
 
 /* ---------- drawing it ---------- */
@@ -490,6 +502,33 @@ export function openShot(groundId, { all = false, replace = false } = {}) {
       h('p', { class: `eyebrow tone-${s.tone}` }, s.word),
       h('p', { class: 'verdict', style: 'margin-top:2px' }, s.why),
 
+      (() => {
+        const list = returnsFor(state, groundId);
+        const back = returnRead(list);
+        const card = h('div', { class: 'card' });
+        card.append(h('div', { class: 'row spread' },
+          h('span', { class: 'eyebrow' }, 'Who I was when I came back'),
+          h('span', { class: `small tone-${back.tone}` }, back.word)));
+        card.append(h('p', { class: 'small muted', style: 'margin:6px 0 0' }, back.why));
+        if (list.length) {
+          const rows = h('div', { class: 'rows', style: 'margin-top:8px' });
+          list.slice(0, 4).forEach((r) => {
+            const self = byId(SELF_LEVELS, r.self);
+            const ch = byId(CHRIST_LEVELS, r.christ);
+            rows.append(h('button', { class: 'card-tap', onClick: () => logReturn(groundId, r) },
+              h('div', { class: 'row spread' },
+                h('span', { class: 'grow small' }, r.what || fmtDate(r.date)),
+                h('span', { class: `small tone-${self?.tone || 'unknown'}` }, self?.label || '')),
+              ch ? h('div', { class: `tiny tone-${ch.tone}` }, ch.label) : null,
+              r.heldBack ? h('div', { class: 'tiny muted' }, `Held back: ${r.heldBack}`) : null));
+          });
+          card.append(rows);
+        }
+        card.append(h('button', { class: 'btn sm', style: 'margin-top:10px', onClick: () => logReturn(groundId) },
+          list.length ? '+ Another time back' : 'Write down a time back from them'));
+        return card;
+      })(),
+
       h('button', { class: 'card card-tap', onClick: () => editHomeMeans(groundId) },
         h('div', { class: 'eyebrow' }, 'At home here would mean'),
         ground.homeMeans
@@ -593,6 +632,11 @@ export function render(state) {
         h('strong', { class: 'grow' }, ground.name),
         h('span', { class: `small tone-${s.tone}` }, s.word)),
       h('div', { class: 'small muted' }, s.why),
+      s.back?.pattern
+        ? null
+        : (s.back && s.back.tone !== 'unknown'
+          ? h('div', { class: `tiny tone-${s.back.tone}` }, `Coming back: ${s.back.word.toLowerCase()}`)
+          : null),
       s.t.total ? alignStrip(s.t) : null,
       ground.homeMeans
         ? h('div', { class: 'tiny muted' }, `At home here: ${ground.homeMeans}`)

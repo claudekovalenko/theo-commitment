@@ -68,6 +68,37 @@ Underneath the plan, what you've learned so far — the two that decide it, your
 walls, your must-haves, your wife — each tappable to change and to write what you
 actually saw. That's evidence now, not the score.
 
+## Who I was when I came back
+
+The app asks whether your son would come home sharper or softer. It never asked
+the same thing about you — and that's the answer you already have, from NPL and
+from YWAM before it.
+
+So after time with a ministry, you write down who came back:
+
+- **Was I myself?** Fully · mostly, with edges tucked in · a version of myself ·
+  not myself. *Not whether you enjoyed it. Whether the man who came back was the
+  one who went.*
+- **Which direction was I formed?** More like Christ · about the same · less.
+  The same test you set for your son.
+- **What did I hold back?** The conviction you didn't say, the question you
+  swallowed. It's usually the same one each time — which is the point of writing
+  it.
+- **What did I have to perform?**
+
+Each one is dated, and they stack up. One off day is a day. **The same answer
+twice is an answer**, and the app says so plainly:
+
+> **Not yourself here.** 2 of 2 times back from them, you weren't yourself. That
+> many times isn't a mood.
+
+And that outranks everything else on the target. Not a deduction — it moves the
+shot straight to the outer ring, ahead of theology, ahead of the plan, ahead of
+how much you've asked. Because if you come back from them less yourself, them
+lining up on paper is beside the point: you'd be signing up to be someone else.
+
+Every entry is copied into the Log, so four years of these read as one story.
+
 ## Me and them, side by side
 
 The piece that ties the two halves together. A tick against a requirement says
@@ -408,6 +439,7 @@ js/ui.js              DOM helpers, sheet, form controls
 js/editors.js         every add/edit form, plus breaking ground
 js/goals.js           the ten steps toward being at home somewhere
 js/align.js           my theology beside theirs
+js/returns.js         who I was when I came back
 js/views/aim.js       the target — the screen the app is for
 js/views/*.js         one file per tab, plus settings
 tools/make_icons.py   regenerates icons/ (no dependencies)
