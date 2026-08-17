@@ -14,7 +14,7 @@ import {
   h, frag, empty, openSheet, closeSheet, field, area, toast, daysBetween, relDate, fmtDate,
 } from './../ui.js';
 import {
-  editGround, editCalling, editGoal, completeGoal, compareBelief, logReturn,
+  editGround, editCalling, editGoal, completeGoal, compareBelief, logReturn, mergeGround,
 } from './../editors.js';
 import { SELF_LEVELS, CHRIST_LEVELS, returnsFor, returnRead } from './../returns.js';
 import { ALIGN, beliefs, theirsOn, alignTally, alignRead } from './../align.js';
@@ -501,6 +501,9 @@ export function openShot(groundId, { all = false, replace = false } = {}) {
     return frag(
       h('p', { class: `eyebrow tone-${s.tone}` }, s.word),
       h('p', { class: 'verdict', style: 'margin-top:2px' }, s.why),
+      ground.aka?.length
+        ? h('p', { class: 'small muted', style: 'margin-top:-4px' }, `Also known as ${ground.aka.join(', ')}.`)
+        : null,
 
       (() => {
         const list = returnsFor(state, groundId);
@@ -576,7 +579,8 @@ export function openShot(groundId, { all = false, replace = false } = {}) {
         h('button', { class: `chip${showAll ? ' on' : ''}`, onClick: () => openShot(groundId, { all: !showAll, replace: true }) },
           showAll ? 'Everything' : 'What decides it'),
         h('button', { class: 'chip', onClick: () => { closeSheet(true); openGround(groundId); } }, 'Full detail'),
-        h('button', { class: 'chip', onClick: () => editGround(ground) }, 'Edit')),
+        h('button', { class: 'chip', onClick: () => editGround(ground) }, 'Edit'),
+        h('button', { class: 'chip', onClick: () => mergeGround(groundId) }, 'Same as another')),
       marks,
     );
   }, { replace });

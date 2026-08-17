@@ -2,6 +2,7 @@
 // Nothing here ever touches the network — the data lives in this browser only.
 
 import { seedState, seedConvictions } from './seed.js';
+import { mergeInto } from './merge.js';
 import { DEFAULT_DOMAINS } from './model.js';
 
 // Some hosts (private windows, sandboxed frames) throw on localStorage. Fall
@@ -438,6 +439,15 @@ function applyLateSeeds(s) {
       });
     }
     mark('npl-house-churches');
+  }
+
+  // NPL and E3 turned out to be two names for one body. Fold them together
+  // rather than leave the board showing three options where there are two.
+  if (!done.has('npl-is-e3')) {
+    const npl = s.contexts.find((c) => /\bnpl\b/i.test(c.name || ''));
+    const e3 = s.contexts.find((c) => /\be3\b/i.test(c.name || ''));
+    if (npl && e3) mergeInto(s, npl.id, e3.id);
+    mark('npl-is-e3');
   }
 
   s.appliedSeeds = [...done];

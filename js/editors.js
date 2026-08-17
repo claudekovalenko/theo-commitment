@@ -10,6 +10,7 @@ import {
 import { CHURCH_MODELS, MODEL_STANCES } from './models.js';
 import { ALIGN, beliefs, theirsOn } from './align.js';
 import { SELF_LEVELS, CHRIST_LEVELS } from './returns.js';
+import { mergeInto } from './merge.js';
 import {
   h, frag, field, input, area, segmented, chipPicker, openSheet, closeSheet,
   confirmSheet, toast,
@@ -995,5 +996,39 @@ export function logReturn(groundId, existing) {
     }, existing ? () => confirmDelete('entry', (st) => {
       st.returns = st.returns.filter((x) => x.id !== draft.id);
     }) : null),
+  ));
+}
+
+/* ---------- two names, one thing ---------- */
+
+export function mergeGround(fromId) {
+  const state = store.get();
+  const from = state.contexts.find((c) => c.id === fromId);
+  if (!from) return;
+  const others = state.contexts.filter((c) => c.id !== fromId && c.kind !== 'place');
+
+  openSheet(`${from.name} is the same as…`, () => frag(
+    h('p', { class: 'small muted' },
+      'Two names for one body. Everything written about this one moves across — surveys, '
+      + 'steps, times back from them, notes. Nothing is thrown away, and the other name is '
+      + 'kept on the survivor so it still reads as yours.'),
+    others.length
+      ? h('div', { class: 'rows' }, others.map((o) => h('button', {
+        class: 'card-tap',
+        onClick: async () => {
+          const ok = await confirmSheet({
+            title: `Fold ${from.name} into ${o.name}?`,
+            message: `Everything about ${from.name} moves to ${o.name}, and ${from.name} comes off the target.`,
+            confirmLabel: `Yes — they're the same`,
+          });
+          if (!ok) return;
+          store.update((st) => { mergeInto(st, fromId, o.id); });
+          closeSheet(true);
+          toast(`Folded into ${o.name}`);
+        },
+      },
+      h('strong', {}, o.name),
+      o.myPart ? h('div', { class: 'tiny muted' }, o.myPart) : null)))
+      : h('p', { class: 'muted small' }, 'Nothing else on the target to fold it into.'),
   ));
 }

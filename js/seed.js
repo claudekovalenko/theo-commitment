@@ -169,31 +169,14 @@ export function seedState() {
     placeId: '',
     placeMode: 'unknown',
     horizon: 'unknown',
+    aka: ['NPL'],
     output: 'Healthy house churches started in LA.',
     outputModelId: 'house',
+    myPart: 'Start house churches.',
+    myPartModelId: 'house',
     notes: 'A ministry, not a location. Been running with them for a while — the open question is whether I could settle in with them completely.',
     createdAt: new Date().toISOString(),
     seeded: true,
-  };
-
-  const npl = {
-    id: uid(),
-    name: 'NPL',
-    kind: 'network',
-    stage: 'scouting',
-    placeId: '',
-    placeMode: 'unknown',
-    modelId: 'house',
-    horizon: 'unknown',
-    output: '',
-    outputModelId: '',
-    myPart: 'Start house churches.',
-    myPartModelId: 'house',
-    notes: 'Rename this if the name came through wrong. The point is the part: if you\'re '
-      + 'in it, your week is spent starting house churches — the one model you\'ve marked '
-      + 'yourself as leaning against.',
-    seeded: true,
-    createdAt: new Date().toISOString(),
   };
 
   const antioch = {
@@ -233,10 +216,10 @@ export function seedState() {
     weighingSince: new Date(new Date().getFullYear() - 4, 0, 1).toISOString().slice(0, 10),
     aim: 'A ministry I could be planted with — where I\'d leave my kids unsupervised, '
       + 'where my son comes back more on mission, that makes disciples and doesn\'t cross my lines.',
-    appliedSeeds: ['antioch', 'consistent-community', 'weighing-since', 'e3-fruit', 'npl-house-churches', 'the-aim'],
+    appliedSeeds: ['antioch', 'consistent-community', 'weighing-since', 'e3-fruit', 'npl-house-churches', 'the-aim', 'npl-is-e3'],
     domains: DEFAULT_DOMAINS.map((d) => ({ ...d })),
     convictions,
-    contexts: [here, e3, npl, antioch],
+    contexts: [here, e3, antioch],
     checks: [],
     goals: [],
     returns: [],

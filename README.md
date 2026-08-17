@@ -99,6 +99,19 @@ lining up on paper is beside the point: you'd be signing up to be someone else.
 
 Every entry is copied into the Log, so four years of these read as one story.
 
+## Two names, one thing
+
+E3 and NPL turned out to be the same body, which meant the target was showing
+three options where there were two. Any ministry can now be folded into another
+— **Same as another**, on its sheet.
+
+Nothing is thrown away. Surveys, steps, times back from them, blocks, people and
+notes all move across; the survivor keeps whatever it already had and takes the
+rest to fill its blanks; the two surveys are merged so the newest one ends up
+whole; and the folded name is kept as **also known as**, so the entries still
+read as yours. A mistake about which name belongs to which body shouldn't cost
+you four years of notes.
+
 ## Reading it back — what keeps coming up
 
 Four years of entries is only worth having if something reads across them. **Log
@@ -251,8 +264,8 @@ doing there?** Not the title — the work your week would be spent on, tagged wi
 the model *that* runs on.
 
 Because weighing a model from outside is one thing, and being the one who starts
-them is another. **NPL** is on the board with the part filled in — *start house
-churches* — and the app doesn't wait for a survey to say what that means:
+them is another. E3's is filled in — *start house churches* — and the app
+doesn't wait for a survey to say what that means:
 
 > **Your own part here is the model you haven't settled on. You can hold a model
 > at arm's length; you can't start them for a living at arm's length.**
@@ -277,7 +290,7 @@ The home screen carries the count: *4 still open in me.* Some of the waiting
 isn't about them.
 
 The one at the top of that list is **where I actually stand on house churches** —
-because both live options in Los Angeles either produce them or would have you
+because the live option in Los Angeles both produces them and would have you
 starting them. It's held as *still forming*, in those terms: *I lean against the
 model — thin on teaching depth and real oversight. But my part in LA would be
 starting them. I can't hold both for another four years.*
@@ -480,6 +493,7 @@ js/goals.js           the ten steps toward being at home somewhere
 js/align.js           my theology beside theirs
 js/returns.js         who I was when I came back
 js/patterns.js        reading the entries back, on-device
+js/merge.js           folding two names into one thing
 js/views/aim.js       the target — the screen the app is for
 js/views/*.js         one file per tab, plus settings
 tools/make_icons.py   regenerates icons/ (no dependencies)
