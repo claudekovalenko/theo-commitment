@@ -415,6 +415,8 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
 .plate-svg .plate-hole { fill: var(--paper); }
 .plate-svg .plate-count { font-size: 22px; font-weight: 700; fill: var(--ink); font-family: var(--serif); }
 
+.thread { border-left: 3px solid var(--moss); background: var(--moss-soft); }
+
 </style>
 </head>
 <body>
@@ -998,6 +1000,23 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
         worth: "rich",
         worthKeeping: "The conversations with the guys.",
         thankful: "Getting to have real conversation with the guys in this group."
+      }),
+      mk({
+        name: "The podcast",
+        kind: "other",
+        depth: "edge",
+        worth: "rich",
+        hold: "must",
+        why: "On the backburner, but I have really enjoyed it.",
+        thankful: "That it exists at all, and that I enjoy making it."
+      }),
+      mk({
+        name: "Preaching on social media",
+        kind: "other",
+        depth: "showing",
+        worth: "rich",
+        worthKeeping: "The preaching itself \u2014 I really enjoy it.",
+        why: "Started as an experiment. Turns out I enjoy preaching, full stop \u2014 not just from a pulpit."
       }),
       mk({
         name: "Seminary \u2014 OTS",
@@ -1725,6 +1744,23 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
           thankful: "Getting to have real conversation with the guys in this group."
         },
         {
+          name: "The podcast",
+          kind: "other",
+          depth: "edge",
+          worth: "rich",
+          hold: "must",
+          why: "On the backburner, but I have really enjoyed it.",
+          thankful: "That it exists at all, and that I enjoy making it."
+        },
+        {
+          name: "Preaching on social media",
+          kind: "other",
+          depth: "showing",
+          worth: "rich",
+          worthKeeping: "The preaching itself \u2014 I really enjoy it.",
+          why: "Started as an experiment. Turns out I enjoy preaching, full stop \u2014 not just from a pulpit."
+        },
+        {
           name: "Seminary \u2014 OTS",
           kind: "study",
           hold: "through",
@@ -2230,6 +2266,17 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
     return state2.convictions.find((c) => keyWords(c.title).some((w) => want.has(w))) || null;
   }
   var commitments = (state2) => (state2.commitments || []).filter((c) => !c.ended).sort((a, b) => depthWeight(b) - depthWeight(a) || (Number(b.hours) || 0) - (Number(a.hours) || 0));
+  function thread(state2) {
+    const list = commitments(state2);
+    const groups = /* @__PURE__ */ new Map();
+    list.forEach((c) => {
+      const conv = matchesConviction(state2, [c.worthKeeping, c.name].filter(Boolean).join(" "));
+      if (!conv) return;
+      if (!groups.has(conv.id)) groups.set(conv.id, { conviction: conv, items: [] });
+      groups.get(conv.id).items.push(c);
+    });
+    return [...groups.values()].filter((g) => g.items.length >= 2).sort((a, b) => b.items.length - a.items.length)[0] || null;
+  }
   function plateRead(state2) {
     const list = commitments(state2);
     const capacity = Number(state2.settings?.capacityHours) || 0;
@@ -2250,6 +2297,7 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
     const elsewhere = called ? list.filter((c) => c.where && !c.where.toLowerCase().includes(called)) : [];
     const inCalling = called ? list.filter((c) => (c.where || "").toLowerCase().includes(called)) : [];
     const thanks = list.filter((c) => c.thankful);
+    const parked = list.filter((c) => c.worth === "rich" && ["edge", "showing"].includes(c.depth));
     const base = {
       list,
       hours,
@@ -2267,6 +2315,7 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
       elsewhere,
       inCalling,
       thanks,
+      parked,
       mixed,
       named,
       unnamed
@@ -2302,6 +2351,10 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
       word = "Over";
       tone = "bad";
       why = `${hours} hours a week against the ${capacity} you said you had. That's ${hours - capacity} you don't have \u2014 so something is getting less than you think.`;
+    } else if (parked.length && deep.length) {
+      word = "The good one is on the backburner";
+      tone = "thin";
+      why = `${parked.map((c) => c.name).join(" and ")} \u2014 genuinely good, and the furthest down your week. Worth asking whether that's a season or a habit.`;
     } else if (elsewhere.length >= 2 && called) {
       word = "Held somewhere else";
       tone = "thin";
@@ -5370,6 +5423,25 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
       return view3;
     }
     view3.append(h("div", { class: "plate-wrap" }, plateRing(r.list)));
+    const t = thread(state2);
+    if (t) {
+      view3.append(h(
+        "div",
+        { class: "card thread" },
+        h("div", { class: "eyebrow" }, "The same thing keeps being the good part"),
+        h("h3", { style: "margin:4px 0 6px" }, t.conviction.title),
+        h(
+          "p",
+          { class: "small", style: "margin:0" },
+          `It's what you're there for in ${t.items.length} of these: ${t.items.map((c) => c.name).join(", ")}.`
+        ),
+        h(
+          "p",
+          { class: "small muted", style: "margin:6px 0 0" },
+          "Across a whole plate, that stops being a preference and starts being a shape."
+        )
+      ));
+    }
     const facts = h("div", { class: "card" });
     const line = (label, value, tone) => h(
       "div",
@@ -6243,8 +6315,8 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
     });
   }
   function library(state2, root) {
-    const thread = THREADS.find((t) => t.id === view.threadId);
-    if (!thread) {
+    const thread2 = THREADS.find((t) => t.id === view.threadId);
+    if (!thread2) {
       root.append(h(
         "p",
         { class: "muted small" },
@@ -6275,10 +6347,10 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
       view.threadId = null;
       go2();
     } }, "\u2190 All threads"));
-    root.append(h("h1", { style: "margin-top:12px" }, thread.title));
-    root.append(h("p", { class: "muted small" }, thread.blurb));
+    root.append(h("h1", { style: "margin-top:12px" }, thread2.title));
+    root.append(h("p", { class: "muted small" }, thread2.blurb));
     const rows2 = h("div", { class: "rows" });
-    thread.verses.forEach((v) => {
+    thread2.verses.forEach((v) => {
       const study = studyFor(state2, v.ref);
       rows2.append(h(
         "button",

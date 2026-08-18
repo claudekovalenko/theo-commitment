@@ -178,6 +178,23 @@ function seedCommitments(antiochId) {
       thankful: 'Getting to have real conversation with the guys in this group.',
     }),
     mk({
+      name: 'The podcast',
+      kind: 'other',
+      depth: 'edge',
+      worth: 'rich',
+      hold: 'must',
+      why: 'On the backburner, but I have really enjoyed it.',
+      thankful: 'That it exists at all, and that I enjoy making it.',
+    }),
+    mk({
+      name: 'Preaching on social media',
+      kind: 'other',
+      depth: 'showing',
+      worth: 'rich',
+      worthKeeping: 'The preaching itself — I really enjoy it.',
+      why: 'Started as an experiment. Turns out I enjoy preaching, full stop — not just from a pulpit.',
+    }),
+    mk({
       name: 'Seminary — OTS',
       kind: 'study',
       hold: 'through',

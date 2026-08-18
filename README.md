@@ -134,6 +134,22 @@ And place cuts both ways. The plate counts what's **already in** the city you're
 called to as well as what's away from it — right now that's one in Los Angeles
 against three in Hawaii and the Big Island. Named, not argued with.
 
+### The same thing keeps being the good part
+
+The reading that only appears once there's a plate. When one of your convictions
+turns out to be the named good part of more than one thing you carry, it gets
+its own card at the top:
+
+> **Strong preaching.** It's what you're there for in 2 of these: the leadership
+> cohort, preaching on social media. *Across a whole plate, that stops being a
+> preference and starts being a shape.*
+
+And the counterpart, when something you called genuinely good has been parked at
+the edge of your week while things you enjoy less get the depth:
+
+> **The good one is on the backburner.** The podcast — genuinely good, and the
+> furthest down your week. Worth asking whether that's a season or a habit.
+
 ## Who I was when I came back
 
 The app asks whether your son would come home sharper or softer. It never asked

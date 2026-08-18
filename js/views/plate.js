@@ -10,7 +10,7 @@ import { byId } from './../model.js';
 import { h, empty, section, relDate, fmtDate, daysBetween } from './../ui.js';
 import { editCommitment, editCapacity } from './../editors.js';
 import {
-  LOAD_KINDS, DEPTH, SERVES, HOLD, GIVING, AFTER, WORTH, commitments, plateRead, matchesConviction,
+  LOAD_KINDS, DEPTH, SERVES, HOLD, GIVING, AFTER, WORTH, commitments, plateRead, matchesConviction, thread,
 } from './../plate.js';
 
 export const title = 'What I\'m carrying';
@@ -89,6 +89,18 @@ export function render(state) {
   }
 
   view.append(h('div', { class: 'plate-wrap' }, plateRing(r.list)));
+
+  /* ---- the same thing showing up in more than one place ---- */
+  const t = thread(state);
+  if (t) {
+    view.append(h('div', { class: 'card thread' },
+      h('div', { class: 'eyebrow' }, 'The same thing keeps being the good part'),
+      h('h3', { style: 'margin:4px 0 6px' }, t.conviction.title),
+      h('p', { class: 'small', style: 'margin:0' },
+        `It's what you're there for in ${t.items.length} of these: ${t.items.map((c) => c.name).join(', ')}.`),
+      h('p', { class: 'small muted', style: 'margin:6px 0 0' },
+        'Across a whole plate, that stops being a preference and starts being a shape.')));
+  }
 
   /* ---- the numbers ---- */
   const facts = h('div', { class: 'card' });

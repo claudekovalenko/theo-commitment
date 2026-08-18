@@ -99,6 +99,24 @@ export const commitments = (state) => (state.commitments || [])
  * that doesn't feed what you're for, things with no end, and things you're
  * carrying that somebody else could.
  */
+/**
+ * The same conviction turning up as the good part of more than one thing you
+ * carry. Across a plate, that's the loudest signal there is — not a preference,
+ * a shape.
+ */
+export function thread(state) {
+  const list = commitments(state);
+  const groups = new Map();
+  list.forEach((c) => {
+    const conv = matchesConviction(state, [c.worthKeeping, c.name].filter(Boolean).join(' '));
+    if (!conv) return;
+    if (!groups.has(conv.id)) groups.set(conv.id, { conviction: conv, items: [] });
+    groups.get(conv.id).items.push(c);
+  });
+  return [...groups.values()].filter((g) => g.items.length >= 2)
+    .sort((a, b) => b.items.length - a.items.length)[0] || null;
+}
+
 export function plateRead(state) {
   const list = commitments(state);
   const capacity = Number(state.settings?.capacityHours) || 0;
@@ -128,9 +146,12 @@ export function plateRead(state) {
     ? list.filter((c) => (c.where || '').toLowerCase().includes(called))
     : [];
   const thanks = list.filter((c) => c.thankful);
+  // The quiet one: what you actually enjoy, parked at the edge of your week
+  // while the things you enjoy less get the depth.
+  const parked = list.filter((c) => c.worth === 'rich' && ['edge', 'showing'].includes(c.depth));
 
   const base = { list, hours, capacity, competes, openEnded, throughs, droppable: [], overdue,
-    unpriced, deep, leftovers, best, spread, elsewhere, inCalling, thanks, mixed, named, unnamed };
+    unpriced, deep, leftovers, best, spread, elsewhere, inCalling, thanks, parked, mixed, named, unnamed };
 
   if (!list.length) {
     return { ...base, word: 'Nothing written down', tone: 'unknown',
@@ -166,6 +187,11 @@ export function plateRead(state) {
     tone = 'bad';
     why = `${hours} hours a week against the ${capacity} you said you had. That's ${hours - capacity} you don't have — `
       + 'so something is getting less than you think.';
+  } else if (parked.length && deep.length) {
+    word = 'The good one is on the backburner';
+    tone = 'thin';
+    why = `${parked.map((c) => c.name).join(' and ')} — genuinely good, and the furthest down your week. `
+      + 'Worth asking whether that\'s a season or a habit.';
   } else if (elsewhere.length >= 2 && called) {
     word = 'Held somewhere else';
     tone = 'thin';

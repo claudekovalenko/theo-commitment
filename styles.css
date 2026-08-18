@@ -399,3 +399,5 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
 .plate-svg .wedge { stroke: var(--paper); stroke-width: 1.5; fill: currentColor; opacity: .85; }
 .plate-svg .plate-hole { fill: var(--paper); }
 .plate-svg .plate-count { font-size: 22px; font-weight: 700; fill: var(--ink); font-family: var(--serif); }
+
+.thread { border-left: 3px solid var(--moss); background: var(--moss-soft); }
