@@ -464,8 +464,10 @@ function applyLateSeeds(s) {
     [
       { name: 'Leadership cohort with Antioch', kind: 'cohort', where: 'Hawaii',
         groundId: antioch?.id || '', hold: 'through', after: 'finish',
-        why: 'Not looking to drop it — seeing it through to the end. Not eager to go back to '
-          + 'Hawaii right now, which is worth saying out loud: finishing it isn\'t the same as renewing it.' },
+        worth: 'mixed', worthKeeping: 'The preaching.',
+        why: 'Not looking to drop it — seeing it through to the end. Not amazing all the way, but '
+          + 'the preaching part is worth being there for. Not eager to go back to Hawaii right now: '
+          + 'finishing it isn\'t the same as renewing it.' },
       { name: 'Seminary — OTS', kind: 'study', hold: 'through',
         why: 'A long obedience. Finishing it is the point.' },
       { name: 'Shorebreak — Big Island crew', kind: 'ministry', where: 'Big Island',

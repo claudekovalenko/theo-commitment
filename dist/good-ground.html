@@ -979,7 +979,9 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
         groundId: antiochId,
         hold: "through",
         after: "finish",
-        why: "Not looking to drop it \u2014 seeing it through to the end. Not eager to go back to Hawaii right now, which is worth saying out loud: finishing it isn't the same as renewing it."
+        worth: "mixed",
+        worthKeeping: "The preaching.",
+        why: "Not looking to drop it \u2014 seeing it through to the end. Not amazing all the way, but the preaching part is worth being there for. Not eager to go back to Hawaii right now: finishing it isn't the same as renewing it."
       }),
       mk({
         name: "Seminary \u2014 OTS",
@@ -1686,7 +1688,9 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
           groundId: antioch?.id || "",
           hold: "through",
           after: "finish",
-          why: "Not looking to drop it \u2014 seeing it through to the end. Not eager to go back to Hawaii right now, which is worth saying out loud: finishing it isn't the same as renewing it."
+          worth: "mixed",
+          worthKeeping: "The preaching.",
+          why: "Not looking to drop it \u2014 seeing it through to the end. Not amazing all the way, but the preaching part is worth being there for. Not eager to go back to Hawaii right now: finishing it isn't the same as renewing it."
         },
         {
           name: "Seminary \u2014 OTS",
@@ -2167,6 +2171,13 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
     { id: "should", label: "Should have ended already", tone: "bad" },
     { id: "unsure", label: "Haven't thought about it", tone: "unknown" }
   ];
+  var WORTH = [
+    { id: "rich", label: "Genuinely good throughout", tone: "good" },
+    { id: "mixed", label: "Good in parts, not all the way", tone: "ok" },
+    { id: "thin", label: "Thin \u2014 one thing keeps me here", tone: "thin" },
+    { id: "draining", label: "Takes more than it gives", tone: "bad" },
+    { id: "unsure", label: "Haven't weighed it", tone: "unknown" }
+  ];
   var AFTER = [
     { id: "finish", label: "Finish it and stop", tone: "ok" },
     { id: "renew", label: "Sign on again", tone: "good" },
@@ -2191,6 +2202,9 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
     const overdue = list.filter((c) => c.hold === "should");
     const deep = list.filter((c) => c.depth === "leading" || c.depth === "core");
     const leftovers = list.filter((c) => c.giving === "leftovers");
+    const mixed = list.filter((c) => c.worth === "mixed" || c.worth === "thin");
+    const unnamed = mixed.filter((c) => !c.worthKeeping);
+    const named = mixed.filter((c) => c.worthKeeping);
     const best = list.filter((c) => c.giving === "best");
     const spread = list.reduce((n, c) => n + depthWeight(c), 0);
     const called = (state2.calling?.place || "").trim().toLowerCase();
@@ -2209,7 +2223,10 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
       leftovers,
       best,
       spread,
-      elsewhere
+      elsewhere,
+      mixed,
+      named,
+      unnamed
     };
     if (!list.length) {
       return {
@@ -2222,7 +2239,11 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
     let word;
     let tone;
     let why;
-    if (leftovers.length >= 2) {
+    if (unnamed.length) {
+      word = "Good in parts \u2014 which parts?";
+      tone = "thin";
+      why = `${unnamed.length} of these you've called good in parts without saying which part. Name it and you know what to protect; leave it and the whole thing feels like a drag.`;
+    } else if (leftovers.length >= 2) {
       word = "Getting my leftovers";
       tone = "bad";
       why = `${leftovers.length} of these are getting your leftovers: ${leftovers.map((c) => c.name).join(", ")}. Stewarding something isn't carrying it \u2014 it's giving it what it needs.`;
@@ -2258,6 +2279,10 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
       word = "No ceiling set";
       tone = "unknown";
       why = `${list.length} things, ${hours} hours a week. Say how many hours you actually have and this becomes an answer.`;
+    } else if (named.length) {
+      word = "Carrying it well";
+      tone = "good";
+      why = `You know why you're in the mixed ones: ${named.map((c) => `${c.name} \u2014 ${c.worthKeeping}`).join("; ")}. Steward that part and let the rest be ordinary.`;
     } else {
       word = "Carrying it well";
       tone = "good";
@@ -3569,6 +3594,9 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
       groundId: "",
       why: "",
       wellDone: "",
+      worth: "unsure",
+      worthKeeping: "",
+      worthLess: "",
       serves: "unsure",
       hold: "unsure",
       giving: "unsure",
@@ -3633,6 +3661,23 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
         } }),
         "Blank means open-ended \u2014 worth noticing how many of these have no end."
       ),
+      field("How good is it, honestly?", segmented(WORTH, draft.worth, (v) => {
+        draft.worth = v;
+      })),
+      field("The part worth being there for", input({
+        value: draft.worthKeeping || "",
+        placeholder: "e.g. The preaching",
+        onInput: (e) => {
+          draft.worthKeeping = e.target.value;
+        }
+      }), "If it's good in parts, name the part. That's the thing to go and get more of."),
+      field("And the part that isn't", input({
+        value: draft.worthLess || "",
+        placeholder: "Blank is fine.",
+        onInput: (e) => {
+          draft.worthLess = e.target.value;
+        }
+      })),
       field("Does it feed what I'm going for?", segmented(SERVES, draft.serves, (v) => {
         draft.serves = v;
       })),
@@ -5308,6 +5353,7 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
       const hd = byId(HOLD, c.hold);
       const gv = byId(GIVING, c.giving);
       const af = byId(AFTER, c.after);
+      const wo = byId(WORTH, c.worth);
       const ministry = state2.contexts.find((x) => x.id === c.groundId);
       rows2.append(h(
         "button",
@@ -5329,9 +5375,12 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
           ].filter(Boolean).join(" \xB7 ")
         ),
         ministry ? h("div", { class: "tiny" }, `With ${ministry.name} \u2014 one you're weighing`) : null,
+        c.worthKeeping ? h("div", { class: "tiny tone-good", style: "margin-top:4px" }, `Worth being there for: ${c.worthKeeping}`) : null,
+        c.worthLess ? h("div", { class: "tiny muted" }, `Less so: ${c.worthLess}`) : null,
         h(
           "div",
           { class: "row wrap", style: "gap:2px 10px; margin-top:4px" },
+          wo && wo.id !== "unsure" ? h("span", { class: `tiny tone-${wo.tone}` }, wo.label) : null,
           gv && gv.id !== "unsure" ? h("span", { class: `tiny tone-${gv.tone}` }, `Getting ${gv.label.toLowerCase()}`) : null,
           hd && hd.id !== "unsure" ? h("span", { class: `tiny tone-${hd.tone}` }, hd.label) : null,
           af && af.id === "finish" ? h("span", { class: "tiny muted" }, "then stop") : null,

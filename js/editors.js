@@ -11,7 +11,7 @@ import { CHURCH_MODELS, MODEL_STANCES } from './models.js';
 import { ALIGN, beliefs, theirsOn } from './align.js';
 import { SELF_LEVELS, CHRIST_LEVELS } from './returns.js';
 import { mergeInto } from './merge.js';
-import { LOAD_KINDS, DEPTH, SERVES, HOLD, GIVING, AFTER } from './plate.js';
+import { LOAD_KINDS, DEPTH, SERVES, HOLD, GIVING, AFTER, WORTH } from './plate.js';
 import {
   h, frag, field, input, area, segmented, chipPicker, openSheet, closeSheet,
   confirmSheet, toast,
@@ -1039,7 +1039,8 @@ export function mergeGround(fromId) {
 export function editCommitment(existing, defaults = {}) {
   const c = existing || {
     id: uid(), name: '', kind: 'ministry', depth: '', hours: '', started: '', ends: '',
-    where: '', groundId: '', why: '', wellDone: '', serves: 'unsure', hold: 'unsure',
+    where: '', groundId: '', why: '', wellDone: '', worth: 'unsure', worthKeeping: '',
+    worthLess: '', serves: 'unsure', hold: 'unsure',
     giving: 'unsure', after: 'unsure', ended: false, ...defaults,
   };
   const draft = { ...c };
@@ -1072,6 +1073,15 @@ export function editCommitment(existing, defaults = {}) {
     field('Since', h('input', { type: 'date', value: draft.started || '', onInput: (e) => { draft.started = e.target.value; } })),
     field('Until', h('input', { type: 'date', value: draft.ends || '', onInput: (e) => { draft.ends = e.target.value; } }),
       'Blank means open-ended — worth noticing how many of these have no end.'),
+    field('How good is it, honestly?', segmented(WORTH, draft.worth, (v) => { draft.worth = v; })),
+    field('The part worth being there for', input({
+      value: draft.worthKeeping || '', placeholder: 'e.g. The preaching',
+      onInput: (e) => { draft.worthKeeping = e.target.value; },
+    }), 'If it\'s good in parts, name the part. That\'s the thing to go and get more of.'),
+    field('And the part that isn\'t', input({
+      value: draft.worthLess || '', placeholder: 'Blank is fine.',
+      onInput: (e) => { draft.worthLess = e.target.value; },
+    })),
     field('Does it feed what I\'m going for?', segmented(SERVES, draft.serves, (v) => { draft.serves = v; })),
     field('How am I holding it?', segmented(HOLD, draft.hold, (v) => { draft.hold = v; }),
       'Most of these you don\'t drop. The question is how you carry them.'),

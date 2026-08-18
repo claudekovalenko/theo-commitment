@@ -101,6 +101,19 @@ you're leading or holding up, how many have no end date, and — if a commitment
 sits somewhere other than the city you're called to — that too, named rather than
 argued with.
 
+**Most things aren't all one thing.** So each commitment carries an honest read —
+*genuinely good throughout · good in parts, not all the way · thin, one thing
+keeps me here · takes more than it gives* — and then the field that makes it
+useful: **the part worth being there for.**
+
+The cohort is in as *good in parts*, with **the preaching** named as the part.
+That's not a complaint recorded; it's the thing to go and get more of. A
+commitment marked good-in-parts with nothing named leads the read until you say
+which part:
+
+> **Good in parts — which parts?** Name it and you know what to protect; leave it
+> and the whole thing feels like a drag.
+
 A commitment can point at a ministry you're weighing. The cohort points at
 Antioch, so the plate notes it: *"With Antioch — one you're weighing."* Being
 deep in something is already a kind of answer about it.

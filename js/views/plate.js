@@ -9,7 +9,7 @@ import { today } from './../store.js';
 import { byId } from './../model.js';
 import { h, empty, section, relDate, fmtDate, daysBetween } from './../ui.js';
 import { editCommitment, editCapacity } from './../editors.js';
-import { LOAD_KINDS, DEPTH, SERVES, HOLD, GIVING, AFTER, commitments, plateRead } from './../plate.js';
+import { LOAD_KINDS, DEPTH, SERVES, HOLD, GIVING, AFTER, WORTH, commitments, plateRead } from './../plate.js';
 
 export const title = 'What I\'m carrying';
 
@@ -117,6 +117,7 @@ export function render(state) {
     const hd = byId(HOLD, c.hold);
     const gv = byId(GIVING, c.giving);
     const af = byId(AFTER, c.after);
+    const wo = byId(WORTH, c.worth);
     const ministry = state.contexts.find((x) => x.id === c.groundId);
     rows.append(h('button', { class: 'card-tap', onClick: () => editCommitment(c) },
       h('div', { class: 'row spread' },
@@ -129,7 +130,12 @@ export function render(state) {
           c.ends ? `until ${fmtDate(c.ends)}` : 'no end date',
         ].filter(Boolean).join(' · ')),
       ministry ? h('div', { class: 'tiny' }, `With ${ministry.name} — one you're weighing`) : null,
+      c.worthKeeping
+        ? h('div', { class: 'tiny tone-good', style: 'margin-top:4px' }, `Worth being there for: ${c.worthKeeping}`)
+        : null,
+      c.worthLess ? h('div', { class: 'tiny muted' }, `Less so: ${c.worthLess}`) : null,
       h('div', { class: 'row wrap', style: 'gap:2px 10px; margin-top:4px' },
+        wo && wo.id !== 'unsure' ? h('span', { class: `tiny tone-${wo.tone}` }, wo.label) : null,
         gv && gv.id !== 'unsure' ? h('span', { class: `tiny tone-${gv.tone}` }, `Getting ${gv.label.toLowerCase()}`) : null,
         hd && hd.id !== 'unsure' ? h('span', { class: `tiny tone-${hd.tone}` }, hd.label) : null,
         af && af.id === 'finish' ? h('span', { class: 'tiny muted' }, 'then stop') : null,

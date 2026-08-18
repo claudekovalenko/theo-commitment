@@ -45,6 +45,18 @@ export const HOLD = [
   { id: 'unsure', label: 'Haven\'t thought about it', tone: 'unknown' },
 ];
 
+/**
+ * How good is it, honestly? Most things aren't all one thing — and knowing a
+ * commitment is mixed is only useful if you can name which part is the good one.
+ */
+export const WORTH = [
+  { id: 'rich', label: 'Genuinely good throughout', tone: 'good' },
+  { id: 'mixed', label: 'Good in parts, not all the way', tone: 'ok' },
+  { id: 'thin', label: 'Thin — one thing keeps me here', tone: 'thin' },
+  { id: 'draining', label: 'Takes more than it gives', tone: 'bad' },
+  { id: 'unsure', label: 'Haven\'t weighed it', tone: 'unknown' },
+];
+
 /** And when it ends? Finishing something isn't the same as renewing it. */
 export const AFTER = [
   { id: 'finish', label: 'Finish it and stop', tone: 'ok' },
@@ -85,6 +97,10 @@ export function plateRead(state) {
   const overdue = list.filter((c) => c.hold === 'should');
   const deep = list.filter((c) => c.depth === 'leading' || c.depth === 'core');
   const leftovers = list.filter((c) => c.giving === 'leftovers');
+  // Mixed isn't a problem — mixed with nothing named as the good part is.
+  const mixed = list.filter((c) => c.worth === 'mixed' || c.worth === 'thin');
+  const unnamed = mixed.filter((c) => !c.worthKeeping);
+  const named = mixed.filter((c) => c.worthKeeping);
   const best = list.filter((c) => c.giving === 'best');
   // Being spread thin is your own weight divided across things, not a count.
   const spread = list.reduce((n, c) => n + depthWeight(c), 0);
@@ -95,7 +111,7 @@ export function plateRead(state) {
     : [];
 
   const base = { list, hours, capacity, competes, openEnded, throughs, droppable: [], overdue,
-    unpriced, deep, leftovers, best, spread, elsewhere };
+    unpriced, deep, leftovers, best, spread, elsewhere, mixed, named, unnamed };
 
   if (!list.length) {
     return { ...base, word: 'Nothing written down', tone: 'unknown',
@@ -107,7 +123,12 @@ export function plateRead(state) {
   let tone;
   let why;
 
-  if (leftovers.length >= 2) {
+  if (unnamed.length) {
+    word = 'Good in parts — which parts?';
+    tone = 'thin';
+    why = `${unnamed.length} of these you've called good in parts without saying which part. `
+      + 'Name it and you know what to protect; leave it and the whole thing feels like a drag.';
+  } else if (leftovers.length >= 2) {
     word = 'Getting my leftovers';
     tone = 'bad';
     why = `${leftovers.length} of these are getting your leftovers: ${leftovers.map((c) => c.name).join(', ')}. `
@@ -147,6 +168,11 @@ export function plateRead(state) {
     word = 'No ceiling set';
     tone = 'unknown';
     why = `${list.length} things, ${hours} hours a week. Say how many hours you actually have and this becomes an answer.`;
+  } else if (named.length) {
+    word = 'Carrying it well';
+    tone = 'good';
+    why = `You know why you're in the mixed ones: ${named.map((c) => `${c.name} — ${c.worthKeeping}`).join('; ')}. `
+      + 'Steward that part and let the rest be ordinary.';
   } else {
     word = 'Carrying it well';
     tone = 'good';
