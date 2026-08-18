@@ -1,4 +1,4 @@
-export const ROUTES = ['aim', 'soil', 'unsettled', 'word', 'journal'];
+export const ROUTES = ['aim', 'plate', 'soil', 'unsettled', 'word', 'journal'];
 
 // what these tabs were called in earlier versions
 const OLD = {

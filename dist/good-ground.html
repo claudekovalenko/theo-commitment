@@ -407,6 +407,14 @@ select { appearance: none; }
 /* reading entries back: the phrase that matched, lit in place */
 mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inherit; padding: 0 1px; border-radius: 2px; }
 
+/* ---------- the plate: what I'm already carrying ---------- */
+
+.plate-wrap { display: grid; place-items: center; margin: 12px 0 16px; }
+.plate-svg { width: 100%; max-width: 250px; height: auto; }
+.plate-svg .wedge { stroke: var(--paper); stroke-width: 1.5; fill: currentColor; opacity: .85; }
+.plate-svg .plate-hole { fill: var(--paper); }
+.plate-svg .plate-count { font-size: 22px; font-weight: 700; fill: var(--ink); font-family: var(--serif); }
+
 </style>
 </head>
 <body>
@@ -766,10 +774,10 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
   }
 
   // js/seed.js
-  var conviction = (domainId, title6, weight, summary, scriptures, practice, forming = "") => ({
+  var conviction = (domainId, title7, weight, summary, scriptures, practice, forming = "") => ({
     id: uid(),
     domainId,
-    title: title6,
+    title: title7,
     weight,
     summary,
     scriptures,
@@ -941,6 +949,52 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
       )
     ];
   }
+  function seedCommitments(antiochId) {
+    const mk = (o) => ({
+      id: uid(),
+      name: "",
+      kind: "other",
+      depth: "",
+      hours: "",
+      where: "",
+      groundId: "",
+      started: "",
+      ends: "",
+      why: "",
+      wellDone: "",
+      serves: "unsure",
+      hold: "unsure",
+      giving: "unsure",
+      after: "unsure",
+      ended: false,
+      seeded: true,
+      createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+      ...o
+    });
+    return [
+      mk({
+        name: "Leadership cohort with Antioch",
+        kind: "cohort",
+        where: "Hawaii",
+        groundId: antiochId,
+        hold: "through",
+        after: "finish",
+        why: "Not looking to drop it \u2014 seeing it through to the end. Not eager to go back to Hawaii right now, which is worth saying out loud: finishing it isn't the same as renewing it."
+      }),
+      mk({
+        name: "Seminary \u2014 OTS",
+        kind: "study",
+        hold: "through",
+        why: "A long obedience. Finishing it is the point."
+      }),
+      mk({
+        name: "Shorebreak \u2014 Big Island crew",
+        kind: "ministry",
+        where: "Big Island",
+        why: "People, not a programme."
+      })
+    ];
+  }
   function seedState() {
     const convictions = seedConvictions();
     convictions.push({
@@ -1003,13 +1057,14 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
       // He's been carrying this question for about four years.
       weighingSince: new Date((/* @__PURE__ */ new Date()).getFullYear() - 4, 0, 1).toISOString().slice(0, 10),
       aim: "A ministry I could be planted with \u2014 where I'd leave my kids unsupervised, where my son comes back more on mission, that makes disciples and doesn't cross my lines.",
-      appliedSeeds: ["antioch", "consistent-community", "weighing-since", "e3-fruit", "npl-house-churches", "the-aim", "npl-is-e3"],
+      appliedSeeds: ["antioch", "consistent-community", "weighing-since", "e3-fruit", "npl-house-churches", "the-aim", "npl-is-e3", "carrying"],
       domains: DEFAULT_DOMAINS.map((d) => ({ ...d })),
       convictions,
       contexts: [here, e3, antioch],
       checks: [],
       goals: [],
       returns: [],
+      commitments: seedCommitments(antioch.id),
       blocks: [
         {
           id: uid(),
@@ -1359,7 +1414,7 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
     if (!merge) {
       state = incoming;
     } else {
-      for (const list of ["domains", "convictions", "contexts", "checks", "blocks", "notes", "people", "verses", "discernments", "barriers", "goals", "returns"]) {
+      for (const list of ["domains", "convictions", "contexts", "checks", "blocks", "notes", "people", "verses", "discernments", "barriers", "goals", "returns", "commitments"]) {
         const have = new Set(state[list].map((r) => r.id));
         state[list].push(...(incoming[list] || []).filter((r) => !have.has(r.id)));
       }
@@ -1397,6 +1452,7 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
       barriers: [],
       goals: [],
       returns: [],
+      commitments: [],
       aim: "",
       weighingSince: "",
       appliedSeeds: [],
@@ -1534,12 +1590,12 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
             "Am I against the house church model, or against the ones I've seen?",
             "One sentence I'd say out loud, and the specific thing that would change my mind."
           ]
-        ].forEach(([title6, wouldSettle]) => {
-          if (s.blocks.some((b) => b.title === title6)) return;
+        ].forEach(([title7, wouldSettle]) => {
+          if (s.blocks.some((b) => b.title === title7)) return;
           s.blocks.push({
             id: uid(),
             groundId: e3.id,
-            title: title6,
+            title: title7,
             wouldSettle,
             who: "",
             due: "",
@@ -1598,6 +1654,58 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
       if (npl && e3) mergeInto(s, npl.id, e3.id);
       mark("npl-is-e3");
     }
+    if (!done.has("carrying")) {
+      if (!s.commitments) s.commitments = [];
+      const antioch = s.contexts.find((c) => /antioch/i.test(c.name || ""));
+      const mk = (o) => ({
+        id: uid(),
+        name: "",
+        kind: "other",
+        depth: "",
+        hours: "",
+        where: "",
+        groundId: "",
+        started: "",
+        ends: "",
+        why: "",
+        wellDone: "",
+        serves: "unsure",
+        hold: "unsure",
+        giving: "unsure",
+        after: "unsure",
+        ended: false,
+        seeded: true,
+        createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+        ...o
+      });
+      [
+        {
+          name: "Leadership cohort with Antioch",
+          kind: "cohort",
+          where: "Hawaii",
+          groundId: antioch?.id || "",
+          hold: "through",
+          after: "finish",
+          why: "Not looking to drop it \u2014 seeing it through to the end. Not eager to go back to Hawaii right now, which is worth saying out loud: finishing it isn't the same as renewing it."
+        },
+        {
+          name: "Seminary \u2014 OTS",
+          kind: "study",
+          hold: "through",
+          why: "A long obedience. Finishing it is the point."
+        },
+        {
+          name: "Shorebreak \u2014 Big Island crew",
+          kind: "ministry",
+          where: "Big Island",
+          why: "People, not a programme."
+        }
+      ].forEach((c) => {
+        if (s.commitments.some((x) => x.name === c.name)) return;
+        s.commitments.push(mk(c));
+      });
+      mark("carrying");
+    }
     s.appliedSeeds = [...done];
     return done.size !== before;
   }
@@ -1641,9 +1749,9 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
     }, 2200);
   }
   var stack = [];
-  function openSheet(title6, build, { replace = false } = {}) {
+  function openSheet(title7, build, { replace = false } = {}) {
     if (replace) stack.pop();
-    stack.push({ title: title6, build });
+    stack.push({ title: title7, build });
     renderSheet();
   }
   function closeSheet(all = false) {
@@ -1674,9 +1782,9 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
       if (e.key === "Escape" && stack.length) closeSheet();
     });
   }
-  function confirmSheet({ title: title6, message, confirmLabel = "Confirm", danger = false }) {
+  function confirmSheet({ title: title7, message, confirmLabel = "Confirm", danger = false }) {
     return new Promise((resolve) => {
-      openSheet(title6, () => {
+      openSheet(title7, () => {
         const done = (v) => {
           closeSheet();
           resolve(v);
@@ -1753,11 +1861,11 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
       actionLabel ? h("button", { class: "btn sm", onClick: onAction }, actionLabel) : null
     );
   }
-  function section(title6, actionLabel, onAction) {
+  function section(title7, actionLabel, onAction) {
     return h(
       "div",
       { class: "section" },
-      h("h2", {}, title6),
+      h("h2", {}, title7),
       actionLabel ? h("button", { class: "icon-btn", onClick: onAction }, actionLabel) : null
     );
   }
@@ -1785,7 +1893,7 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
   }
 
   // js/router.js
-  var ROUTES = ["aim", "soil", "unsettled", "word", "journal"];
+  var ROUTES = ["aim", "plate", "soil", "unsettled", "word", "journal"];
   var OLD = {
     compass: "aim",
     target: "aim",
@@ -2027,6 +2135,135 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
       pattern: false,
       why: `${n} times back from them, and you were yourself every time.`
     };
+  }
+
+  // js/plate.js
+  var LOAD_KINDS = [
+    { id: "ministry", label: "Ministry" },
+    { id: "cohort", label: "Cohort / training" },
+    { id: "church", label: "Church" },
+    { id: "work", label: "Work" },
+    { id: "family", label: "Family" },
+    { id: "study", label: "Study" },
+    { id: "other", label: "Other" }
+  ];
+  var DEPTH = [
+    { id: "leading", label: "I'm running it", tone: "bad", weight: 1, short: "Leading" },
+    { id: "core", label: "One of the ones holding it up", tone: "bad", weight: 0.8, short: "Core" },
+    { id: "committed", label: "In it, regularly", tone: "thin", weight: 0.55, short: "Committed" },
+    { id: "showing", label: "I show up", tone: "ok", weight: 0.3, short: "Showing up" },
+    { id: "edge", label: "Loosely attached", tone: "good", weight: 0.12, short: "On the edge" }
+  ];
+  var SERVES = [
+    { id: "serves", label: "Feeds it", tone: "good" },
+    { id: "neutral", label: "Neither", tone: "thin" },
+    { id: "competes", label: "Takes from it", tone: "bad" },
+    { id: "unsure", label: "Not sure", tone: "unknown" }
+  ];
+  var HOLD = [
+    { id: "through", label: "Seeing it through to the end", tone: "good" },
+    { id: "must", label: "Ongoing, no end in view", tone: "thin" },
+    { id: "could", label: "Could hand it on well", tone: "ok" },
+    { id: "should", label: "Should have ended already", tone: "bad" },
+    { id: "unsure", label: "Haven't thought about it", tone: "unknown" }
+  ];
+  var AFTER = [
+    { id: "finish", label: "Finish it and stop", tone: "ok" },
+    { id: "renew", label: "Sign on again", tone: "good" },
+    { id: "unsure", label: "Don't know yet", tone: "unknown" }
+  ];
+  var GIVING = [
+    { id: "best", label: "My best", tone: "good" },
+    { id: "enough", label: "Enough to do it properly", tone: "ok" },
+    { id: "leftovers", label: "My leftovers", tone: "bad" },
+    { id: "unsure", label: "Not sure", tone: "unknown" }
+  ];
+  var depthWeight = (c) => DEPTH.find((d) => d.id === c.depth)?.weight ?? 0.4;
+  var commitments = (state2) => (state2.commitments || []).filter((c) => !c.ended).sort((a, b) => depthWeight(b) - depthWeight(a) || (Number(b.hours) || 0) - (Number(a.hours) || 0));
+  function plateRead(state2) {
+    const list = commitments(state2);
+    const capacity = Number(state2.settings?.capacityHours) || 0;
+    const hours = list.reduce((n, c) => n + (Number(c.hours) || 0), 0);
+    const unpriced = list.filter((c) => !Number(c.hours)).length;
+    const competes = list.filter((c) => c.serves === "competes");
+    const openEnded = list.filter((c) => !c.ends && c.hold !== "through");
+    const throughs = list.filter((c) => c.hold === "through");
+    const overdue = list.filter((c) => c.hold === "should");
+    const deep = list.filter((c) => c.depth === "leading" || c.depth === "core");
+    const leftovers = list.filter((c) => c.giving === "leftovers");
+    const best = list.filter((c) => c.giving === "best");
+    const spread = list.reduce((n, c) => n + depthWeight(c), 0);
+    const called = (state2.calling?.place || "").trim().toLowerCase();
+    const elsewhere = called ? list.filter((c) => c.where && !c.where.toLowerCase().includes(called)) : [];
+    const base = {
+      list,
+      hours,
+      capacity,
+      competes,
+      openEnded,
+      throughs,
+      droppable: [],
+      overdue,
+      unpriced,
+      deep,
+      leftovers,
+      best,
+      spread,
+      elsewhere
+    };
+    if (!list.length) {
+      return {
+        ...base,
+        word: "Nothing written down",
+        tone: "unknown",
+        why: "Spread thin is a feeling until the list exists. Put down everything you've said yes to \u2014 the question isn't what to drop, it's how to carry it well."
+      };
+    }
+    let word;
+    let tone;
+    let why;
+    if (leftovers.length >= 2) {
+      word = "Getting my leftovers";
+      tone = "bad";
+      why = `${leftovers.length} of these are getting your leftovers: ${leftovers.map((c) => c.name).join(", ")}. Stewarding something isn't carrying it \u2014 it's giving it what it needs.`;
+    } else if (overdue.length) {
+      word = "Carrying something finished";
+      tone = "bad";
+      why = `${overdue.length} of these you said should have ended already. Finishing well is stewardship too.`;
+    } else if (deep.length >= 3) {
+      word = "Spread thin";
+      tone = "bad";
+      why = `You're leading or holding up ${deep.length} at once: ${deep.map((c) => c.name).join(", ")}. Depth is the thing that doesn't divide.`;
+    } else if (capacity && hours > capacity) {
+      word = "Over";
+      tone = "bad";
+      why = `${hours} hours a week against the ${capacity} you said you had. That's ${hours - capacity} you don't have \u2014 so something is getting less than you think.`;
+    } else if (elsewhere.length >= 2 && called) {
+      word = "Held somewhere else";
+      tone = "thin";
+      why = `${elsewhere.length} of these are in ${[...new Set(elsewhere.map((c) => c.where))].join(" and ")}, and you say you're called to ${state2.calling.place}. Worth naming, not necessarily worth changing.`;
+    } else if (competes.length >= 2) {
+      word = "Pulled apart";
+      tone = "thin";
+      why = `${competes.length} of ${list.length} take from what you're going for rather than feed it.`;
+    } else if (capacity && hours > capacity * 0.85) {
+      word = "At the edge";
+      tone = "thin";
+      why = `${hours} of ${capacity} hours. It works until one week goes wrong.`;
+    } else if (unpriced > list.length / 2) {
+      word = "Unpriced";
+      tone = "unknown";
+      why = `${unpriced} of ${list.length} have no hours on them. You can't steward what you haven't costed.`;
+    } else if (!capacity) {
+      word = "No ceiling set";
+      tone = "unknown";
+      why = `${list.length} things, ${hours} hours a week. Say how many hours you actually have and this becomes an answer.`;
+    } else {
+      word = "Carrying it well";
+      tone = "good";
+      why = `${hours} of ${capacity} hours across ${list.length} things${best.length ? `, and ${best.length} getting your best` : ""}.`;
+    }
+    return { ...base, word, tone, why };
   }
 
   // js/editors.js
@@ -3317,6 +3554,178 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
         h("strong", {}, o.name),
         o.myPart ? h("div", { class: "tiny muted" }, o.myPart) : null
       ))) : h("p", { class: "muted small" }, "Nothing else on the target to fold it into.")
+    ));
+  }
+  function editCommitment(existing, defaults = {}) {
+    const c = existing || {
+      id: uid(),
+      name: "",
+      kind: "ministry",
+      depth: "",
+      hours: "",
+      started: "",
+      ends: "",
+      where: "",
+      groundId: "",
+      why: "",
+      wellDone: "",
+      serves: "unsure",
+      hold: "unsure",
+      giving: "unsure",
+      after: "unsure",
+      ended: false,
+      ...defaults
+    };
+    const draft = { ...c };
+    openSheet(existing ? draft.name || "This commitment" : "Something I'm already in", () => frag(
+      field("What is it?", input({
+        value: draft.name,
+        placeholder: "e.g. The leadership cohort",
+        onInput: (e) => {
+          draft.name = e.target.value;
+        }
+      })),
+      field("What kind?", segmented(LOAD_KINDS, draft.kind, (v) => {
+        draft.kind = v;
+      })),
+      field(
+        "How far in am I?",
+        segmented(DEPTH, draft.depth, (v) => {
+          draft.depth = v;
+        }),
+        "Involvement is a gradient. Being thin is usually about how many things you're near the middle of."
+      ),
+      field("Hours a week, honestly", input({
+        type: "number",
+        min: "0",
+        step: "0.5",
+        value: draft.hours,
+        placeholder: "Including the prep and the drive",
+        onInput: (e) => {
+          draft.hours = e.target.value;
+        }
+      })),
+      field("Where", input({
+        value: draft.where || "",
+        placeholder: "e.g. Hawaii, Big Island, online",
+        onInput: (e) => {
+          draft.where = e.target.value;
+        }
+      }), "Worth seeing next to the city you said you're called to."),
+      (() => {
+        const ministries = get().contexts.filter((x) => x.kind !== "place");
+        if (!ministries.length) return null;
+        return field("Is this with one of the ministries I'm weighing?", segmented(
+          [...ministries.map((m) => ({ id: m.id, label: m.name })), { id: "", label: "No" }],
+          draft.groundId || "",
+          (v) => {
+            draft.groundId = v;
+          }
+        ), "If it is, being deep in it is already a kind of answer.");
+      })(),
+      field("Since", h("input", { type: "date", value: draft.started || "", onInput: (e) => {
+        draft.started = e.target.value;
+      } })),
+      field(
+        "Until",
+        h("input", { type: "date", value: draft.ends || "", onInput: (e) => {
+          draft.ends = e.target.value;
+        } }),
+        "Blank means open-ended \u2014 worth noticing how many of these have no end."
+      ),
+      field("Does it feed what I'm going for?", segmented(SERVES, draft.serves, (v) => {
+        draft.serves = v;
+      })),
+      field(
+        "How am I holding it?",
+        segmented(HOLD, draft.hold, (v) => {
+          draft.hold = v;
+        }),
+        "Most of these you don't drop. The question is how you carry them."
+      ),
+      field(
+        "What is it actually getting from me?",
+        segmented(GIVING, draft.giving, (v) => {
+          draft.giving = v;
+        }),
+        "Stewarding something isn't carrying it \u2014 it's giving it what it needs."
+      ),
+      field("And when it ends?", segmented(AFTER, draft.after, (v) => {
+        draft.after = v;
+      })),
+      field("What doing this one well looks like", area({
+        value: draft.wellDone || "",
+        placeholder: "Concretely. The version of this you'd be glad you gave it.",
+        onInput: (e) => {
+          draft.wellDone = e.target.value;
+        }
+      })),
+      field("Why I'm in it", area({
+        value: draft.why,
+        placeholder: "The reason you said yes. Still true?",
+        onInput: (e) => {
+          draft.why = e.target.value;
+        }
+      })),
+      existing ? h("button", {
+        class: "btn ghost block",
+        style: "margin-top:12px",
+        onClick: () => {
+          update((st) => {
+            const g = st.commitments.find((x) => x.id === draft.id);
+            g.ended = !g.ended;
+            g.endedAt = g.ended ? today() : "";
+          });
+          closeSheet();
+          toast(draft.ended ? "Back on the plate" : "Off the plate");
+        }
+      }, draft.ended ? "Put it back on the plate" : "I've finished with this") : null,
+      saveBar(() => {
+        if (!draft.name.trim()) return toast("Name it first");
+        update((st) => {
+          if (!st.commitments) st.commitments = [];
+          const i = st.commitments.findIndex((x) => x.id === draft.id);
+          draft.seeded = false;
+          if (i < 0) st.commitments.push({ ...draft, createdAt: (/* @__PURE__ */ new Date()).toISOString() });
+          else st.commitments[i] = { ...st.commitments[i], ...draft };
+        });
+        closeSheet();
+        toast("Saved");
+      }, existing ? () => confirmDelete("commitment", (st) => {
+        st.commitments = st.commitments.filter((x) => x.id !== draft.id);
+      }) : null)
+    ));
+  }
+  function editCapacity() {
+    const state2 = get();
+    let hours = state2.settings?.capacityHours || "";
+    openSheet("How many hours do I actually have?", () => frag(
+      h(
+        "p",
+        { class: "small muted" },
+        "Not the hours in a week \u2014 the hours left for the things you say yes to, after work, sleep, your wife and your kids. Your number, not a standard one."
+      ),
+      field("Hours a week", input({
+        type: "number",
+        min: "0",
+        step: "1",
+        value: hours,
+        placeholder: "e.g. 15",
+        onInput: (e) => {
+          hours = e.target.value;
+        }
+      })),
+      h("button", {
+        class: "btn primary block",
+        style: "margin-top:16px",
+        onClick: () => {
+          update((st) => {
+            st.settings.capacityHours = Number(hours) || 0;
+          });
+          closeSheet();
+          toast("Saved");
+        }
+      }, "Save")
     ));
   }
 
@@ -4793,14 +5202,172 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
     return view3;
   }
 
+  // js/views/plate.js
+  var plate_exports = {};
+  __export(plate_exports, {
+    render: () => render2,
+    title: () => title2
+  });
+  var title2 = "What I'm carrying";
+  function plateRing(list) {
+    const S = 200;
+    const c = S / 2;
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("viewBox", `0 0 ${S} ${S}`);
+    svg.setAttribute("class", "plate-svg");
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", `${list.length} commitments, drawn by how far into each one you are.`);
+    const total = list.reduce((n2, x) => n2 + Math.max(0.6, Number(x.hours) || 1), 0) || 1;
+    let angle = -Math.PI / 2;
+    const R = 78;
+    const inner = 34;
+    list.forEach((item) => {
+      const share = Math.max(0.6, Number(item.hours) || 1) / total;
+      const sweep = share * Math.PI * 2;
+      const d = byId(DEPTH, item.depth) || { weight: 0.4, tone: "unknown" };
+      const r = inner + (R - inner) * (0.3 + 0.7 * d.weight);
+      const a0 = angle;
+      const a1 = angle + sweep - 0.02;
+      const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const pt = (rad, ang) => `${c + Math.cos(ang) * rad} ${c + Math.sin(ang) * rad}`;
+      const large = sweep > Math.PI ? 1 : 0;
+      p.setAttribute("d", [
+        `M ${pt(inner, a0)}`,
+        `L ${pt(r, a0)}`,
+        `A ${r} ${r} 0 ${large} 1 ${pt(r, a1)}`,
+        `L ${pt(inner, a1)}`,
+        `A ${inner} ${inner} 0 ${large} 0 ${pt(inner, a0)}`,
+        "Z"
+      ].join(" "));
+      p.setAttribute("class", `wedge tone-${d.tone}`);
+      const t = document.createElementNS("http://www.w3.org/2000/svg", "title");
+      t.textContent = `${item.name} \u2014 ${(byId(DEPTH, item.depth) || {}).label || "depth not set"}`;
+      p.append(t);
+      svg.append(p);
+      angle += sweep;
+    });
+    const hole = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    Object.entries({ cx: c, cy: c, r: inner - 2, class: "plate-hole" }).forEach(([k, v]) => hole.setAttribute(k, v));
+    svg.append(hole);
+    const n = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    Object.entries({ x: c, y: c + 6, "text-anchor": "middle", class: "plate-count" }).forEach(([k, v]) => n.setAttribute(k, v));
+    n.textContent = String(list.length);
+    svg.append(n);
+    return svg;
+  }
+  function render2(state2) {
+    const view3 = h("div", {});
+    const r = plateRead(state2);
+    view3.append(
+      h("h1", {}, "What I'm carrying"),
+      h(
+        "p",
+        { class: "muted small" },
+        "Everything you've already said yes to, deepest first. Being spread thin isn't about how many things you're attached to \u2014 it's about how many you're near the middle of."
+      )
+    );
+    view3.append(h("p", { class: `eyebrow tone-${r.tone}`, style: "margin-top:16px" }, r.word));
+    view3.append(h("p", { class: "verdict", style: "margin-top:2px" }, r.why));
+    if (!r.list.length) {
+      view3.append(empty("Nothing on the plate yet.", "Add the first one", () => editCommitment()));
+      return view3;
+    }
+    view3.append(h("div", { class: "plate-wrap" }, plateRing(r.list)));
+    const facts = h("div", { class: "card" });
+    const line = (label, value, tone) => h(
+      "div",
+      { class: "row spread" },
+      h("span", { class: "small" }, label),
+      h("span", { class: `small ${tone ? `tone-${tone}` : "muted"}` }, value)
+    );
+    facts.append(h(
+      "button",
+      { class: "row spread", style: "width:100%;background:none;border:0;font:inherit;color:inherit;cursor:pointer;padding:0", onClick: editCapacity },
+      h("span", { class: "small" }, "Hours a week"),
+      h(
+        "span",
+        { class: `small tone-${r.capacity && r.hours > r.capacity ? "bad" : "good"}` },
+        r.capacity ? `${r.hours} of ${r.capacity}` : `${r.hours} \u2014 no ceiling set`
+      )
+    ));
+    facts.append(line("Leading or holding up", String(r.deep.length), r.deep.length >= 3 ? "bad" : "ok"));
+    if (r.competes.length) facts.append(line("Takes from what I'm going for", String(r.competes.length), "bad"));
+    if (r.openEnded.length) facts.append(line("With no end date", String(r.openEnded.length), "thin"));
+    if (r.best.length) facts.append(line("Getting my best", String(r.best.length), "good"));
+    if (r.leftovers.length) facts.append(line("Getting my leftovers", String(r.leftovers.length), "bad"));
+    if (r.throughs.length) facts.append(line("Seeing through to the end", String(r.throughs.length), "ok"));
+    if (r.elsewhere.length) {
+      facts.append(line(`Away from ${state2.calling?.place}`, String(r.elsewhere.length), "bad"));
+    }
+    view3.append(facts);
+    view3.append(section("Deepest first", "Add", () => editCommitment()));
+    const rows2 = h("div", { class: "rows" });
+    r.list.forEach((c) => {
+      const d = byId(DEPTH, c.depth);
+      const sv = byId(SERVES, c.serves);
+      const hd = byId(HOLD, c.hold);
+      const gv = byId(GIVING, c.giving);
+      const af = byId(AFTER, c.after);
+      const ministry = state2.contexts.find((x) => x.id === c.groundId);
+      rows2.append(h(
+        "button",
+        { class: "card-tap", onClick: () => editCommitment(c) },
+        h(
+          "div",
+          { class: "row spread" },
+          h("strong", { class: "grow" }, c.name),
+          h("span", { class: `small tone-${d?.tone || "unknown"}` }, d?.short || "Depth not set")
+        ),
+        h(
+          "div",
+          { class: "tiny muted" },
+          [
+            byId(LOAD_KINDS, c.kind)?.label,
+            c.where,
+            Number(c.hours) ? `${c.hours}h a week` : "hours not set",
+            c.ends ? `until ${fmtDate(c.ends)}` : "no end date"
+          ].filter(Boolean).join(" \xB7 ")
+        ),
+        ministry ? h("div", { class: "tiny" }, `With ${ministry.name} \u2014 one you're weighing`) : null,
+        h(
+          "div",
+          { class: "row wrap", style: "gap:2px 10px; margin-top:4px" },
+          gv && gv.id !== "unsure" ? h("span", { class: `tiny tone-${gv.tone}` }, `Getting ${gv.label.toLowerCase()}`) : null,
+          hd && hd.id !== "unsure" ? h("span", { class: `tiny tone-${hd.tone}` }, hd.label) : null,
+          af && af.id === "finish" ? h("span", { class: "tiny muted" }, "then stop") : null,
+          sv && sv.id !== "unsure" ? h("span", { class: `tiny tone-${sv.tone}` }, sv.label) : null
+        ),
+        c.wellDone ? h("div", { class: "tiny muted", style: "margin-top:4px" }, `Done well: ${c.wellDone}`) : null
+      ));
+    });
+    view3.append(rows2);
+    const done = (state2.commitments || []).filter((c) => c.ended);
+    if (done.length) {
+      view3.append(section(`Put down \u2014 ${done.length}`));
+      const old = h("div", { class: "rows" });
+      done.forEach((c) => old.append(h(
+        "button",
+        { class: "card-tap", onClick: () => editCommitment(c) },
+        h(
+          "div",
+          { class: "row spread" },
+          h("span", { class: "grow small" }, c.name),
+          h("span", { class: "tiny muted" }, c.endedAt ? fmtDate(c.endedAt) : "")
+        )
+      )));
+      view3.append(old);
+    }
+    return view3;
+  }
+
   // js/views/soil.js
   var soil_exports = {};
   __export(soil_exports, {
     openModel: () => openModel,
     openRequirement: () => openRequirement,
-    render: () => render2,
+    render: () => render3,
     showSoilTab: () => showSoilTab,
-    title: () => title2
+    title: () => title3
   });
   var tab = { at: "requirements" };
   function showSoilTab(id) {
@@ -5073,7 +5640,7 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
     openSheet(() => get().convictions.find((x) => x.id === id)?.title || "Requirement", build);
   }
   var ORDER = WEIGHTS.map((w) => w.id);
-  function render2(state2) {
+  function render3(state2) {
     const view3 = h("div", {});
     const tabs = h("div", { class: "row wrap", style: "margin-bottom:16px" });
     [["requirements", "Requirements"], ["settling", "Settling"], ["barriers", "Barriers"], ["models", "Church models"]].forEach(([id, label]) => {
@@ -5144,13 +5711,13 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
     ));
     return view3;
   }
-  var title2 = "The soil";
+  var title3 = "The soil";
 
   // js/views/unsettled.js
   var unsettled_exports = {};
   __export(unsettled_exports, {
-    render: () => render3,
-    title: () => title3
+    render: () => render4,
+    title: () => title4
   });
   function blockRow(state2, b) {
     const ground = state2.contexts.find((g) => g.id === b.groundId);
@@ -5189,7 +5756,7 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
       )
     );
   }
-  function render3(state2) {
+  function render4(state2) {
     const view3 = h("div", {});
     const open2 = state2.blocks.filter((b) => b.status === "open");
     const settled = state2.blocks.filter((b) => b.status === "settled").sort((a, b) => (a.settledAt || "") < (b.settledAt || "") ? 1 : -1);
@@ -5238,15 +5805,15 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
     view3.append(h("button", { class: "btn primary block", style: "margin-top:20px", onClick: () => editBlock() }, "Add something in the way"));
     return view3;
   }
-  var title3 = "In the way";
+  var title4 = "In the way";
 
   // js/views/word.js
   var word_exports = {};
   __export(word_exports, {
-    render: () => render4,
+    render: () => render5,
     runDiscernment: () => runDiscernment,
     studyVerse: () => studyVerse,
-    title: () => title4
+    title: () => title5
   });
 
   // js/scripture.js
@@ -5707,12 +6274,12 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
   var rerender = () => {
   };
   var go2 = () => rerender();
-  function render4(state2) {
+  function render5(state2) {
     const root = h("div", {});
     rerender = () => {
       const parent = root.parentNode;
       if (!parent) return;
-      parent.replaceChild(render4(get()), root);
+      parent.replaceChild(render5(get()), root);
     };
     const tabs = h("div", { class: "row wrap", style: "margin-bottom:16px" });
     [["library", "Threads"], ["studies", "My studies"], ["discern", "Discernment"]].forEach(([id, label]) => {
@@ -5735,14 +6302,14 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
     }, "Write a journal entry from this"));
     return root;
   }
-  var title4 = "The Word";
+  var title5 = "The Word";
 
   // js/views/journal.js
   var journal_exports = {};
   __export(journal_exports, {
     openNote: () => openNote,
-    render: () => render5,
-    title: () => title5
+    render: () => render6,
+    title: () => title6
   });
 
   // js/patterns.js
@@ -6142,7 +6709,7 @@ were what when where whether which while who why will with would wouldnt yet you
     root.append(h("h2", { class: "plain-head" }, `In my own words \u2014 ${entries2.length}`));
     entries2.forEach((e) => root.append(corpusRow(e, null)));
   }
-  function render5(state2) {
+  function render6(state2) {
     const root = h("div", {});
     const tabs = h("div", { class: "row", style: "margin-bottom:16px" });
     [["entries", "Entries"], ["pattern", "What keeps coming up"], ["people", "People"]].forEach(([id, label]) => {
@@ -6160,18 +6727,19 @@ were what when where whether which while who why will with would wouldnt yet you
     else people(state2, root);
     return root;
   }
-  var title5 = "Journal";
+  var title6 = "Journal";
 
   // js/app.js
-  var VIEWS = { aim: aim_exports, soil: soil_exports, word: word_exports, unsettled: unsettled_exports, journal: journal_exports };
+  var VIEWS = { aim: aim_exports, plate: plate_exports, soil: soil_exports, word: word_exports, unsettled: unsettled_exports, journal: journal_exports };
   var ICONS = {
+    plate: '<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v8.5l6 6"/>',
     aim: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.6"/><circle cx="12" cy="12" r="1.1" fill="currentColor"/>',
     soil: '<path d="M3.5 9h17"/><path d="M7 9v11M12 9v11M17 9v11"/><path d="M4 5.5c2.5-2 5-2 8 0s5.5 2 8 0"/>',
     word: '<path d="M4 4.5A2 2 0 0 1 6 3h5v17H6a2 2 0 0 0-2 1.5z"/><path d="M20 4.5A2 2 0 0 0 18 3h-5v17h5a2 2 0 0 1 2 1.5z"/><path d="M12 7v3M10.5 8.5h3"/>',
     unsettled: '<path d="M12 3.5 21 19H3z"/><path d="M12 10v4"/><circle cx="12" cy="16.6" r=".6" fill="currentColor"/>',
     journal: '<path d="M6 3h12v18H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M8.5 3v18"/>'
   };
-  var LABELS = { aim: "Target", soil: "Convictions", unsettled: "In the way", word: "Word", journal: "Log" };
+  var LABELS = { aim: "Target", plate: "Carrying", soil: "Convictions", unsettled: "In the way", word: "Word", journal: "Log" };
   function renderTabs(active) {
     const nav = clear($("#tabs"));
     ROUTES.forEach((r) => {
@@ -6182,7 +6750,7 @@ were what when where whether which while who why will with would wouldnt yet you
     });
   }
   var rendering = false;
-  function render6() {
+  function render7() {
     if (!isUnlocked() || rendering) return;
     rendering = true;
     const route = currentRoute();
@@ -6245,7 +6813,7 @@ were what when where whether which while who why will with would wouldnt yet you
     $("#shell").hidden = false;
     $("#btn-lock").hidden = !isEncrypted();
     touch();
-    render6();
+    render7();
     if (!isPersistent()) warnNotSaving();
   }
   function warnNotSaving() {
@@ -6268,9 +6836,9 @@ were what when where whether which while who why will with would wouldnt yet you
     });
     wireLock();
     watchIdle();
-    onRoute(render6);
+    onRoute(render7);
     subscribe(() => {
-      render6();
+      render7();
       $("#btn-lock").hidden = !isEncrypted();
     });
     $("#btn-settings").addEventListener("click", openSettings);

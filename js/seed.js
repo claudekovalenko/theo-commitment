@@ -139,6 +139,40 @@ export function seedConvictions() {
   ];
 }
 
+/** The three he named: what he's already carrying, in his own words. */
+function seedCommitments(antiochId) {
+  const mk = (o) => ({
+    id: uid(), name: '', kind: 'other', depth: '', hours: '', where: '', groundId: '',
+    started: '', ends: '', why: '', wellDone: '', serves: 'unsure', hold: 'unsure',
+    giving: 'unsure', after: 'unsure', ended: false, seeded: true,
+    createdAt: new Date().toISOString(), ...o,
+  });
+  return [
+    mk({
+      name: 'Leadership cohort with Antioch',
+      kind: 'cohort',
+      where: 'Hawaii',
+      groundId: antiochId,
+      hold: 'through',
+      after: 'finish',
+      why: 'Not looking to drop it — seeing it through to the end. Not eager to go back to Hawaii '
+        + 'right now, which is worth saying out loud: finishing it isn\'t the same as renewing it.',
+    }),
+    mk({
+      name: 'Seminary — OTS',
+      kind: 'study',
+      hold: 'through',
+      why: 'A long obedience. Finishing it is the point.',
+    }),
+    mk({
+      name: 'Shorebreak — Big Island crew',
+      kind: 'ministry',
+      where: 'Big Island',
+      why: 'People, not a programme.',
+    }),
+  ];
+}
+
 export function seedState() {
   const convictions = seedConvictions();
 
@@ -216,13 +250,14 @@ export function seedState() {
     weighingSince: new Date(new Date().getFullYear() - 4, 0, 1).toISOString().slice(0, 10),
     aim: 'A ministry I could be planted with — where I\'d leave my kids unsupervised, '
       + 'where my son comes back more on mission, that makes disciples and doesn\'t cross my lines.',
-    appliedSeeds: ['antioch', 'consistent-community', 'weighing-since', 'e3-fruit', 'npl-house-churches', 'the-aim', 'npl-is-e3'],
+    appliedSeeds: ['antioch', 'consistent-community', 'weighing-since', 'e3-fruit', 'npl-house-churches', 'the-aim', 'npl-is-e3', 'carrying'],
     domains: DEFAULT_DOMAINS.map((d) => ({ ...d })),
     convictions,
     contexts: [here, e3, antioch],
     checks: [],
     goals: [],
     returns: [],
+    commitments: seedCommitments(antioch.id),
     blocks: [
       {
         id: uid(),

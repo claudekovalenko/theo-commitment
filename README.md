@@ -68,6 +68,43 @@ Underneath the plan, what you've learned so far — the two that decide it, your
 walls, your must-haves, your wife — each tappable to change and to write what you
 actually saw. That's evidence now, not the score.
 
+## What I'm carrying
+
+A separate tab, because it's a separate question. The target is what you might
+say yes to; **Carrying** is what you already said yes to. Three are in there to
+start: the **leadership cohort with Antioch in Hawaii**, **seminary with OTS**,
+and the **Shorebreak Big Island crew**.
+
+**Involvement is a gradient**, so that's what it asks first — *I'm running it ·
+one of the ones holding it up · in it regularly · I show up · loosely attached*.
+The list sorts deepest first and the ring draws each one reaching further out
+the further in you are, because depth is the thing that doesn't divide:
+
+> **Spread thin.** You're leading or holding up 3 of these at once. Depth is the
+> thing that doesn't divide.
+
+**And the question is stewardship, not shedding.** Most of these you don't drop.
+So each one carries how you're holding it — *seeing it through to the end ·
+ongoing, no end in view · could hand it on well · should have ended already* —
+what it's actually getting from you — **my best · enough to do it properly · my
+leftovers** — and what happens when it ends: *finish it and stop · sign on
+again*. Finishing something isn't the same as renewing it, and the app keeps
+those apart.
+
+That's the line it leads with when it applies, and it isn't about quitting:
+
+> **Getting my leftovers.** 2 of these are getting your leftovers. Stewarding
+> something isn't carrying it — it's giving it what it needs.
+
+Under it: hours a week against the number of hours *you* said you have, how many
+you're leading or holding up, how many have no end date, and — if a commitment
+sits somewhere other than the city you're called to — that too, named rather than
+argued with.
+
+A commitment can point at a ministry you're weighing. The cohort points at
+Antioch, so the plate notes it: *"With Antioch — one you're weighing."* Being
+deep in something is already a kind of answer about it.
+
 ## Who I was when I came back
 
 The app asks whether your son would come home sharper or softer. It never asked
@@ -426,6 +463,7 @@ the list.
 | | |
 | --- | --- |
 | **Target** | What I'm going for, each ministry's plan, and the next step |
+| **Carrying** | Everything I've already said yes to, and how well I'm stewarding it |
 | **Convictions** | What I hold, what I'm still settling, my walls, and the models |
 | **In the way** | Everything unsettled, and what would settle it |
 | **Word** | Scripture threads, your studies, and the discernment instrument |
@@ -494,6 +532,7 @@ js/align.js           my theology beside theirs
 js/returns.js         who I was when I came back
 js/patterns.js        reading the entries back, on-device
 js/merge.js           folding two names into one thing
+js/plate.js           what I'm already carrying, and how well
 js/views/aim.js       the target — the screen the app is for
 js/views/*.js         one file per tab, plus settings
 tools/make_icons.py   regenerates icons/ (no dependencies)

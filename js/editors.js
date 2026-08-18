@@ -11,6 +11,7 @@ import { CHURCH_MODELS, MODEL_STANCES } from './models.js';
 import { ALIGN, beliefs, theirsOn } from './align.js';
 import { SELF_LEVELS, CHRIST_LEVELS } from './returns.js';
 import { mergeInto } from './merge.js';
+import { LOAD_KINDS, DEPTH, SERVES, HOLD, GIVING, AFTER } from './plate.js';
 import {
   h, frag, field, input, area, segmented, chipPicker, openSheet, closeSheet,
   confirmSheet, toast,
@@ -1030,5 +1031,110 @@ export function mergeGround(fromId) {
       h('strong', {}, o.name),
       o.myPart ? h('div', { class: 'tiny muted' }, o.myPart) : null)))
       : h('p', { class: 'muted small' }, 'Nothing else on the target to fold it into.'),
+  ));
+}
+
+/* ---------- what I'm already carrying ---------- */
+
+export function editCommitment(existing, defaults = {}) {
+  const c = existing || {
+    id: uid(), name: '', kind: 'ministry', depth: '', hours: '', started: '', ends: '',
+    where: '', groundId: '', why: '', wellDone: '', serves: 'unsure', hold: 'unsure',
+    giving: 'unsure', after: 'unsure', ended: false, ...defaults,
+  };
+  const draft = { ...c };
+
+  openSheet(existing ? draft.name || 'This commitment' : 'Something I\'m already in', () => frag(
+    field('What is it?', input({
+      value: draft.name, placeholder: 'e.g. The leadership cohort',
+      onInput: (e) => { draft.name = e.target.value; },
+    })),
+    field('What kind?', segmented(LOAD_KINDS, draft.kind, (v) => { draft.kind = v; })),
+    field('How far in am I?', segmented(DEPTH, draft.depth, (v) => { draft.depth = v; }),
+      'Involvement is a gradient. Being thin is usually about how many things you\'re near the middle of.'),
+    field('Hours a week, honestly', input({
+      type: 'number', min: '0', step: '0.5', value: draft.hours,
+      placeholder: 'Including the prep and the drive',
+      onInput: (e) => { draft.hours = e.target.value; },
+    })),
+    field('Where', input({
+      value: draft.where || '', placeholder: 'e.g. Hawaii, Big Island, online',
+      onInput: (e) => { draft.where = e.target.value; },
+    }), 'Worth seeing next to the city you said you\'re called to.'),
+    (() => {
+      const ministries = store.get().contexts.filter((x) => x.kind !== 'place');
+      if (!ministries.length) return null;
+      return field('Is this with one of the ministries I\'m weighing?', segmented(
+        [...ministries.map((m) => ({ id: m.id, label: m.name })), { id: '', label: 'No' }],
+        draft.groundId || '', (v) => { draft.groundId = v; },
+      ), 'If it is, being deep in it is already a kind of answer.');
+    })(),
+    field('Since', h('input', { type: 'date', value: draft.started || '', onInput: (e) => { draft.started = e.target.value; } })),
+    field('Until', h('input', { type: 'date', value: draft.ends || '', onInput: (e) => { draft.ends = e.target.value; } }),
+      'Blank means open-ended — worth noticing how many of these have no end.'),
+    field('Does it feed what I\'m going for?', segmented(SERVES, draft.serves, (v) => { draft.serves = v; })),
+    field('How am I holding it?', segmented(HOLD, draft.hold, (v) => { draft.hold = v; }),
+      'Most of these you don\'t drop. The question is how you carry them.'),
+    field('What is it actually getting from me?', segmented(GIVING, draft.giving, (v) => { draft.giving = v; }),
+      'Stewarding something isn\'t carrying it — it\'s giving it what it needs.'),
+    field('And when it ends?', segmented(AFTER, draft.after, (v) => { draft.after = v; })),
+    field('What doing this one well looks like', area({
+      value: draft.wellDone || '', placeholder: 'Concretely. The version of this you\'d be glad you gave it.',
+      onInput: (e) => { draft.wellDone = e.target.value; },
+    })),
+    field('Why I\'m in it', area({
+      value: draft.why, placeholder: 'The reason you said yes. Still true?',
+      onInput: (e) => { draft.why = e.target.value; },
+    })),
+    existing
+      ? h('button', {
+        class: 'btn ghost block', style: 'margin-top:12px',
+        onClick: () => {
+          store.update((st) => {
+            const g = st.commitments.find((x) => x.id === draft.id);
+            g.ended = !g.ended;
+            g.endedAt = g.ended ? today() : '';
+          });
+          closeSheet();
+          toast(draft.ended ? 'Back on the plate' : 'Off the plate');
+        },
+      }, draft.ended ? 'Put it back on the plate' : 'I\'ve finished with this')
+      : null,
+    saveBar(() => {
+      if (!draft.name.trim()) return toast('Name it first');
+      store.update((st) => {
+        if (!st.commitments) st.commitments = [];
+        const i = st.commitments.findIndex((x) => x.id === draft.id);
+        draft.seeded = false;
+        if (i < 0) st.commitments.push({ ...draft, createdAt: new Date().toISOString() });
+        else st.commitments[i] = { ...st.commitments[i], ...draft };
+      });
+      closeSheet();
+      toast('Saved');
+    }, existing ? () => confirmDelete('commitment', (st) => {
+      st.commitments = st.commitments.filter((x) => x.id !== draft.id);
+    }) : null),
+  ));
+}
+
+export function editCapacity() {
+  const state = store.get();
+  let hours = state.settings?.capacityHours || '';
+  openSheet('How many hours do I actually have?', () => frag(
+    h('p', { class: 'small muted' },
+      'Not the hours in a week — the hours left for the things you say yes to, after work, '
+      + 'sleep, your wife and your kids. Your number, not a standard one.'),
+    field('Hours a week', input({
+      type: 'number', min: '0', step: '1', value: hours, placeholder: 'e.g. 15',
+      onInput: (e) => { hours = e.target.value; },
+    })),
+    h('button', {
+      class: 'btn primary block', style: 'margin-top:16px',
+      onClick: () => {
+        store.update((st) => { st.settings.capacityHours = Number(hours) || 0; });
+        closeSheet();
+        toast('Saved');
+      },
+    }, 'Save'),
   ));
 }

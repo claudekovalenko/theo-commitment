@@ -194,7 +194,7 @@ export function importJSON(text, { merge }) {
   if (!merge) {
     state = incoming;
   } else {
-    for (const list of ['domains', 'convictions', 'contexts', 'checks', 'blocks', 'notes', 'people', 'verses', 'discernments', 'barriers', 'goals', 'returns']) {
+    for (const list of ['domains', 'convictions', 'contexts', 'checks', 'blocks', 'notes', 'people', 'verses', 'discernments', 'barriers', 'goals', 'returns', 'commitments']) {
       const have = new Set(state[list].map((r) => r.id));
       state[list].push(...(incoming[list] || []).filter((r) => !have.has(r.id)));
     }
@@ -226,7 +226,7 @@ function migrate(data) {
     version: 3,
     createdAt: new Date().toISOString(),
     domains: [], convictions: [], contexts: [], checks: [], blocks: [], notes: [], people: [],
-    verses: [], discernments: [], modelStances: {}, barriers: [], goals: [], returns: [],
+    verses: [], discernments: [], modelStances: {}, barriers: [], goals: [], returns: [], commitments: [],
     aim: '', weighingSince: '', appliedSeeds: [],
     calling: { placeId: '', place: '', why: '', by: '' },
     settings: {
@@ -448,6 +448,33 @@ function applyLateSeeds(s) {
     const e3 = s.contexts.find((c) => /\be3\b/i.test(c.name || ''));
     if (npl && e3) mergeInto(s, npl.id, e3.id);
     mark('npl-is-e3');
+  }
+
+  // What he's already carrying — named in his own words, so the plate isn't empty
+  // the first time he opens it.
+  if (!done.has('carrying')) {
+    if (!s.commitments) s.commitments = [];
+    const antioch = s.contexts.find((c) => /antioch/i.test(c.name || ''));
+    const mk = (o) => ({
+      id: uid(), name: '', kind: 'other', depth: '', hours: '', where: '', groundId: '',
+      started: '', ends: '', why: '', wellDone: '', serves: 'unsure', hold: 'unsure',
+      giving: 'unsure', after: 'unsure', ended: false, seeded: true,
+      createdAt: new Date().toISOString(), ...o,
+    });
+    [
+      { name: 'Leadership cohort with Antioch', kind: 'cohort', where: 'Hawaii',
+        groundId: antioch?.id || '', hold: 'through', after: 'finish',
+        why: 'Not looking to drop it — seeing it through to the end. Not eager to go back to '
+          + 'Hawaii right now, which is worth saying out loud: finishing it isn\'t the same as renewing it.' },
+      { name: 'Seminary — OTS', kind: 'study', hold: 'through',
+        why: 'A long obedience. Finishing it is the point.' },
+      { name: 'Shorebreak — Big Island crew', kind: 'ministry', where: 'Big Island',
+        why: 'People, not a programme.' },
+    ].forEach((c) => {
+      if (s.commitments.some((x) => x.name === c.name)) return;
+      s.commitments.push(mk(c));
+    });
+    mark('carrying');
   }
 
   s.appliedSeeds = [...done];
