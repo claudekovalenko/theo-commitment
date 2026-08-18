@@ -123,9 +123,14 @@ export function plateRead(state) {
   const elsewhere = called
     ? list.filter((c) => c.where && !c.where.toLowerCase().includes(called))
     : [];
+  // And the other side of the same coin: what's already rooted where you're going.
+  const inCalling = called
+    ? list.filter((c) => (c.where || '').toLowerCase().includes(called))
+    : [];
+  const thanks = list.filter((c) => c.thankful);
 
   const base = { list, hours, capacity, competes, openEnded, throughs, droppable: [], overdue,
-    unpriced, deep, leftovers, best, spread, elsewhere, mixed, named, unnamed };
+    unpriced, deep, leftovers, best, spread, elsewhere, inCalling, thanks, mixed, named, unnamed };
 
   if (!list.length) {
     return { ...base, word: 'Nothing written down', tone: 'unknown',

@@ -120,9 +120,19 @@ which part:
 > **Good in parts — which parts?** Name it and you know what to protect; leave it
 > and the whole thing feels like a drag.
 
-A commitment can point at a ministry you're weighing. The cohort points at
-Antioch, so the plate notes it: *"With Antioch — one you're weighing."* Being
-deep in something is already a kind of answer about it.
+A commitment can point at a ministry you're weighing. Two point at Antioch — the
+cohort and the **supporting work in Hawaii**, which is the clearer of the two —
+so the plate notes it: *"With Antioch — one you're weighing."* Being deep in
+something is already a kind of answer about it.
+
+There's also a field for **what I'm thankful for in it**, because that's worth
+writing while you notice it rather than reconstructing later. The **Bible study
+small group in Los Angeles** carries the one you said out loud: *getting to have
+real conversation with the guys in this group.*
+
+And place cuts both ways. The plate counts what's **already in** the city you're
+called to as well as what's away from it — right now that's one in Los Angeles
+against three in Hawaii and the Big Island. Named, not argued with.
 
 ## Who I was when I came back
 

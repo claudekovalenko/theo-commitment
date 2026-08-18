@@ -468,6 +468,12 @@ function applyLateSeeds(s) {
         why: 'Not looking to drop it — seeing it through to the end. Not amazing all the way, but '
           + 'I really enjoy the preaching part. Not eager to go back to Hawaii right now: '
           + 'finishing it isn\'t the same as renewing it.' },
+      { name: 'Supporting work with Antioch', kind: 'ministry', where: 'Hawaii',
+        groundId: antioch?.id || '', worth: 'rich',
+        why: 'Clearer than the cohort. Supporting work — I know what it is and what it asks.' },
+      { name: 'Bible study small group', kind: 'church', where: 'Los Angeles', worth: 'rich',
+        worthKeeping: 'The conversations with the guys.',
+        thankful: 'Getting to have real conversation with the guys in this group.' },
       { name: 'Seminary — OTS', kind: 'study', hold: 'through',
         why: 'A long obedience. Finishing it is the point.' },
       { name: 'Shorebreak — Big Island crew', kind: 'ministry', where: 'Big Island',

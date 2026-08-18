@@ -162,6 +162,22 @@ function seedCommitments(antiochId) {
         + 'finishing it isn\'t the same as renewing it.',
     }),
     mk({
+      name: 'Supporting work with Antioch',
+      kind: 'ministry',
+      where: 'Hawaii',
+      groundId: antiochId,
+      worth: 'rich',
+      why: 'Clearer than the cohort. Supporting work — I know what it is and what it asks.',
+    }),
+    mk({
+      name: 'Bible study small group',
+      kind: 'church',
+      where: 'Los Angeles',
+      worth: 'rich',
+      worthKeeping: 'The conversations with the guys.',
+      thankful: 'Getting to have real conversation with the guys in this group.',
+    }),
+    mk({
       name: 'Seminary — OTS',
       kind: 'study',
       hold: 'through',

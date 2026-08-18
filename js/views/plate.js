@@ -105,9 +105,8 @@ export function render(state) {
   if (r.best.length) facts.append(line('Getting my best', String(r.best.length), 'good'));
   if (r.leftovers.length) facts.append(line('Getting my leftovers', String(r.leftovers.length), 'bad'));
   if (r.throughs.length) facts.append(line('Seeing through to the end', String(r.throughs.length), 'ok'));
-  if (r.elsewhere.length) {
-    facts.append(line(`Away from ${state.calling?.place}`, String(r.elsewhere.length), 'bad'));
-  }
+  if (r.inCalling.length) facts.append(line(`Already in ${state.calling?.place}`, String(r.inCalling.length), 'good'));
+  if (r.elsewhere.length) facts.append(line(`Away from ${state.calling?.place}`, String(r.elsewhere.length), 'thin'));
   view.append(facts);
 
   /* ---- the list, deepest first ---- */
@@ -140,6 +139,7 @@ export function render(state) {
         return conv ? h('div', { class: 'tiny muted' }, `That's one of your convictions — ${conv.title.toLowerCase()}`) : null;
       })(),
       c.worthLess ? h('div', { class: 'tiny muted' }, `Less so: ${c.worthLess}`) : null,
+      c.thankful ? h('div', { class: 'tiny tone-good' }, `Thankful for: ${c.thankful}`) : null,
       h('div', { class: 'row wrap', style: 'gap:2px 10px; margin-top:4px' },
         wo && wo.id !== 'unsure' ? h('span', { class: `tiny tone-${wo.tone}` }, wo.label) : null,
         gv && gv.id !== 'unsure' ? h('span', { class: `tiny tone-${gv.tone}` }, `Getting ${gv.label.toLowerCase()}`) : null,

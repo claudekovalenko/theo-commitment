@@ -1040,7 +1040,7 @@ export function editCommitment(existing, defaults = {}) {
   const c = existing || {
     id: uid(), name: '', kind: 'ministry', depth: '', hours: '', started: '', ends: '',
     where: '', groundId: '', why: '', wellDone: '', worth: 'unsure', worthKeeping: '',
-    worthLess: '', serves: 'unsure', hold: 'unsure',
+    worthLess: '', thankful: '', serves: 'unsure', hold: 'unsure',
     giving: 'unsure', after: 'unsure', ended: false, ...defaults,
   };
   const draft = { ...c };
@@ -1091,6 +1091,10 @@ export function editCommitment(existing, defaults = {}) {
     field('What doing this one well looks like', area({
       value: draft.wellDone || '', placeholder: 'Concretely. The version of this you\'d be glad you gave it.',
       onInput: (e) => { draft.wellDone = e.target.value; },
+    })),
+    field('What I\'m thankful for in it', area({
+      value: draft.thankful || '', placeholder: 'The thing you\'d actually give thanks for. Worth writing while you notice it.',
+      onInput: (e) => { draft.thankful = e.target.value; },
     })),
     field('Why I\'m in it', area({
       value: draft.why, placeholder: 'The reason you said yes. Still true?',
