@@ -980,8 +980,8 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
         hold: "through",
         after: "finish",
         worth: "mixed",
-        worthKeeping: "The preaching.",
-        why: "Not looking to drop it \u2014 seeing it through to the end. Not amazing all the way, but the preaching part is worth being there for. Not eager to go back to Hawaii right now: finishing it isn't the same as renewing it."
+        worthKeeping: "The preaching \u2014 I really enjoy it.",
+        why: "Not looking to drop it \u2014 seeing it through to the end. Not amazing all the way, but I really enjoy the preaching part. Not eager to go back to Hawaii right now: finishing it isn't the same as renewing it."
       }),
       mk({
         name: "Seminary \u2014 OTS",
@@ -1689,8 +1689,8 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
           hold: "through",
           after: "finish",
           worth: "mixed",
-          worthKeeping: "The preaching.",
-          why: "Not looking to drop it \u2014 seeing it through to the end. Not amazing all the way, but the preaching part is worth being there for. Not eager to go back to Hawaii right now: finishing it isn't the same as renewing it."
+          worthKeeping: "The preaching \u2014 I really enjoy it.",
+          why: "Not looking to drop it \u2014 seeing it through to the end. Not amazing all the way, but I really enjoy the preaching part. Not eager to go back to Hawaii right now: finishing it isn't the same as renewing it."
         },
         {
           name: "Seminary \u2014 OTS",
@@ -2190,6 +2190,13 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
     { id: "unsure", label: "Not sure", tone: "unknown" }
   ];
   var depthWeight = (c) => DEPTH.find((d) => d.id === c.depth)?.weight ?? 0.4;
+  var STOPWORDS = /* @__PURE__ */ new Set(["the", "and", "part", "parts", "with", "for", "that", "this", "some", "more"]);
+  var keyWords = (text) => String(text || "").toLowerCase().split(/[^a-z]+/).filter((w) => w.length > 4 && !STOPWORDS.has(w));
+  function matchesConviction(state2, text) {
+    const want = new Set(keyWords(text));
+    if (!want.size) return null;
+    return state2.convictions.find((c) => keyWords(c.title).some((w) => want.has(w))) || null;
+  }
   var commitments = (state2) => (state2.commitments || []).filter((c) => !c.ended).sort((a, b) => depthWeight(b) - depthWeight(a) || (Number(b.hours) || 0) - (Number(a.hours) || 0));
   function plateRead(state2) {
     const list = commitments(state2);
@@ -2280,9 +2287,10 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
       tone = "unknown";
       why = `${list.length} things, ${hours} hours a week. Say how many hours you actually have and this becomes an answer.`;
     } else if (named.length) {
+      const conv = named.map((c) => matchesConviction(state2, c.worthKeeping)).find(Boolean);
       word = "Carrying it well";
       tone = "good";
-      why = `You know why you're in the mixed ones: ${named.map((c) => `${c.name} \u2014 ${c.worthKeeping}`).join("; ")}. Steward that part and let the rest be ordinary.`;
+      why = `You know why you're in the mixed ones: ${named.map((c) => `${c.name} \u2014 ${c.worthKeeping}`).join("; ")}. ` + (conv ? `And that's one of your own convictions \u2014 ${conv.title.toLowerCase()}. Not a coincidence.` : "Steward that part and let the rest be ordinary.");
     } else {
       word = "Carrying it well";
       tone = "good";
@@ -5376,6 +5384,10 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
         ),
         ministry ? h("div", { class: "tiny" }, `With ${ministry.name} \u2014 one you're weighing`) : null,
         c.worthKeeping ? h("div", { class: "tiny tone-good", style: "margin-top:4px" }, `Worth being there for: ${c.worthKeeping}`) : null,
+        (() => {
+          const conv = c.worthKeeping ? matchesConviction(state2, c.worthKeeping) : null;
+          return conv ? h("div", { class: "tiny muted" }, `That's one of your convictions \u2014 ${conv.title.toLowerCase()}`) : null;
+        })(),
         c.worthLess ? h("div", { class: "tiny muted" }, `Less so: ${c.worthLess}`) : null,
         h(
           "div",

@@ -106,8 +106,14 @@ argued with.
 keeps me here · takes more than it gives* — and then the field that makes it
 useful: **the part worth being there for.**
 
-The cohort is in as *good in parts*, with **the preaching** named as the part.
-That's not a complaint recorded; it's the thing to go and get more of. A
+The cohort is in as *good in parts*, with **the preaching — I really enjoy it**
+named as the part. That's not a complaint recorded; it's the thing to go and get
+more of.
+
+And when the part you're staying for turns out to be one of your own
+convictions, the app says so: *"That's one of your convictions — strong
+preaching."* Not a coincidence — a reading on what you're actually built to do,
+arriving from the direction you weren't looking. A
 commitment marked good-in-parts with nothing named leads the read until you say
 which part:
 

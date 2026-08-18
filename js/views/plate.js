@@ -9,7 +9,9 @@ import { today } from './../store.js';
 import { byId } from './../model.js';
 import { h, empty, section, relDate, fmtDate, daysBetween } from './../ui.js';
 import { editCommitment, editCapacity } from './../editors.js';
-import { LOAD_KINDS, DEPTH, SERVES, HOLD, GIVING, AFTER, WORTH, commitments, plateRead } from './../plate.js';
+import {
+  LOAD_KINDS, DEPTH, SERVES, HOLD, GIVING, AFTER, WORTH, commitments, plateRead, matchesConviction,
+} from './../plate.js';
 
 export const title = 'What I\'m carrying';
 
@@ -133,6 +135,10 @@ export function render(state) {
       c.worthKeeping
         ? h('div', { class: 'tiny tone-good', style: 'margin-top:4px' }, `Worth being there for: ${c.worthKeeping}`)
         : null,
+      (() => {
+        const conv = c.worthKeeping ? matchesConviction(state, c.worthKeeping) : null;
+        return conv ? h('div', { class: 'tiny muted' }, `That's one of your convictions — ${conv.title.toLowerCase()}`) : null;
+      })(),
       c.worthLess ? h('div', { class: 'tiny muted' }, `Less so: ${c.worthLess}`) : null,
       h('div', { class: 'row wrap', style: 'gap:2px 10px; margin-top:4px' },
         wo && wo.id !== 'unsure' ? h('span', { class: `tiny tone-${wo.tone}` }, wo.label) : null,

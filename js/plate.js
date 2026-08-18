@@ -75,6 +75,20 @@ export const GIVING = [
 const depthWeight = (c) => (DEPTH.find((d) => d.id === c.depth)?.weight ?? 0.4);
 
 // Deepest first — how far in you are matters more than how long it takes.
+const STOPWORDS = new Set(['the', 'and', 'part', 'parts', 'with', 'for', 'that', 'this', 'some', 'more']);
+const keyWords = (text) => String(text || '').toLowerCase().split(/[^a-z]+/)
+  .filter((w) => w.length > 4 && !STOPWORDS.has(w));
+
+/**
+ * When the part I'm staying for is one of my own convictions, that isn't a
+ * coincidence — it's a reading on what I'm actually built to do.
+ */
+export function matchesConviction(state, text) {
+  const want = new Set(keyWords(text));
+  if (!want.size) return null;
+  return state.convictions.find((c) => keyWords(c.title).some((w) => want.has(w))) || null;
+}
+
 export const commitments = (state) => (state.commitments || [])
   .filter((c) => !c.ended)
   .sort((a, b) => depthWeight(b) - depthWeight(a) || (Number(b.hours) || 0) - (Number(a.hours) || 0));
@@ -169,10 +183,13 @@ export function plateRead(state) {
     tone = 'unknown';
     why = `${list.length} things, ${hours} hours a week. Say how many hours you actually have and this becomes an answer.`;
   } else if (named.length) {
+    const conv = named.map((c) => matchesConviction(state, c.worthKeeping)).find(Boolean);
     word = 'Carrying it well';
     tone = 'good';
     why = `You know why you're in the mixed ones: ${named.map((c) => `${c.name} — ${c.worthKeeping}`).join('; ')}. `
-      + 'Steward that part and let the rest be ordinary.';
+      + (conv
+        ? `And that's one of your own convictions — ${conv.title.toLowerCase()}. Not a coincidence.`
+        : 'Steward that part and let the rest be ordinary.');
   } else {
     word = 'Carrying it well';
     tone = 'good';
