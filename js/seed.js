@@ -212,6 +212,28 @@ function seedCommitments(antiochId) {
 export function seedState() {
   const convictions = seedConvictions();
 
+  // The peace test, in his words: trusting the leadership, and room to build.
+  convictions.push({
+    id: uid(), domainId: 'ministry',
+    title: 'Leadership I trust deeply',
+    weight: 'core',
+    summary: 'Peace doesn\'t come from the role being good. It comes from trusting the people '
+      + 'over me. Where I don\'t trust the leadership, I hold back — and then I\'m not myself there.',
+    scriptures: 'Hebrews 13:17; 1 Peter 5:1-4; 1 Thessalonians 5:12-13',
+    practice: 'I could put a hard disagreement on the table with them and not brace for it.',
+    forming: '', seeded: true, createdAt: new Date().toISOString(),
+  });
+  convictions.push({
+    id: uid(), domainId: 'ministry',
+    title: 'Room to build without fear',
+    weight: 'core',
+    summary: 'Space to contribute and build without fear — not having to perform agreement, '
+      + 'not waiting to be cut off. Room is a real gift when it\'s given, and I want to say so.',
+    scriptures: '2 Timothy 1:7; 1 John 4:18; Romans 12:6-8',
+    practice: 'I build the thing I actually think is right, and say why, in the room.',
+    forming: '', seeded: true, createdAt: new Date().toISOString(),
+  });
+
   // Both live options in LA run on house churches — one produces them, the other
   // would have him starting them — so this is the conviction the decision waits on.
   convictions.push({
@@ -284,9 +306,10 @@ export function seedState() {
     seeded: true,
     // He's been carrying this question for about four years.
     weighingSince: new Date(new Date().getFullYear() - 4, 0, 1).toISOString().slice(0, 10),
-    aim: 'A ministry I could be planted with — where I\'d leave my kids unsupervised, '
-      + 'where my son comes back more on mission, that makes disciples and doesn\'t cross my lines.',
-    appliedSeeds: ['antioch', 'consistent-community', 'weighing-since', 'e3-fruit', 'npl-house-churches', 'the-aim', 'npl-is-e3', 'carrying'],
+    aim: 'A family in a healthy environment, and healthy disciples in a healthy '
+      + 'environment — both finding that and building it. Where I trust the leadership '
+      + 'deeply and can contribute and build without fear.',
+    appliedSeeds: ['antioch', 'consistent-community', 'weighing-since', 'e3-fruit', 'npl-house-churches', 'the-aim', 'npl-is-e3', 'carrying', 'unrest'],
     domains: DEFAULT_DOMAINS.map((d) => ({ ...d })),
     convictions,
     contexts: [here, e3, antioch],
@@ -356,7 +379,24 @@ export function seedState() {
         createdAt: new Date().toISOString(),
       },
     ],
-    notes: [{
+    notes: [
+    {
+      id: uid(), date: today(), kind: 'hesitation',
+      title: 'Unrest, and trying to put it together',
+      body: 'Unrest in my soul about what kind of family I want, what kind of wife I want, and '
+        + 'what kind of ministry I want — where I\'d feel a peace, where I really trust the '
+        + 'leadership deeply, and where I can contribute and build without any fear.\n\n'
+        + 'With E3 right now I notice a level of struggle with Kyle\'s and JT\'s leadership, even '
+        + 'though I appreciate how much room they give me. I\'m very thankful for the space I have. '
+        + 'I\'m not bringing it up right away — I\'m journaling it, trying to put it together and '
+        + 'work out why the struggle is coming up.\n\n'
+        + 'What I\'m aiming at: building a really healthy family in a healthy environment, and '
+        + 'building healthy disciples in a healthy environment. Both finding and building that '
+        + 'kind of environment.',
+      convictionIds: [], contextIds: [], source: '',
+      seeded: true, createdAt: new Date().toISOString(),
+    },
+    {
       id: noteId,
       date: today(),
       title: 'What I actually want is ground I can build on',
@@ -371,7 +411,16 @@ export function seedState() {
       seeded: true,
       createdAt: new Date().toISOString(),
     }],
-    people: [],
+    people: [
+      { id: uid(), groundId: e3.id, name: 'Kyle', stage: 'conversation',
+        notes: 'Leadership at E3. Struggling with it at the moment, and thankful for the room they give me. '
+          + 'Both are true and both are worth holding.',
+        seeded: true, createdAt: new Date().toISOString() },
+      { id: uid(), groundId: e3.id, name: 'JT', stage: 'conversation',
+        notes: 'Leadership at E3. Struggling with it at the moment, and thankful for the room they give me. '
+          + 'Both are true and both are worth holding.',
+        seeded: true, createdAt: new Date().toISOString() },
+    ],
     verses: [],
     discernments: [],
     modelStances: {

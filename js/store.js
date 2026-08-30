@@ -491,6 +491,67 @@ function applyLateSeeds(s) {
     mark('carrying');
   }
 
+  // The unrest, consolidated in his own words: the peace test as two convictions,
+  // the aim sharpened, Kyle and JT named, and the whole thing written down as a note.
+  if (!done.has('unrest')) {
+    const ministryDomain = s.domains.some((d) => d.id === 'ministry') ? 'ministry' : s.domains[0]?.id;
+    [
+      { title: 'Leadership I trust deeply',
+        summary: 'Peace doesn\'t come from the role being good. It comes from trusting the people '
+          + 'over me. Where I don\'t trust the leadership, I hold back — and then I\'m not myself there.',
+        scriptures: 'Hebrews 13:17; 1 Peter 5:1-4; 1 Thessalonians 5:12-13',
+        practice: 'I could put a hard disagreement on the table with them and not brace for it.' },
+      { title: 'Room to build without fear',
+        summary: 'Space to contribute and build without fear — not having to perform agreement, '
+          + 'not waiting to be cut off. Room is a real gift when it\'s given, and I want to say so.',
+        scriptures: '2 Timothy 1:7; 1 John 4:18; Romans 12:6-8',
+        practice: 'I build the thing I actually think is right, and say why, in the room.' },
+    ].forEach((c) => {
+      if (s.convictions.some((x) => x.title === c.title)) return;
+      s.convictions.push({
+        id: uid(), domainId: ministryDomain, weight: 'core', forming: '',
+        seeded: true, createdAt: new Date().toISOString(), ...c,
+      });
+    });
+
+    s.aim = 'A family in a healthy environment, and healthy disciples in a healthy environment — '
+      + 'both finding that and building it. Where I trust the leadership deeply and can contribute '
+      + 'and build without fear.';
+
+    const e3 = s.contexts.find((c) => /\be3\b/i.test(c.name || ''));
+    if (e3) {
+      ['Kyle', 'JT'].forEach((name) => {
+        if ((s.people || []).some((p) => p.name === name && p.groundId === e3.id)) return;
+        s.people.push({
+          id: uid(), groundId: e3.id, name, stage: 'conversation',
+          notes: 'Leadership at E3. Struggling with it at the moment, and thankful for the room they give me. '
+            + 'Both are true and both are worth holding.',
+          seeded: true, createdAt: new Date().toISOString(),
+        });
+      });
+    }
+
+    if (!s.notes.some((n) => n.title === 'Unrest, and trying to put it together')) {
+      s.notes.push({
+        id: uid(), date: new Date().toISOString().slice(0, 10), kind: 'hesitation',
+        title: 'Unrest, and trying to put it together',
+        body: 'Unrest in my soul about what kind of family I want, what kind of wife I want, and '
+          + 'what kind of ministry I want — where I\'d feel a peace, where I really trust the '
+          + 'leadership deeply, and where I can contribute and build without any fear.\n\n'
+          + 'With E3 right now I notice a level of struggle with Kyle\'s and JT\'s leadership, even '
+          + 'though I appreciate how much room they give me. I\'m very thankful for the space I have. '
+          + 'I\'m not bringing it up right away — I\'m journaling it, trying to put it together and '
+          + 'work out why the struggle is coming up.\n\n'
+          + 'What I\'m aiming at: building a really healthy family in a healthy environment, and '
+          + 'building healthy disciples in a healthy environment. Both finding and building that '
+          + 'kind of environment.',
+        convictionIds: [], contextIds: e3 ? [e3.id] : [], source: '',
+        seeded: true, createdAt: new Date().toISOString(),
+      });
+    }
+    mark('unrest');
+  }
+
   s.appliedSeeds = [...done];
   return done.size !== before;
 }

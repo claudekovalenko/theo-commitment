@@ -1037,6 +1037,30 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
     convictions.push({
       id: uid(),
       domainId: "ministry",
+      title: "Leadership I trust deeply",
+      weight: "core",
+      summary: "Peace doesn't come from the role being good. It comes from trusting the people over me. Where I don't trust the leadership, I hold back \u2014 and then I'm not myself there.",
+      scriptures: "Hebrews 13:17; 1 Peter 5:1-4; 1 Thessalonians 5:12-13",
+      practice: "I could put a hard disagreement on the table with them and not brace for it.",
+      forming: "",
+      seeded: true,
+      createdAt: (/* @__PURE__ */ new Date()).toISOString()
+    });
+    convictions.push({
+      id: uid(),
+      domainId: "ministry",
+      title: "Room to build without fear",
+      weight: "core",
+      summary: "Space to contribute and build without fear \u2014 not having to perform agreement, not waiting to be cut off. Room is a real gift when it's given, and I want to say so.",
+      scriptures: "2 Timothy 1:7; 1 John 4:18; Romans 12:6-8",
+      practice: "I build the thing I actually think is right, and say why, in the room.",
+      forming: "",
+      seeded: true,
+      createdAt: (/* @__PURE__ */ new Date()).toISOString()
+    });
+    convictions.push({
+      id: uid(),
+      domainId: "ministry",
       title: "Where I actually stand on house churches",
       weight: "forming",
       summary: "Not a preference any more. Both live options in LA either produce house churches or would have me starting them, so this is the conviction the decision is waiting on.",
@@ -1093,8 +1117,8 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
       seeded: true,
       // He's been carrying this question for about four years.
       weighingSince: new Date((/* @__PURE__ */ new Date()).getFullYear() - 4, 0, 1).toISOString().slice(0, 10),
-      aim: "A ministry I could be planted with \u2014 where I'd leave my kids unsupervised, where my son comes back more on mission, that makes disciples and doesn't cross my lines.",
-      appliedSeeds: ["antioch", "consistent-community", "weighing-since", "e3-fruit", "npl-house-churches", "the-aim", "npl-is-e3", "carrying"],
+      aim: "A family in a healthy environment, and healthy disciples in a healthy environment \u2014 both finding that and building it. Where I trust the leadership deeply and can contribute and build without fear.",
+      appliedSeeds: ["antioch", "consistent-community", "weighing-since", "e3-fruit", "npl-house-churches", "the-aim", "npl-is-e3", "carrying", "unrest"],
       domains: DEFAULT_DOMAINS.map((d) => ({ ...d })),
       convictions,
       contexts: [here, e3, antioch],
@@ -1164,19 +1188,52 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
           createdAt: (/* @__PURE__ */ new Date()).toISOString()
         }
       ],
-      notes: [{
-        id: noteId,
-        date: today(),
-        title: "What I actually want is ground I can build on",
-        kind: "hesitation",
-        body: `The stress isn't which network to join. It's that I keep not saying "we're building here". I want a place with real community, where my family grows well, where we could still be in ten years. Every offer has to be weighed against that ground, not the other way around.`,
-        convictionIds: [],
-        contextIds: [],
-        source: "",
-        seeded: true,
-        createdAt: (/* @__PURE__ */ new Date()).toISOString()
-      }],
-      people: [],
+      notes: [
+        {
+          id: uid(),
+          date: today(),
+          kind: "hesitation",
+          title: "Unrest, and trying to put it together",
+          body: "Unrest in my soul about what kind of family I want, what kind of wife I want, and what kind of ministry I want \u2014 where I'd feel a peace, where I really trust the leadership deeply, and where I can contribute and build without any fear.\n\nWith E3 right now I notice a level of struggle with Kyle's and JT's leadership, even though I appreciate how much room they give me. I'm very thankful for the space I have. I'm not bringing it up right away \u2014 I'm journaling it, trying to put it together and work out why the struggle is coming up.\n\nWhat I'm aiming at: building a really healthy family in a healthy environment, and building healthy disciples in a healthy environment. Both finding and building that kind of environment.",
+          convictionIds: [],
+          contextIds: [],
+          source: "",
+          seeded: true,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString()
+        },
+        {
+          id: noteId,
+          date: today(),
+          title: "What I actually want is ground I can build on",
+          kind: "hesitation",
+          body: `The stress isn't which network to join. It's that I keep not saying "we're building here". I want a place with real community, where my family grows well, where we could still be in ten years. Every offer has to be weighed against that ground, not the other way around.`,
+          convictionIds: [],
+          contextIds: [],
+          source: "",
+          seeded: true,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString()
+        }
+      ],
+      people: [
+        {
+          id: uid(),
+          groundId: e3.id,
+          name: "Kyle",
+          stage: "conversation",
+          notes: "Leadership at E3. Struggling with it at the moment, and thankful for the room they give me. Both are true and both are worth holding.",
+          seeded: true,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString()
+        },
+        {
+          id: uid(),
+          groundId: e3.id,
+          name: "JT",
+          stage: "conversation",
+          notes: "Leadership at E3. Struggling with it at the moment, and thankful for the room they give me. Both are true and both are worth holding.",
+          seeded: true,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString()
+        }
+      ],
       verses: [],
       discernments: [],
       modelStances: {
@@ -1777,6 +1834,65 @@ mark { background: color-mix(in srgb, var(--amber) 28%, transparent); color: inh
         s.commitments.push(mk(c));
       });
       mark("carrying");
+    }
+    if (!done.has("unrest")) {
+      const ministryDomain = s.domains.some((d) => d.id === "ministry") ? "ministry" : s.domains[0]?.id;
+      [
+        {
+          title: "Leadership I trust deeply",
+          summary: "Peace doesn't come from the role being good. It comes from trusting the people over me. Where I don't trust the leadership, I hold back \u2014 and then I'm not myself there.",
+          scriptures: "Hebrews 13:17; 1 Peter 5:1-4; 1 Thessalonians 5:12-13",
+          practice: "I could put a hard disagreement on the table with them and not brace for it."
+        },
+        {
+          title: "Room to build without fear",
+          summary: "Space to contribute and build without fear \u2014 not having to perform agreement, not waiting to be cut off. Room is a real gift when it's given, and I want to say so.",
+          scriptures: "2 Timothy 1:7; 1 John 4:18; Romans 12:6-8",
+          practice: "I build the thing I actually think is right, and say why, in the room."
+        }
+      ].forEach((c) => {
+        if (s.convictions.some((x) => x.title === c.title)) return;
+        s.convictions.push({
+          id: uid(),
+          domainId: ministryDomain,
+          weight: "core",
+          forming: "",
+          seeded: true,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+          ...c
+        });
+      });
+      s.aim = "A family in a healthy environment, and healthy disciples in a healthy environment \u2014 both finding that and building it. Where I trust the leadership deeply and can contribute and build without fear.";
+      const e3 = s.contexts.find((c) => /\be3\b/i.test(c.name || ""));
+      if (e3) {
+        ["Kyle", "JT"].forEach((name) => {
+          if ((s.people || []).some((p) => p.name === name && p.groundId === e3.id)) return;
+          s.people.push({
+            id: uid(),
+            groundId: e3.id,
+            name,
+            stage: "conversation",
+            notes: "Leadership at E3. Struggling with it at the moment, and thankful for the room they give me. Both are true and both are worth holding.",
+            seeded: true,
+            createdAt: (/* @__PURE__ */ new Date()).toISOString()
+          });
+        });
+      }
+      if (!s.notes.some((n) => n.title === "Unrest, and trying to put it together")) {
+        s.notes.push({
+          id: uid(),
+          date: (/* @__PURE__ */ new Date()).toISOString().slice(0, 10),
+          kind: "hesitation",
+          title: "Unrest, and trying to put it together",
+          body: "Unrest in my soul about what kind of family I want, what kind of wife I want, and what kind of ministry I want \u2014 where I'd feel a peace, where I really trust the leadership deeply, and where I can contribute and build without any fear.\n\nWith E3 right now I notice a level of struggle with Kyle's and JT's leadership, even though I appreciate how much room they give me. I'm very thankful for the space I have. I'm not bringing it up right away \u2014 I'm journaling it, trying to put it together and work out why the struggle is coming up.\n\nWhat I'm aiming at: building a really healthy family in a healthy environment, and building healthy disciples in a healthy environment. Both finding and building that kind of environment.",
+          convictionIds: [],
+          contextIds: e3 ? [e3.id] : [],
+          source: "",
+          seeded: true,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString()
+        });
+      }
+      mark("unrest");
     }
     s.appliedSeeds = [...done];
     return done.size !== before;
